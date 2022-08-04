@@ -13,6 +13,7 @@ namespace undercarriage
         Kanayama(float Kx, float Ky, float Ktheta);
 
         void UpdateRef();
+        void UpdateRef2();
         void ResetTrajectoryIndex();
         std::vector<float> CalcInput(std::vector<float> cur_pos);
         bool GetFlag();

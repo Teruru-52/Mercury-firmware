@@ -26,7 +26,7 @@ namespace hardware
         float sampling_period;
         // default
         // const float gyro_factor = 16.4;
-        const float gyro_factor = 15.6;
+        const float gyro_factor = 15.55;
 
         float theta;
         float gyro_z;

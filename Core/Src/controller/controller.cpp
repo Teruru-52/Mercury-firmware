@@ -5,7 +5,7 @@ namespace undercarriage
     Controller::Controller(float control_period)
         : pid_angle(5.0, 2.0, 0.05, 0.0, control_period),
           pid_rotational_vel(1.1976, 85.1838, -0.00099, 0.0039227, control_period),
-          pid_traslational_vel(6.3676, 84.2256, -0.0393, 0.014351, control_period),
+          pid_traslational_vel(6.8176, 82.0249, -0.033349, 0.023191, control_period),
           pid_ir_sensor_left(1.0, 0.0, 0.0, 0.0, control_period),
           pid_ir_sensor_right(1.0, 0.0, 0.0, 0.0, control_period),
           kanayama(1.0, 1.0, 10.0),
@@ -88,6 +88,33 @@ namespace undercarriage
         if (kanayama.GetFlag())
         {
             kanayama.UpdateRef();
+            ref_vel = kanayama.CalcInput(cur_pos);
+            u_v = pid_traslational_vel.Update(ref_vel[0] - cur_vel[0]) + Tp1_v * ref_vel[0] / Kp_v;
+            u_w = pid_rotational_vel.Update(ref_vel[1] - cur_vel[1]) + Tp1_w * ref_vel[1] / Kp_w;
+            InputVelocity(u_v, u_w);
+
+            x[index_log] = cur_pos[0];
+            y[index_log] = cur_pos[1];
+            theta[index_log] = cur_pos[2];
+            v[index_log] = cur_vel[0];
+            omega[index_log] = cur_vel[1];
+            kanayama_v[index_log] = ref_vel[0];
+            kanayama_w[index_log] = ref_vel[1];
+            index_log++;
+        }
+        else
+        {
+            motor.Brake();
+            kanayama.ResetTrajectoryIndex();
+            flag = false;
+        }
+    }
+
+    void Controller::KanayamaTurnRight90(const std::vector<float> &cur_pos, const std::vector<float> &cur_vel)
+    {
+        if (kanayama.GetFlag())
+        {
+            kanayama.UpdateRef2();
             ref_vel = kanayama.CalcInput(cur_pos);
             u_v = pid_traslational_vel.Update(ref_vel[0] - cur_vel[0]) + Tp1_v * ref_vel[0] / Kp_v;
             u_w = pid_rotational_vel.Update(ref_vel[1] - cur_vel[1]) + Tp1_w * ref_vel[1] / Kp_w;

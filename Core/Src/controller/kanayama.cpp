@@ -27,6 +27,23 @@ namespace undercarriage
         }
     }
 
+    void Kanayama::UpdateRef2()
+    {
+        if (turnleft90.GetFlag())
+        {
+            turnleft90.UpdateRef();
+            ref = turnleft90.GetRef();
+            ref_x = ref[0];
+            ref_y = -ref[1];
+            ref_theta = -ref[2];
+            ref_w = -ref[3];
+        }
+        else
+        {
+            flag = false;
+        }
+    }
+
     void Kanayama::ResetTrajectoryIndex()
     {
         turnleft90.ResetTrajectoryIndex();

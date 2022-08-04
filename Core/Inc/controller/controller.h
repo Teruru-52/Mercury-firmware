@@ -19,6 +19,7 @@ namespace undercarriage
         void PivotTurn90(const std::vector<float> &cur_pos, const std::vector<float> &cur_vel);
         void PivotTurn180(const std::vector<float> &cur_pos, const std::vector<float> &cur_vel);
         void KanayamaTurnLeft90(const std::vector<float> &cur_pos, const std::vector<float> &cur_vel);
+        void KanayamaTurnRight90(const std::vector<float> &cur_pos, const std::vector<float> &cur_vel);
         void GoStraight(const std::vector<float> &cur_pos, const std::vector<float> &cur_vel, const std::vector<uint32_t> &ir_data);
         void InputVelocity(float input_v, float input_w);
         bool GetFlag();
@@ -46,8 +47,8 @@ namespace undercarriage
         std::vector<float> ref_vel{0, 0};
         const float Tp1_w = 31.83;
         const float Kp_w = 144.2;
-        const float Tp1_v = 0.17158;
-        const float Kp_v = 0.8293;
+        const float Tp1_v = 0.18577;
+        const float Kp_v = 0.79586;
         const float ref_v = 0.5064989;
         float ref_w;
         const float ir_straight = 1000;

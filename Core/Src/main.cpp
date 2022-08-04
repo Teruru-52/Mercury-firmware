@@ -113,7 +113,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         if (mode == translation)
         {
           controller.GoStraight(cur_pos, cur_vel, ir_data);
-          if (irsensors.GetFrontWallFlag())
+          static int cnt_trans = 0;
+          cnt_trans++;
+          // if (irsensors.GetFrontWallFlag())
+          if (cnt_trans > 200)
           {
             mode = slalom;
           }
@@ -131,7 +134,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
           if (controller.GetFlag())
           {
-            controller.KanayamaTurnLeft90(cur_pos, cur_vel);
+            controller.KanayamaTurnRight90(cur_pos, cur_vel);
           }
           else
           {
@@ -171,7 +174,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
           // printf("%f, %f\n", cur_pos[2], cur_vel[1]);
           // printf("%f, %f\n", cur_vel[0], cur_vel[1]);
           // printf("%f\n", bat_vol);
-          // printf("%lu, %lu\n", ir_data[2], ir_data[3]);
+          // printf("%lu, %lu,%lu, %lu\n", ir_data[0], ir_data[1], ir_data[2], ir_data[3]);
         }
       }
     }
@@ -238,6 +241,7 @@ int main(void)
   speaker.Beep();
   irsensors.BatteryCheck();
   irsensors.on_all_led();
+  HAL_Delay(1000);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -250,7 +254,7 @@ int main(void)
     if (mode == initialization)
     {
       irsensors.UpdateFrontValue();
-      if (irsensors.StartInitialize())
+      if (!irsensors.StartInitialize())
       {
         speaker.Beep();
         odom.Initialize();
