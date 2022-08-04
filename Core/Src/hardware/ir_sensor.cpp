@@ -8,12 +8,12 @@ namespace hardware
 
     void IRsensor::on_front_led()
     {
-        __HAL_TIM_SET_COMPARE(&htim10, TIM_CHANNEL_1, 200);
+        __HAL_TIM_SET_COMPARE(&htim10, TIM_CHANNEL_1, 50);
     }
 
     void IRsensor::on_side_led()
     {
-        __HAL_TIM_SET_COMPARE(&htim11, TIM_CHANNEL_1, 200);
+        __HAL_TIM_SET_COMPARE(&htim11, TIM_CHANNEL_1, 50);
     }
 
     void IRsensor::off_front_led()
