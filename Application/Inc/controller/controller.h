@@ -3,9 +3,9 @@
 
 #include "main.h"
 #include <vector>
-#include "hardware/motor.h"
-#include "controller/pid_controller.h"
-#include "controller/kanayama.h"
+#include "../hardware/motor.h"
+#include "../controller/pid_controller.h"
+#include "../controller/kanayama.h"
 
 namespace undercarriage
 {

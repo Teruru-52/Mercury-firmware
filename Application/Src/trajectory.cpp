@@ -1,4 +1,4 @@
-#include "trajectory.h"
+#include "../Inc/trajectory.h"
 
 namespace trajectory
 {

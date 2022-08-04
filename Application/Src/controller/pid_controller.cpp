@@ -1,4 +1,4 @@
-#include "controller/pid_controller.h"
+#include "../../Inc/controller/pid_controller.h"
 
 Integrator::Integrator(float control_period)
     : control_period(control_period),

@@ -3,7 +3,7 @@
 
 #include "main.h"
 #include <vector>
-#include "trajectory.h"
+#include "../trajectory.h"
 
 namespace undercarriage
 {

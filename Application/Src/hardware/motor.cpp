@@ -1,4 +1,4 @@
-#include "hardware/motor.h"
+#include "../../Inc/hardware/motor.h"
 
 namespace hardware
 {

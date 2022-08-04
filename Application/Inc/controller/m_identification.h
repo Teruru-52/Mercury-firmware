@@ -3,8 +3,8 @@
 
 #include "main.h"
 #include <vector>
-#include "hardware/motor.h"
-#include "trajectory.h"
+#include "../hardware/motor.h"
+#include "../trajectory.h"
 
 namespace undercarriage
 {

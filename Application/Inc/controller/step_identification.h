@@ -3,7 +3,7 @@
 
 #include "main.h"
 #include <vector>
-#include "hardware/motor.h"
+#include "../hardware/motor.h"
 
 namespace undercarriage
 {

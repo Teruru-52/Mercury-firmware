@@ -2,7 +2,7 @@
 #define HARDWARE_MOTOR_HPP_
 
 #include "main.h"
-#include "hardware/ir_sensor.h"
+#include "ir_sensor.h"
 
 namespace hardware
 {

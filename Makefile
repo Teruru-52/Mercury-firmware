@@ -73,6 +73,10 @@ $(wildcard Core/Src/*.cpp) \
 $(wildcard Core/Src/hardware/*.cpp) \
 $(wildcard Core/Src/controller/*.cpp) \
 $(wildcard MazeSolver2015/*.cpp) \
+$(wildcard MazeSolver2015/*.cpp) \
+$(wildcard Application/Src/*.cpp) \
+$(wildcard Application/Src/hardware/*.cpp) \
+$(wildcard Application/Src/controller/*.cpp) \
 
 # ASM sources
 ASM_SOURCES =  \
@@ -136,8 +140,9 @@ AS_INCLUDES =
 # C includes
 C_INCLUDES =  \
 -ICore/Inc \
--ICore/Inc/hardware \
--ICore/Inc/controller \
+-IApplication/Inc \
+-IApplication/Inc/hardware \
+-IApplication/Inc/controller \
 -IDrivers/STM32F4xx_HAL_Driver/Inc \
 -IDrivers/STM32F4xx_HAL_Driver/Inc/Legacy \
 -IDrivers/CMSIS/Device/ST/STM32F4xx/Include \
