@@ -14,6 +14,9 @@
                 "target/stm32f4x.cfg"
                 // "board/st_nucleo_f4.cfg"
             ],
+            "postLaunchCommands": [
+                "monitor arm semihosting enable"
+            ]
         }
     ]
 }
