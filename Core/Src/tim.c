@@ -91,7 +91,7 @@ void MX_TIM2_Init(void)
 
   /* USER CODE END TIM2_Init 1 */
   htim2.Instance = TIM2;
-  htim2.Init.Prescaler = 48;
+  htim2.Init.Prescaler = 48-1;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim2.Init.Period = 1000-1;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -388,7 +388,7 @@ void MX_TIM11_Init(void)
 
   /* USER CODE END TIM11_Init 1 */
   htim11.Instance = TIM11;
-  htim11.Init.Prescaler = 480-1;
+  htim11.Init.Prescaler = 48-1;
   htim11.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim11.Init.Period = 100-1;
   htim11.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -735,17 +735,17 @@ void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef* tim_baseHandle)
     /* TIM1 interrupt Deinit */
   /* USER CODE BEGIN TIM1:TIM1_UP_TIM10_IRQn disable */
     /**
-    * Uncomment the line below to disable the "TIM1_UP_TIM10_IRQn" interrupt
-    * Be aware, disabling shared interrupt may affect other IPs
-    */
+     * Uncomment the line below to disable the "TIM1_UP_TIM10_IRQn" interrupt
+     * Be aware, disabling shared interrupt may affect other IPs
+     */
     /* HAL_NVIC_DisableIRQ(TIM1_UP_TIM10_IRQn); */
   /* USER CODE END TIM1:TIM1_UP_TIM10_IRQn disable */
 
   /* USER CODE BEGIN TIM1:TIM1_TRG_COM_TIM11_IRQn disable */
     /**
-    * Uncomment the line below to disable the "TIM1_TRG_COM_TIM11_IRQn" interrupt
-    * Be aware, disabling shared interrupt may affect other IPs
-    */
+     * Uncomment the line below to disable the "TIM1_TRG_COM_TIM11_IRQn" interrupt
+     * Be aware, disabling shared interrupt may affect other IPs
+     */
     /* HAL_NVIC_DisableIRQ(TIM1_TRG_COM_TIM11_IRQn); */
   /* USER CODE END TIM1:TIM1_TRG_COM_TIM11_IRQn disable */
 
@@ -775,9 +775,9 @@ void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef* tim_baseHandle)
     /* TIM10 interrupt Deinit */
   /* USER CODE BEGIN TIM10:TIM1_UP_TIM10_IRQn disable */
     /**
-    * Uncomment the line below to disable the "TIM1_UP_TIM10_IRQn" interrupt
-    * Be aware, disabling shared interrupt may affect other IPs
-    */
+     * Uncomment the line below to disable the "TIM1_UP_TIM10_IRQn" interrupt
+     * Be aware, disabling shared interrupt may affect other IPs
+     */
     /* HAL_NVIC_DisableIRQ(TIM1_UP_TIM10_IRQn); */
   /* USER CODE END TIM10:TIM1_UP_TIM10_IRQn disable */
 
@@ -796,9 +796,9 @@ void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef* tim_baseHandle)
     /* TIM11 interrupt Deinit */
   /* USER CODE BEGIN TIM11:TIM1_TRG_COM_TIM11_IRQn disable */
     /**
-    * Uncomment the line below to disable the "TIM1_TRG_COM_TIM11_IRQn" interrupt
-    * Be aware, disabling shared interrupt may affect other IPs
-    */
+     * Uncomment the line below to disable the "TIM1_TRG_COM_TIM11_IRQn" interrupt
+     * Be aware, disabling shared interrupt may affect other IPs
+     */
     /* HAL_NVIC_DisableIRQ(TIM1_TRG_COM_TIM11_IRQn); */
   /* USER CODE END TIM11:TIM1_TRG_COM_TIM11_IRQn disable */
 
