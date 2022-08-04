@@ -70,9 +70,6 @@ Core/Src/system_stm32f4xx.c \
 # CPP sources
 CPP_SOURCES = \
 $(wildcard Core/Src/*.cpp) \
-$(wildcard Core/Src/hardware/*.cpp) \
-$(wildcard Core/Src/controller/*.cpp) \
-$(wildcard MazeSolver2015/*.cpp) \
 $(wildcard MazeSolver2015/*.cpp) \
 $(wildcard Application/Src/*.cpp) \
 $(wildcard Application/Src/hardware/*.cpp) \
