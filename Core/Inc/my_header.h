@@ -10,4 +10,10 @@
 #include "controller/m_identification.h"
 #include "controller/step_identification.h"
 
+#include "../../MazeSolver2015/MazeSolver_conf.h"
+#include "../../MazeSolver2015/Maze.h"
+#include "../../MazeSolver2015/mazeData.h"
+#include "../../MazeSolver2015/ShortestPath.h"
+#include "../../MazeSolver2015/Agent.h"
+
 #endif // _MY_HEADER_H_
