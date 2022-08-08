@@ -49,7 +49,7 @@ namespace undercarriage
         turnleft90.ResetTrajectoryIndex();
     }
 
-    std::vector<float> Kanayama::CalcInput(std::vector<float> cur_pos)
+    std::vector<float> Kanayama::CalcInput(const std::vector<float> &cur_pos)
     {
         x_e = (ref_x - cur_pos[0]) * cos(cur_pos[2]) + (ref_y - cur_pos[1]) * sin(cur_pos[2]);
         y_e = -(ref_x - cur_pos[0]) * sin(cur_pos[2]) + (ref_y - cur_pos[1]) * cos(cur_pos[2]);
