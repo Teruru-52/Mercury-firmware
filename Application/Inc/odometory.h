@@ -21,6 +21,7 @@ namespace undercarriage
         float x;
         float y;
         float theta;
+        float l;
         std::vector<float> cur_pos{0, 0, 0};
         std::vector<float> cur_vel{0, 0};
 
@@ -33,6 +34,7 @@ namespace undercarriage
         void Reset();
         std::vector<float> GetPosition();
         std::vector<float> GetVelocity();
+        float GetLength();
         void OutputLog();
     };
 } //  namespace undercarriage
