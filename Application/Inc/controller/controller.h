@@ -6,6 +6,11 @@
 #include "../hardware/motor.h"
 #include "../controller/pid_controller.h"
 #include "../controller/kanayama.h"
+#include "../state.h"
+#include "Operation.h"
+
+#define FORWARD_LENGTH1 0.13
+#define FORWARD_LENGTH2 0.18
 
 namespace undercarriage
 {
@@ -15,12 +20,16 @@ namespace undercarriage
         Controller(float control_period);
 
         void UpdateBatteryVoltage(float bat_vol);
+        void robotMove(const Operation &op, const std::vector<float> &cur_pos, const std::vector<float> &cur_vel, const std::vector<uint32_t> &ir_data, float l);
+        void robotMove(const Direction &dir);
+        void robotMove(const State::Mode &mode, const std::vector<float> &cur_pos, const std::vector<float> &cur_vel, const std::vector<uint32_t> &ir_data, float l);
+        void SetBase(const std::vector<float> &cur_pos, float l);
         void PartyTrick(const std::vector<float> &cur_pos, const std::vector<float> &cur_vel);
         void PivotTurn90(const std::vector<float> &cur_pos, const std::vector<float> &cur_vel);
         void PivotTurn180(const std::vector<float> &cur_pos, const std::vector<float> &cur_vel);
         void KanayamaTurnLeft90(const std::vector<float> &cur_pos, const std::vector<float> &cur_vel);
         void KanayamaTurnRight90(const std::vector<float> &cur_pos, const std::vector<float> &cur_vel);
-        void GoStraight(const std::vector<float> &cur_pos, const std::vector<float> &cur_vel, const std::vector<uint32_t> &ir_data);
+        void GoStraight(const std::vector<float> &cur_pos, const std::vector<float> &cur_vel, const std::vector<uint32_t> &ir_data, float l);
         void InputVelocity(float input_v, float input_w);
         bool GetFlag();
         void ResetFlag();
@@ -53,7 +62,12 @@ namespace undercarriage
         float ref_w;
         const float ir_straight = 1000;
         bool flag;
+        bool base_flag;
         int index_log;
+        std::vector<float> def_cur_pos{0, 0, 0};
+        float def_l;
+        std::vector<float> base_cur_pos{0, 0, 0};
+        float base_l;
         float *x;
         float *y;
         float *theta;

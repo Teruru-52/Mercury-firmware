@@ -9,7 +9,7 @@ namespace undercarriage
           pid_ir_sensor_left(1.0, 0.0, 0.0, 0.0, control_period),
           pid_ir_sensor_right(1.0, 0.0, 0.0, 0.0, control_period),
           kanayama(1.0, 1.0, 10.0),
-          flag(true),
+          flag(false),
           index_log(0)
     {
         // ref_size = pivot_turn180.GetRefSize();
@@ -27,6 +27,62 @@ namespace undercarriage
     void Controller::UpdateBatteryVoltage(float bat_vol)
     {
         motor.UpdateBatteryVoltage(bat_vol);
+    }
+
+    void Controller::robotMove(const Operation &op, const std::vector<float> &cur_pos, const std::vector<float> &cur_vel, const std::vector<uint32_t> &ir_data, float l)
+    {
+        flag = false;
+        switch (op.op)
+        {
+        case Operation::FORWARD:
+            GoStraight(cur_pos, cur_vel, ir_data, l);
+            break;
+        case Operation::TURN_LEFT90:
+            KanayamaTurnLeft90(cur_pos, cur_vel);
+            break;
+        case Operation::TURN_RIGHT90:
+            KanayamaTurnRight90(cur_pos, cur_vel);
+            break;
+        case Operation::STOP:
+            motor.Brake();
+            break;
+        default:
+            break;
+        }
+    }
+
+    void Controller::robotMove(const Direction &dir)
+    {
+    }
+
+    void Controller::robotMove(const State::Mode &mode, const std::vector<float> &cur_pos, const std::vector<float> &cur_vel, const std::vector<uint32_t> &ir_data, float l)
+    {
+        flag = false;
+        switch (mode)
+        {
+        case State::FORWARD:
+            GoStraight(cur_pos, cur_vel, ir_data, l);
+            break;
+        case State::TURN_LEFT90:
+            KanayamaTurnLeft90(cur_pos, cur_vel);
+            break;
+        case State::PIVOT_TURN90:
+            PivotTurn90(cur_pos, cur_vel);
+            break;
+        case State::PIVOT_TURN180:
+            PivotTurn180(cur_pos, cur_vel);
+            break;
+        default:
+            break;
+        }
+    }
+
+    void Controller::SetBase(const std::vector<float> &cur_pos, float l)
+    {
+        base_cur_pos[0] = cur_pos[0];
+        base_cur_pos[1] = cur_pos[1];
+        base_cur_pos[2] = cur_pos[2];
+        base_l = l;
     }
 
     void Controller::PartyTrick(const std::vector<float> &cur_pos, const std::vector<float> &cur_vel)
@@ -56,7 +112,7 @@ namespace undercarriage
             motor.Brake();
             pivot_turn90.ResetTrajectoryIndex();
             pivot_turn90.ResetFlag();
-            flag = false;
+            flag = true;
         }
     }
 
@@ -78,7 +134,7 @@ namespace undercarriage
         {
             motor.Brake();
             pivot_turn180.ResetTrajectoryIndex();
-            flag = false;
+            flag = true;
             pivot_turn180.ResetFlag();
         }
     }
@@ -88,14 +144,18 @@ namespace undercarriage
         if (kanayama.GetFlag())
         {
             kanayama.UpdateRef();
-            ref_vel = kanayama.CalcInput(cur_pos);
+            for (int i = 0; i < 3; i++)
+            {
+                def_cur_pos[i] = cur_pos[i] - base_cur_pos[i];
+            }
+            ref_vel = kanayama.CalcInput(def_cur_pos);
             u_v = pid_traslational_vel.Update(ref_vel[0] - cur_vel[0]) + Tp1_v * ref_vel[0] / Kp_v;
             u_w = pid_rotational_vel.Update(ref_vel[1] - cur_vel[1]) + Tp1_w * ref_vel[1] / Kp_w;
             InputVelocity(u_v, u_w);
 
-            x[index_log] = cur_pos[0];
-            y[index_log] = cur_pos[1];
-            theta[index_log] = cur_pos[2];
+            x[index_log] = def_cur_pos[0];
+            y[index_log] = def_cur_pos[1];
+            theta[index_log] = def_cur_pos[2];
             v[index_log] = cur_vel[0];
             omega[index_log] = cur_vel[1];
             kanayama_v[index_log] = ref_vel[0];
@@ -106,7 +166,7 @@ namespace undercarriage
         {
             motor.Brake();
             kanayama.ResetTrajectoryIndex();
-            flag = false;
+            flag = true;
         }
     }
 
@@ -115,14 +175,18 @@ namespace undercarriage
         if (kanayama.GetFlag())
         {
             kanayama.UpdateRef2();
-            ref_vel = kanayama.CalcInput(cur_pos);
+            for (int i = 0; i < 3; i++)
+            {
+                def_cur_pos[i] = cur_pos[i] - base_cur_pos[i];
+            }
+            ref_vel = kanayama.CalcInput(def_cur_pos);
             u_v = pid_traslational_vel.Update(ref_vel[0] - cur_vel[0]) + Tp1_v * ref_vel[0] / Kp_v;
             u_w = pid_rotational_vel.Update(ref_vel[1] - cur_vel[1]) + Tp1_w * ref_vel[1] / Kp_w;
             InputVelocity(u_v, u_w);
 
-            x[index_log] = cur_pos[0];
-            y[index_log] = cur_pos[1];
-            theta[index_log] = cur_pos[2];
+            x[index_log] = def_cur_pos[0];
+            y[index_log] = def_cur_pos[1];
+            theta[index_log] = def_cur_pos[2];
             v[index_log] = cur_vel[0];
             omega[index_log] = cur_vel[1];
             kanayama_v[index_log] = ref_vel[0];
@@ -133,14 +197,19 @@ namespace undercarriage
         {
             motor.Brake();
             kanayama.ResetTrajectoryIndex();
-            flag = false;
+            flag = true;
         }
     }
 
-    void Controller::GoStraight(const std::vector<float> &cur_pos, const std::vector<float> &cur_vel, const std::vector<uint32_t> &ir_data)
+    void Controller::GoStraight(const std::vector<float> &cur_pos, const std::vector<float> &cur_vel, const std::vector<uint32_t> &ir_data, float l)
     {
+        def_l = l - base_l;
+        if (def_l >= FORWARD_LENGTH1)
+        {
+            flag = true;
+        }
         u_v = pid_traslational_vel.Update(ref_v - cur_vel[0]) + Tp1_v * ref_v / Kp_v;
-        // u_w = pid_ir_sensor_left.Update((float)(ir_straight - ir_data[2])) + pid_ir_sensor_right.Update((float)(ir_straight - ir_data[3])) + pid_angle.Update(-cur_pos[2]);
+        // u_w = pid_ir_sensor_left.Update((float)(ir_straight - ir_data[2])) + pid_ir_sensor_right.Update((float)(ir_straight - ir_data[3])) + pid_angle.Update(-(cur_pos[2] - base_cur_pos[2]));
         u_w = pid_angle.Update(-cur_pos[2]);
         InputVelocity(u_v, u_w);
     }
@@ -159,7 +228,8 @@ namespace undercarriage
 
     void Controller::ResetFlag()
     {
-        flag = true;
+        flag = false;
+        index_log = 0;
     }
 
     float Controller::GetInput()
@@ -175,6 +245,7 @@ namespace undercarriage
 
     void Controller::OutputLog()
     {
+        // printf("%f\n", def_l);
         // printf("%f, %f\n", u_v, u_w);
         for (int i = 0; i < ref_size; i++)
         {
