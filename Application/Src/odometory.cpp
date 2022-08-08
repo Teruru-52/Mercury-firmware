@@ -7,7 +7,8 @@ namespace undercarriage
         imu(sampling_period),
         sampling_period(sampling_period),
         x(0),
-        y(0) {}
+        y(0),
+        l(0) {}
 
   void Odometory::Initialize()
   {
@@ -31,6 +32,7 @@ namespace undercarriage
     theta = imu.GetAngle();
     x += v * cos(theta) * sampling_period;
     y += v * sin(theta) * sampling_period;
+    l += v * sampling_period;
   }
 
   void Odometory::IMU_Update()
@@ -51,6 +53,11 @@ namespace undercarriage
     cur_vel[0] = v;
     cur_vel[1] = omega;
     return cur_vel;
+  }
+
+  float Odometory::GetLength()
+  {
+    return l;
   }
 
   void Odometory::OutputLog()
