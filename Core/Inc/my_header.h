@@ -9,6 +9,7 @@
 #include "../../Application/Inc/digital_filter.h"
 #include "../../Application/Inc/controller/m_identification.h"
 #include "../../Application/Inc/controller/step_identification.h"
+#include "../../Application/Inc/state.h"
 
 #include "MazeSolver_conf.h"
 #include "Maze.h"
