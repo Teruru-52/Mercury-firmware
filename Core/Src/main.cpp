@@ -40,6 +40,8 @@
 Maze maze;
 Maze maze_backup;
 Agent agent(maze);
+Agent::State prevState = Agent::IDLE;
+State state;
 
 hardware::LED led;
 hardware::IRsensor irsensors(2300);
@@ -71,32 +73,52 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-char mode = 'i';
+Direction wallData;
+IndexVec robotPos;
 
-char initialization = 'i';
+char mode = 'i';
 char slalom = 's';
 char translation = 't';
-char pivot_turn = 'p';
-char stop_movement = 'x';
-char control = 'c';
-char output = 'o';
-char wait = 'w';
 
 int cnt16kHz = 0;
 int cnt1kHz = 0;
 int cnt_pivot = 0;
 
 float bat_vol;
-bool flag_interruption = false;
-bool flag_odometory = true;
 
+float l;
 std::vector<float> cur_pos{0, 0, 0};
 std::vector<float> cur_vel{0, 0};
 std::vector<uint32_t> ir_data{0, 0, 0, 0};
 
+void Initialize()
+{
+  irsensors.UpdateFrontValue();
+  if (!irsensors.StartInitialize())
+  {
+    speaker.Beep();
+    odom.Initialize();
+    speaker.Beep();
+    state.interruption = State::INTERRUPT;
+    state.mode = State::FORWARD;
+  }
+}
+
+void UpdateSensorData()
+{
+  bat_vol = irsensors.GetBatteryVoltage();
+  controller.UpdateBatteryVoltage(bat_vol);
+  irsensors.Update();
+  ir_data = irsensors.GetIRSensorData();
+  odom.Update();
+  l = odom.GetLength();
+  cur_pos = odom.GetPosition();
+  cur_vel = odom.GetVelocity();
+}
+
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-  if (flag_interruption)
+  if (state.interruption == State::INTERRUPT)
   {
     if (htim == &htim1) // interruption 16kHz
     {
@@ -108,63 +130,43 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
       if (cnt16kHz == 0) // interruption 1kHz
       {
         cnt1kHz = (cnt1kHz + 1) % 1000;
-        bat_vol = irsensors.GetBatteryVoltage();
-        controller.UpdateBatteryVoltage(bat_vol);
-        irsensors.Update();
-        ir_data = irsensors.GetIRSensorData();
-        odom.Update();
-        cur_pos = odom.GetPosition();
-        cur_vel = odom.GetVelocity();
+        UpdateSensorData();
 
-        if (mode == translation)
+        if (state.mode == State::FORWARD)
         {
-          controller.GoStraight(cur_pos, cur_vel, ir_data);
-          static int cnt_trans = 0;
-          cnt_trans++;
-          // if (irsensors.GetFrontWallFlag())
-          if (cnt_trans > 200)
-          {
-            mode = slalom;
-          }
-        }
-
-        else if (mode == slalom)
-        {
-          if (flag_odometory)
-          {
-            odom.Reset();
-            cur_pos = odom.GetPosition();
-            cur_vel = odom.GetVelocity();
-            flag_odometory = false;
-          }
-
+          controller.GoStraight(cur_pos, cur_vel, ir_data, l);
           if (controller.GetFlag())
           {
-            controller.KanayamaTurnRight90(cur_pos, cur_vel);
-          }
-          else
-          {
-            flag_interruption = false;
-            mode = output;
-          }
-        }
-
-        else if (mode == pivot_turn)
-        {
-          // if (controller.GetFlag() && cnt_pivot < 10)
-          if (controller.GetFlag())
-          {
-            controller.PivotTurn180(cur_pos, cur_vel);
-          }
-          else
-          {
-            flag_interruption = false;
+            controller.SetBase(cur_pos, l);
             controller.ResetFlag();
-            // mode = wait;
+            state.mode = State::TURN_LEFT90;
+          }
+        }
+
+        else if (state.mode == State::TURN_LEFT90)
+        {
+          controller.KanayamaTurnLeft90(cur_pos, cur_vel);
+          if (controller.GetFlag())
+          {
+            controller.ResetFlag();
+            state.mode = State::OUTPUT;
+            state.interruption = State::NOT_INTERRUPT;
+          }
+        }
+
+        else if (state.mode == State::PIVOT_TURN90)
+        {
+          // if (!controller.GetFlag() && cnt_pivot < 10)
+          if (controller.GetFlag())
+          {
+            state.interruption = State::NOT_INTERRUPT;
+            controller.ResetFlag();
+            // state.mode == State::WAIT;
             // cnt_pivot++;
 
-            mode = output;
+            state.mode = State::OUTPUT;
           }
+          controller.PivotTurn90(cur_pos, cur_vel);
         }
 
         if (cnt1kHz == 0)
@@ -176,6 +178,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
         if (cnt1kHz % 200 == 0)
         {
+          // controller.OutputLog();
           // printf("%f, %f\n", cur_pos[0], cur_pos[1]);
           // printf("%f, %f\n", cur_pos[2], cur_vel[1]);
           // printf("%f, %f\n", cur_vel[0], cur_vel[1]);
@@ -257,23 +260,48 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    if (mode == initialization)
+    if (state.mode == State::INITIALIZE)
     {
-      irsensors.UpdateFrontValue();
-      if (!irsensors.StartInitialize())
-      {
-        speaker.Beep();
-        odom.Initialize();
-        speaker.Beep();
-        flag_interruption = true;
-        mode = translation;
-      }
+      Initialize();
     }
 
     else
     {
       odom.IMU_Update();
-      if (mode == output)
+
+      //壁情報を更新 次に進むべき方向を計算
+      // agent.update(robotPos, wallData);
+
+      // FINISHEDになったら計測走行にうつる
+      // if (agent.getState() == Agent::FINISHED)
+      // {
+      //ロボットを停止させ、スタートする向きに戻す
+      // robotPositionInit();
+      //最短経路の計算 割と時間がかかる(数秒)
+      // agent.calcRunSequence(false);
+      // const OperationList &runSequence = agent.getRunSequence();
+      // for (size_t i = 0; i < runSequence.size(); i++)
+      // {
+      // Operationの実行が終わるまで待つ(nマス進んだ,右に曲がった)
+      // while (!operationFinished())
+      //   ;
+
+      // i番目のを実行
+      // robotMove(runSequence[i]); // robotMode関数はOperation型を受け取ってそれを実行する関数
+      // }
+      // }
+      //ゴールにたどり着いた瞬間に一度だけmazeのバックアップをとる
+      // if (prev_State == Agent::SEARCHING_NOT_GOAL && agent.getState() == SEARCHING_REACHED_GOAL)
+      // {
+      //   maze_backup = maze;
+      // }
+      // prev_State = agent.getState();
+
+      // Agentの状態が探索中の場合は次に進むべき方向を取得する
+      // Direction nextDir = agent.getNextDirection();
+      // robotMove(nextDir);  //robotMove関数はDirection型を受け取ってロボットをそっちに動かす関数
+
+      if (state.mode == State::OUTPUT)
       {
         if (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_2) == 0)
         {
@@ -281,14 +309,15 @@ int main(void)
           // step_identification.OutputLog();
         }
       }
-      else if (mode == wait)
+
+      else if (state.mode == State::WAIT)
       {
         HAL_Delay(500);
-        mode = pivot_turn;
-        flag_interruption = true;
+        state.mode = State::PIVOT_TURN90;
+        state.interruption = State::INTERRUPT;
       }
     }
-  }
+  } // end while
   /* USER CODE END 3 */
 }
 
