@@ -18,8 +18,10 @@ namespace undercarriage
         float sampling_period; // [s]
         float v;
         float omega;
-        float x;
-        float y;
+        float x_global;
+        float y_global;
+        float x_local;
+        float y_local;
         float theta;
         float l;
         std::vector<float> cur_pos{0, 0, 0};
@@ -30,8 +32,9 @@ namespace undercarriage
 
         void Initialize();
         void Update();
-        void IMU_Update();
+        void UpdateIMU();
         void Reset();
+        void ResetTheta();
         std::vector<float> GetPosition();
         std::vector<float> GetVelocity();
         float GetLength();

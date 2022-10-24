@@ -893,6 +893,7 @@ namespace trajectory
         void UpdateRef();
         std::vector<float> GetRef();
         bool GetFlag();
+        void ResetFlag();
 
     private:
         int index;

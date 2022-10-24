@@ -19,6 +19,7 @@ public:
         TURN_LEFT90,
         PIVOT_TURN90,
         PIVOT_TURN180,
+        BACK,
         OUTPUT,
         WAIT,
         ELSE

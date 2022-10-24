@@ -40,14 +40,13 @@
 Maze maze;
 Maze maze_backup;
 Agent agent(maze);
-Agent::State prevState = Agent::IDLE;
+Agent::State prevState = Agent::State::IDLE;
 State state;
 
 hardware::LED led;
 hardware::IRsensor irsensors(2300);
 hardware::Speaker speaker;
-undercarriage::Odometory odom(0.001);
-undercarriage::Controller controller(0.001);
+undercarriage::Controller controller(0.001, 0.001);
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -76,19 +75,10 @@ void SystemClock_Config(void);
 Direction wallData;
 IndexVec robotPos;
 
-char mode = 'i';
-char slalom = 's';
-char translation = 't';
-
 int cnt16kHz = 0;
 int cnt1kHz = 0;
-int cnt_pivot = 0;
 
 float bat_vol;
-
-float l;
-std::vector<float> cur_pos{0, 0, 0};
-std::vector<float> cur_vel{0, 0};
 std::vector<uint32_t> ir_data{0, 0, 0, 0};
 
 void Initialize()
@@ -97,10 +87,11 @@ void Initialize()
   if (!irsensors.StartInitialize())
   {
     speaker.Beep();
-    odom.Initialize();
+    controller.InitializeOdometory();
     speaker.Beep();
     state.interruption = State::INTERRUPT;
-    state.mode = State::FORWARD;
+    // state.mode = State::FORWARD;
+    state.mode = State::PIVOT_TURN180;
   }
 }
 
@@ -110,10 +101,7 @@ void UpdateSensorData()
   controller.UpdateBatteryVoltage(bat_vol);
   irsensors.Update();
   ir_data = irsensors.GetIRSensorData();
-  odom.Update();
-  l = odom.GetLength();
-  cur_pos = odom.GetPosition();
-  cur_vel = odom.GetVelocity();
+  controller.UpdateOdometory();
 }
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
@@ -132,41 +120,48 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         cnt1kHz = (cnt1kHz + 1) % 1000;
         UpdateSensorData();
 
-        if (state.mode == State::FORWARD)
-        {
-          controller.GoStraight(cur_pos, cur_vel, ir_data, l);
-          if (controller.GetFlag())
-          {
-            controller.SetBase(cur_pos, l);
-            controller.ResetFlag();
-            state.mode = State::TURN_LEFT90;
-          }
-        }
+        // controller.robotMove(state.mode, ir_data);
+        // if (controller.GetFlag())
+        // {
+        //   controller.Reset();
+        //   if (state.mode == State::FORWARD)
+        //   {
+        //     controller.SetBase();
+        //     state.mode = State::TURN_LEFT90;
+        //   }
+        //   else if (state.mode == State::TURN_LEFT90)
+        //   {
+        //     // static int cnt = 0;
+        //     // if (cnt > 2)
+        //     // {
+        //     controller.Brake();
+        //     state.mode = State::OUTPUT;
+        //     state.interruption = State::NOT_INTERRUPT;
+        //     // }
+        //     // else
+        //     // {
+        //     //   cnt++;
+        //     //   state.mode = State::FORWARD;
+        //     // }
+        //   }
+        // }
 
-        else if (state.mode == State::TURN_LEFT90)
+        if (state.mode == State::PIVOT_TURN180)
         {
-          controller.KanayamaTurnLeft90(cur_pos, cur_vel);
+          controller.PivotTurn180();
           if (controller.GetFlag())
           {
-            controller.ResetFlag();
-            state.mode = State::OUTPUT;
-            state.interruption = State::NOT_INTERRUPT;
-          }
-        }
-
-        else if (state.mode == State::PIVOT_TURN90)
-        {
-          // if (!controller.GetFlag() && cnt_pivot < 10)
-          if (controller.GetFlag())
-          {
-            state.interruption = State::NOT_INTERRUPT;
-            controller.ResetFlag();
+            controller.Reset();
+            static int cnt_pivot = 0;
+            cnt_pivot++;
             // state.mode == State::WAIT;
-            // cnt_pivot++;
-
-            state.mode = State::OUTPUT;
+            if (cnt_pivot >= 10)
+            {
+              controller.Brake();
+              state.mode = State::OUTPUT;
+              state.interruption = State::NOT_INTERRUPT;
+            }
           }
-          controller.PivotTurn90(cur_pos, cur_vel);
         }
 
         if (cnt1kHz == 0)
@@ -179,9 +174,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         if (cnt1kHz % 200 == 0)
         {
           // controller.OutputLog();
-          // printf("%f, %f\n", cur_pos[0], cur_pos[1]);
-          // printf("%f, %f\n", cur_pos[2], cur_vel[1]);
-          // printf("%f, %f\n", cur_vel[0], cur_vel[1]);
           // printf("%f\n", bat_vol);
           // printf("%lu, %lu,%lu, %lu\n", ir_data[0], ir_data[1], ir_data[2], ir_data[3]);
         }
@@ -267,8 +259,10 @@ int main(void)
 
     else
     {
-      odom.IMU_Update();
+      controller.UpdateIMU();
 
+      // wallData = controller.getWallData(ir_data);
+      // robotPos = controller.getRobotPosition();
       //壁情報を更新 次に進むべき方向を計算
       // agent.update(robotPos, wallData);
 

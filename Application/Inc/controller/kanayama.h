@@ -14,7 +14,7 @@ namespace undercarriage
 
         void UpdateRef();
         void UpdateRef2();
-        void ResetTrajectoryIndex();
+        void Reset();
         std::vector<float> CalcInput(const std::vector<float> &cur_pos);
         bool GetFlag();
 

@@ -6,8 +6,10 @@ namespace undercarriage
       : encoder(sampling_period),
         imu(sampling_period),
         sampling_period(sampling_period),
-        x(0),
-        y(0),
+        x_global(0),
+        y_global(0),
+        x_local(0),
+        y_local(0),
         l(0) {}
 
   void Odometory::Initialize()
@@ -18,8 +20,13 @@ namespace undercarriage
 
   void Odometory::Reset()
   {
-    x = 0;
-    y = 0;
+    x_local = 0;
+    y_local = 0;
+    l = 0;
+  }
+
+  void Odometory::ResetTheta()
+  {
     imu.ResetTheta();
   }
 
@@ -30,20 +37,22 @@ namespace undercarriage
     v = encoder.GetVelocity();
     omega = imu.GetAngularVelocity();
     theta = imu.GetAngle();
-    x += v * cos(theta) * sampling_period;
-    y += v * sin(theta) * sampling_period;
+    x_local += v * cos(theta) * sampling_period;
+    y_local += v * sin(theta) * sampling_period;
+    // x_gloabl += x_local;
+    // y_global += y_local;
     l += v * sampling_period;
   }
 
-  void Odometory::IMU_Update()
+  void Odometory::UpdateIMU()
   {
     imu.Update();
   }
 
   std::vector<float> Odometory::GetPosition()
   {
-    cur_pos[0] = x;
-    cur_pos[1] = y;
+    cur_pos[0] = x_local;
+    cur_pos[1] = y_local;
     cur_pos[2] = theta;
     return cur_pos;
   }

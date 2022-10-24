@@ -44,9 +44,11 @@ namespace undercarriage
         }
     }
 
-    void Kanayama::ResetTrajectoryIndex()
+    void Kanayama::Reset()
     {
         turnleft90.ResetTrajectoryIndex();
+        turnleft90.ResetFlag();
+        flag = true;
     }
 
     std::vector<float> Kanayama::CalcInput(const std::vector<float> &cur_pos)

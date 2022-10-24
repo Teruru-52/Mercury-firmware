@@ -135,6 +135,11 @@ namespace trajectory
         return flag;
     }
 
+    void TurnLeft90::ResetFlag()
+    {
+        flag = true;
+    }
+
     // M Sequence
     M_sequence::M_sequence()
         : index(0),
