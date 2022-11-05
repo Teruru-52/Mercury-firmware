@@ -17,6 +17,7 @@ public:
         INITIALIZE,
         FORWARD,
         TURN_LEFT90,
+        TURN_RIGHT90,
         PIVOT_TURN90,
         PIVOT_TURN180,
         BACK,
