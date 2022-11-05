@@ -163,11 +163,12 @@ namespace hardware
         {
             led.on_side_left();
         }
+        printf("%f [V]", bat_vol);
     }
 
     bool IRsensor::StartInitialize()
     {
-        if (ir_sl > 2700 && ir_sr > 2700)
+        if (ir_sl > 2500 && ir_sr > 2500)
             return true;
         else
             return false;
