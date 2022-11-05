@@ -51,13 +51,17 @@ switch 0
 end
 
 %% 設定情報
+% pattern 1
 % 点列の間隔 [mm]
-dx = 0.51;
+dx = 0.41;
 % 角速度と角加速度を設定
-% omega_dot = 150 * pi;
-% omega_max = 5 * pi;
-omega_dot = 40 * pi;
-omega_max = 3 * pi;
+omega_dot = pi;
+omega_max =  0.3 * pi;
+
+% pattern2
+% dx = 0.51;
+% omega_dot = 40 * pi;
+% omega_max = 3 * pi;
 
 %% 必要情報の算出
 % スタートポジションの同時変換行列を生成
