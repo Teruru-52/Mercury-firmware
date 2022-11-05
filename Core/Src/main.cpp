@@ -44,7 +44,7 @@ Agent::State prevState = Agent::State::IDLE;
 State state;
 
 hardware::LED led;
-hardware::IRsensor irsensors(2300);
+hardware::IRsensor irsensors(2400);
 hardware::Speaker speaker;
 undercarriage::Controller controller(0.001, 0.001);
 /* USER CODE END PTD */
@@ -86,16 +86,19 @@ void Initialize()
   irsensors.UpdateFrontValue();
   if (!irsensors.StartInitialize())
   {
+    bat_vol = irsensors.GetBatteryVoltage();
+    printf("%f [V]", bat_vol);
     speaker.Beep();
     controller.InitializeOdometory();
     speaker.Beep();
     state.interruption = State::INTERRUPT;
     // state.mode = State::FORWARD;
-    state.mode = State::PIVOT_TURN180;
+    state.mode = State::OUTPUT;
+    // state.mode = State::PIVOT_TURN180;
   }
 }
 
-void UpdateSensorData()
+void UpdateUndercarriage()
 {
   bat_vol = irsensors.GetBatteryVoltage();
   controller.UpdateBatteryVoltage(bat_vol);
@@ -118,31 +121,35 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
       if (cnt16kHz == 0) // interruption 1kHz
       {
         cnt1kHz = (cnt1kHz + 1) % 1000;
-        UpdateSensorData();
+        UpdateUndercarriage();
 
         // controller.robotMove(state.mode, ir_data);
         // if (controller.GetFlag())
         // {
         //   controller.Reset();
-        //   if (state.mode == State::FORWARD)
+
+        //   if (state.mode == State::PIVOT_TURN90)
+        //   {
+        //     controller.Brake();
+        //     state.mode = State::OUTPUT;
+        //     state.interruption = State::NOT_INTERRUPT;
+        //   }
+        //   else if (state.mode == State::PIVOT_TURN180)
+        //   {
+        //     controller.Brake();
+        //     state.mode = State::OUTPUT;
+        //     state.interruption = State::NOT_INTERRUPT;
+        //   }
+        //   else if (state.mode == State::FORWARD)
         //   {
         //     controller.SetBase();
         //     state.mode = State::TURN_LEFT90;
         //   }
         //   else if (state.mode == State::TURN_LEFT90)
         //   {
-        //     // static int cnt = 0;
-        //     // if (cnt > 2)
-        //     // {
         //     controller.Brake();
         //     state.mode = State::OUTPUT;
         //     state.interruption = State::NOT_INTERRUPT;
-        //     // }
-        //     // else
-        //     // {
-        //     //   cnt++;
-        //     //   state.mode = State::FORWARD;
-        //     // }
         //   }
         // }
 
@@ -164,6 +171,46 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
           }
         }
 
+        else if (state.mode == State::PIVOT_TURN90)
+        {
+          controller.PivotTurn90();
+          if (controller.GetFlag())
+          {
+            controller.Reset();
+            static int cnt_pivot = 0;
+            cnt_pivot++;
+            // state.mode == State::WAIT;
+            if (cnt_pivot >= 12)
+            {
+              controller.Brake();
+              state.mode = State::OUTPUT;
+              state.interruption = State::NOT_INTERRUPT;
+            }
+          }
+        }
+
+        else if (state.mode == State::FORWARD)
+        {
+          controller.GoStraight(ir_data);
+          if (controller.GetFlag())
+          {
+            controller.Reset();
+            state.mode = State::TURN_LEFT90;
+          }
+        }
+
+        else if (state.mode == State::TURN_LEFT90)
+        {
+          // controller.KanayamaTurnLeft90();
+          controller.KanayamaTurnRight90();
+          if (controller.GetFlag())
+          {
+            controller.Brake();
+            state.mode = State::OUTPUT;
+            state.interruption = State::NOT_INTERRUPT;
+          }
+        }
+
         if (cnt1kHz == 0)
         {
           led.on_back_right();
@@ -176,6 +223,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
           // controller.OutputLog();
           // printf("%f\n", bat_vol);
           // printf("%lu, %lu,%lu, %lu\n", ir_data[0], ir_data[1], ir_data[2], ir_data[3]);
+          printf("%lu, %lu\n", ir_data[2], ir_data[3]);
         }
       }
     }
