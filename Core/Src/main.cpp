@@ -83,17 +83,15 @@ std::vector<uint32_t> ir_data{0, 0, 0, 0};
 
 void Initialize()
 {
-  irsensors.UpdateFrontValue();
-  if (!irsensors.StartInitialize())
+  irsensors.UpdateSideValue();
+  if (irsensors.StartInitialize())
   {
-    bat_vol = irsensors.GetBatteryVoltage();
-    printf("%f [V]", bat_vol);
     speaker.Beep();
     controller.InitializeOdometory();
     speaker.Beep();
     state.interruption = State::INTERRUPT;
-    // state.mode = State::FORWARD;
-    state.mode = State::OUTPUT;
+    state.mode = State::FORWARD;
+    // state.mode = State::OUTPUT;
     // state.mode = State::PIVOT_TURN180;
   }
 }
@@ -218,7 +216,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         else
           led.off_back_right();
 
-        if (cnt1kHz % 200 == 0)
+        if (cnt1kHz % 500 == 0)
         {
           // controller.OutputLog();
           // printf("%f\n", bat_vol);
