@@ -167,7 +167,7 @@ namespace hardware
 
     bool IRsensor::StartInitialize()
     {
-        if (ir_fl > 2700 && ir_fr > 2700)
+        if (ir_sl > 2700 && ir_sr > 2700)
             return true;
         else
             return false;
