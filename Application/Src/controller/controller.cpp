@@ -77,9 +77,7 @@ namespace undercarriage
             u_w = pid_rotational_vel.Update(ref_w - cur_vel[1]) + Tp1_w * ref_w / Kp_w;
             InputVelocity(u_v, u_w);
 
-            theta[index_log] = cur_pos[2];
-            omega[index_log] = cur_vel[1];
-            index_log++;
+            Logger();
         }
         else
         {
@@ -100,9 +98,7 @@ namespace undercarriage
             u_w = pid_rotational_vel.Update(ref_w - cur_vel[1]) + Tp1_w * ref_w / Kp_w;
             InputVelocity(u_v, u_w);
 
-            theta[index_log] = cur_pos[2];
-            omega[index_log] = cur_vel[1];
-            index_log++;
+            Logger();
         }
         else
         {
@@ -126,14 +122,7 @@ namespace undercarriage
             u_w = pid_rotational_vel.Update(ref_vel[1] - cur_vel[1]) + Tp1_w * ref_vel[1] / Kp_w;
             InputVelocity(u_v, u_w);
 
-            x[index_log] = cur_pos[0];
-            y[index_log] = cur_pos[1];
-            theta[index_log] = cur_pos[2];
-            v[index_log] = cur_vel[0];
-            omega[index_log] = cur_vel[1];
-            kanayama_v[index_log] = ref_vel[0];
-            kanayama_w[index_log] = ref_vel[1];
-            index_log++;
+            Logger();
         }
         else
         {
@@ -156,14 +145,7 @@ namespace undercarriage
             u_w = pid_rotational_vel.Update(ref_vel[1] - cur_vel[1]) + Tp1_w * ref_vel[1] / Kp_w;
             InputVelocity(u_v, u_w);
 
-            x[index_log] = cur_pos[0];
-            y[index_log] = cur_pos[1];
-            theta[index_log] = cur_pos[2];
-            v[index_log] = cur_vel[0];
-            omega[index_log] = cur_vel[1];
-            kanayama_v[index_log] = ref_vel[0];
-            kanayama_w[index_log] = ref_vel[1];
-            index_log++;
+            Logger();
         }
         else
         {
@@ -232,6 +214,18 @@ namespace undercarriage
     void Controller::MotorTest(float v_left, float v_right)
     {
         motor.Drive(v_left, v_right); // voltage [V]
+    }
+
+    void Controller::Logger()
+    {
+        x[index_log] = cur_pos[0];
+        y[index_log] = cur_pos[1];
+        theta[index_log] = cur_pos[2];
+        v[index_log] = cur_vel[0];
+        omega[index_log] = cur_vel[1];
+        kanayama_v[index_log] = ref_vel[0];
+        kanayama_w[index_log] = ref_vel[1];
+        index_log++;
     }
 
     void Controller::OutputLog()

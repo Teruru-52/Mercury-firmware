@@ -39,6 +39,7 @@ namespace undercarriage
         bool GetFlag();
         void Reset();
         void MotorTest(float v_left, float v_right);
+        void Logger();
         void OutputLog();
 
         Direction getWallData(const std::vector<uint32_t> &ir_data);
