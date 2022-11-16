@@ -263,7 +263,6 @@ namespace undercarriage
             PivotTurnRight90();
             if (GetFlag())
             {
-                Brake();
                 Reset();
                 blind_state.mode = State::FRONT_WALL_CORRECTION;
             }
@@ -273,7 +272,6 @@ namespace undercarriage
             FrontWallCorrection(ir_data);
             if (GetFlag())
             {
-                Brake();
                 Reset();
                 blind_state.mode = State::PIVOT_TURN_LEFT90;
             }
@@ -283,7 +281,6 @@ namespace undercarriage
             PivotTurnLeft90();
             if (GetFlag())
             {
-                Brake();
                 Reset();
                 blind_state.mode = State::BACK;
             }
@@ -293,7 +290,6 @@ namespace undercarriage
             Back();
             if (GetFlag())
             {
-                Brake();
                 Reset();
                 ref_l = FORWARD_LENGTH3;
                 blind_state.mode = State::FORWARD;
@@ -304,7 +300,6 @@ namespace undercarriage
             GoStraight(ir_data);
             if (GetFlag())
             {
-                Brake();
                 blind_state.mode = State::PIVOT_TURN_RIGHT90;
             }
         }
