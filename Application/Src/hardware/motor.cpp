@@ -21,7 +21,7 @@ namespace hardware
         if (duty_left > max_input)
             duty_left = max_input;
         else if (duty_left < -max_input)
-            duty_left = max_input;
+            duty_left = -max_input;
 
         if (duty_right > max_input)
             duty_right = max_input;

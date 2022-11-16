@@ -12,7 +12,7 @@
 #include "Maze.h"
 #include "Agent.h"
 
-#define FORWARD_LENGTH1 0.1
+#define FORWARD_LENGTH1 0.144
 #define FORWARD_LENGTH2 0.18
 
 namespace undercarriage
@@ -28,12 +28,14 @@ namespace undercarriage
         void UpdateIMU();
         void SetBase();
         void PartyTrick();
-        void PivotTurn90();
+        void PivotTurnRight90();
+        void PivotTurnLeft90();
         void PivotTurn180();
         void KanayamaTurnLeft90();
         void KanayamaTurnRight90();
         void GoStraight(const std::vector<uint32_t> &ir_data);
         void Back();
+        void FrontWallCorrection(const std::vector<uint32_t> &ir_data);
         void Brake();
         void InputVelocity(float input_v, float input_w);
         bool GetFlag();
@@ -54,8 +56,8 @@ namespace undercarriage
         PID pid_angle;
         PID pid_rotational_vel;
         PID pid_traslational_vel;
-        PID pid_ir_sensor_left;
-        PID pid_ir_sensor_right;
+        PID pid_ir_sensor_front;
+        PID pid_ir_sensor_side;
         undercarriage::Kanayama kanayama;
         trajectory::PivotTurn180 pivot_turn180;
         trajectory::PivotTurn90 pivot_turn90;
@@ -74,7 +76,10 @@ namespace undercarriage
         float ref_w;
         float ref_l;
         float ref_theta;
-        const float ir_straight = 1000;
+        const float ir_fl_base = 2220;
+        const float ir_fr_base = 2280;
+        const float ir_sl_base = 3400;
+        const float ir_sr_base = 3400;
         bool flag;
         int cnt;
         int index_log;
@@ -94,6 +99,7 @@ namespace undercarriage
         int prev_wall_cnt = 0;
         IndexVec robot_position;
         Direction robot_dir;
+        // int8_t robot_dir_index = 0;
     };
 } // namespace undercarriage
 

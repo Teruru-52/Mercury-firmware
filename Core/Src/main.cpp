@@ -90,9 +90,12 @@ void Initialize()
     controller.InitializeOdometory();
     speaker.Beep();
     state.interruption = State::INTERRUPT;
-    state.mode = State::FORWARD;
-    // state.mode = State::OUTPUT;
-    // state.mode = State::PIVOT_TURN180;
+    // state.mode = State::BACK;
+    // state.mode = State::FORWARD;
+    // state.mode = State::ELSE;
+    // state.mode = State::PIVOT_TURN_LEFT90;
+    // state.mode = State::FRONT_WALL_CORRECTION;
+    state.mode = State::PIVOT_TURN_RIGHT90;
   }
 }
 
@@ -151,39 +154,47 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         //   }
         // }
 
-        if (state.mode == State::PIVOT_TURN180)
+        if (state.mode == State::PIVOT_TURN_RIGHT90)
         {
-          controller.PivotTurn180();
+          controller.PivotTurnRight90();
           if (controller.GetFlag())
           {
             controller.Reset();
-            static int cnt_pivot = 0;
-            cnt_pivot++;
-            // state.mode == State::WAIT;
-            if (cnt_pivot >= 10)
-            {
-              controller.Brake();
-              state.mode = State::OUTPUT;
-              state.interruption = State::NOT_INTERRUPT;
-            }
+            controller.Brake();
+            state.mode = State::FRONT_WALL_CORRECTION;
           }
         }
 
-        else if (state.mode == State::PIVOT_TURN90)
+        else if (state.mode == State::PIVOT_TURN_LEFT90)
         {
-          controller.PivotTurn90();
+          controller.PivotTurnLeft90();
           if (controller.GetFlag())
           {
             controller.Reset();
-            static int cnt_pivot = 0;
-            cnt_pivot++;
-            // state.mode == State::WAIT;
-            if (cnt_pivot >= 12)
-            {
-              controller.Brake();
-              state.mode = State::OUTPUT;
-              state.interruption = State::NOT_INTERRUPT;
-            }
+            controller.Brake();
+            state.mode = State::BACK;
+          }
+        }
+
+        else if (state.mode == State::FRONT_WALL_CORRECTION)
+        {
+          controller.FrontWallCorrection(ir_data);
+          if (controller.GetFlag())
+          {
+            controller.Reset();
+            controller.Brake();
+            state.mode = State::PIVOT_TURN_LEFT90;
+          }
+        }
+
+        else if (state.mode == State::BACK)
+        {
+          controller.Back();
+          if (controller.GetFlag())
+          {
+            controller.Reset();
+            controller.Brake();
+            state.mode = State::FORWARD;
           }
         }
 
@@ -193,16 +204,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
           if (controller.GetFlag())
           {
             controller.Reset();
-            state.mode = State::TURN_LEFT90;
-          }
-        }
-
-        else if (state.mode == State::TURN_LEFT90)
-        {
-          // controller.KanayamaTurnLeft90();
-          controller.KanayamaTurnRight90();
-          if (controller.GetFlag())
-          {
             controller.Brake();
             state.mode = State::OUTPUT;
             state.interruption = State::NOT_INTERRUPT;
@@ -353,7 +354,7 @@ int main(void)
       else if (state.mode == State::WAIT)
       {
         HAL_Delay(500);
-        state.mode = State::PIVOT_TURN90;
+        state.mode = State::PIVOT_TURN_LEFT90;
         state.interruption = State::INTERRUPT;
       }
     }
