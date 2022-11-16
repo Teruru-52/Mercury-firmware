@@ -10,6 +10,7 @@ namespace undercarriage
           pid_ir_sensor_front(0.001, 0.001, 0.0, 0.0, control_period),
           pid_ir_sensor_side(0.001, 0.001, 0.0, 0.0, control_period),
           kanayama(3.0, 3.0, 10.0),
+          blind_state(State::PIVOT_TURN_RIGHT90),
           ref_l(FORWARD_LENGTH1),
           ref_theta(0),
           flag(false),
@@ -252,6 +253,60 @@ namespace undercarriage
         else
         {
             flag = true;
+        }
+    }
+
+    void Controller::BlindAlley(const std::vector<uint32_t> &ir_data)
+    {
+        if (blind_state.mode == State::PIVOT_TURN_RIGHT90)
+        {
+            PivotTurnRight90();
+            if (GetFlag())
+            {
+                Brake();
+                Reset();
+                blind_state.mode = State::FRONT_WALL_CORRECTION;
+            }
+        }
+        if (blind_state.mode == State::FRONT_WALL_CORRECTION)
+        {
+            FrontWallCorrection(ir_data);
+            if (GetFlag())
+            {
+                Brake();
+                Reset();
+                blind_state.mode = State::PIVOT_TURN_LEFT90;
+            }
+        }
+        if (blind_state.mode == State::PIVOT_TURN_LEFT90)
+        {
+            PivotTurnLeft90();
+            if (GetFlag())
+            {
+                Brake();
+                Reset();
+                blind_state.mode = State::BACK;
+            }
+        }
+        if (blind_state.mode == State::BACK)
+        {
+            Back();
+            if (GetFlag())
+            {
+                Brake();
+                Reset();
+                ref_l = FORWARD_LENGTH3;
+                blind_state.mode = State::FORWARD;
+            }
+        }
+        if (blind_state.mode == State::FORWARD)
+        {
+            GoStraight(ir_data);
+            if (GetFlag())
+            {
+                Brake();
+                blind_state.mode = State::PIVOT_TURN_RIGHT90;
+            }
         }
     }
 

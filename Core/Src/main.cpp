@@ -93,9 +93,7 @@ void Initialize()
     // state.mode = State::BACK;
     // state.mode = State::FORWARD;
     // state.mode = State::ELSE;
-    // state.mode = State::PIVOT_TURN_LEFT90;
-    // state.mode = State::FRONT_WALL_CORRECTION;
-    state.mode = State::PIVOT_TURN_RIGHT90;
+    state.mode = State::BLIND_ALLEY;
   }
 }
 
@@ -154,53 +152,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         //   }
         // }
 
-        if (state.mode == State::PIVOT_TURN_RIGHT90)
+        if (state.mode == State::BLIND_ALLEY)
         {
-          controller.PivotTurnRight90();
-          if (controller.GetFlag())
-          {
-            controller.Reset();
-            controller.Brake();
-            state.mode = State::FRONT_WALL_CORRECTION;
-          }
-        }
-
-        else if (state.mode == State::PIVOT_TURN_LEFT90)
-        {
-          controller.PivotTurnLeft90();
-          if (controller.GetFlag())
-          {
-            controller.Reset();
-            controller.Brake();
-            state.mode = State::BACK;
-          }
-        }
-
-        else if (state.mode == State::FRONT_WALL_CORRECTION)
-        {
-          controller.FrontWallCorrection(ir_data);
-          if (controller.GetFlag())
-          {
-            controller.Reset();
-            controller.Brake();
-            state.mode = State::PIVOT_TURN_LEFT90;
-          }
-        }
-
-        else if (state.mode == State::BACK)
-        {
-          controller.Back();
-          if (controller.GetFlag())
-          {
-            controller.Reset();
-            controller.Brake();
-            state.mode = State::FORWARD;
-          }
-        }
-
-        else if (state.mode == State::FORWARD)
-        {
-          controller.GoStraight(ir_data);
+          controller.BlindAlley(ir_data);
           if (controller.GetFlag())
           {
             controller.Reset();
