@@ -27,7 +27,7 @@ plot(ref_x,ref_y,'LineWidth',2);
 pbaspect([1 1 1]);
 xlabel('$x$ [m]','Interpreter','latex','FontSize',25);
 ylabel('$y$ [m]','Interpreter','latex','FontSize',25);
-legend('data','ref','Interpreter','latex','Location','northwest','FontSize',15)
+legend('data','ref','Interpreter','latex','Location','northwest','FontSize',20)
 h_axes = gca;
 h_axes.XAxis.FontSize = 25;
 h_axes.YAxis.FontSize = 25;
