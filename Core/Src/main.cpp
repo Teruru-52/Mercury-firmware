@@ -41,6 +41,7 @@ Maze maze;
 Maze maze_backup;
 Agent agent(maze);
 Agent::State prevState = Agent::State::IDLE;
+Direction nextDir;
 State state;
 
 hardware::LED led;
@@ -90,10 +91,7 @@ void Initialize()
     controller.InitializeOdometory();
     speaker.Beep();
     state.interruption = State::INTERRUPT;
-    // state.mode = State::BACK;
-    // state.mode = State::FORWARD;
-    // state.mode = State::ELSE;
-    state.mode = State::BLIND_ALLEY;
+    state.mode = State::START_MOVE;
   }
 }
 
@@ -122,46 +120,45 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         cnt1kHz = (cnt1kHz + 1) % 1000;
         UpdateUndercarriage();
 
-        // controller.robotMove(state.mode, ir_data);
-        // if (controller.GetFlag())
-        // {
-        //   controller.Reset();
-
-        //   if (state.mode == State::PIVOT_TURN90)
-        //   {
-        //     controller.Brake();
-        //     state.mode = State::OUTPUT;
-        //     state.interruption = State::NOT_INTERRUPT;
-        //   }
-        //   else if (state.mode == State::PIVOT_TURN180)
-        //   {
-        //     controller.Brake();
-        //     state.mode = State::OUTPUT;
-        //     state.interruption = State::NOT_INTERRUPT;
-        //   }
-        //   else if (state.mode == State::FORWARD)
-        //   {
-        //     controller.SetBase();
-        //     state.mode = State::TURN_LEFT90;
-        //   }
-        //   else if (state.mode == State::TURN_LEFT90)
-        //   {
-        //     controller.Brake();
-        //     state.mode = State::OUTPUT;
-        //     state.interruption = State::NOT_INTERRUPT;
-        //   }
-        // }
-
-        if (state.mode == State::BLIND_ALLEY)
+        if (state.mode == State::START_MOVE)
         {
-          controller.BlindAlley(ir_data);
+          controller.StartMove(ir_data);
           if (controller.GetFlag())
           {
             controller.Reset();
-            controller.Brake();
-            state.mode = State::OUTPUT;
-            state.interruption = State::NOT_INTERRUPT;
+            wallData = 0x0E;
+            robotPos = controller.getRobotPosition();
+            agent.update(robotPos, wallData);
+            nextDir = NORTH;
+            controller.UpdatePos(nextDir);
+            state.mode = State::SEARCH;
           }
+        }
+
+        else if (state.mode == State::SEARCH)
+        {
+          controller.robotMove(nextDir, ir_data);
+          if (controller.GetFlag())
+          {
+            controller.Reset();
+            wallData = controller.getWallData(ir_data);
+            robotPos = controller.getRobotPosition();
+            agent.update(robotPos, wallData);
+            nextDir = agent.getNextDirection();
+            controller.UpdatePos(nextDir);
+          }
+          if (prevState == Agent::SEARCHING_NOT_GOAL && agent.getState() == Agent::SEARCHING_REACHED_GOAL)
+          {
+            state.interruption = State::NOT_INTERRUPT;
+            state.mode = State::OUTPUT;
+          }
+          // if (agent.getState() == Agent::FINISHED)
+          // {
+          //   state.interruption = State::NOT_INTERRUPT;
+          //   state.mode = State::OUTPUT;
+          // }
+
+          prevState = agent.getState();
         }
 
         if (cnt1kHz == 0)
@@ -173,10 +170,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
         if (cnt1kHz % 500 == 0)
         {
-          // controller.OutputLog();
+          controller.OutputLog();
           // printf("%f\n", bat_vol);
           // printf("%lu, %lu,%lu, %lu\n", ir_data[0], ir_data[1], ir_data[2], ir_data[3]);
-          printf("%lu, %lu\n", ir_data[2], ir_data[3]);
+          // printf("%lu, %lu\n", ir_data[2], ir_data[3]);
         }
       }
     }
@@ -257,61 +254,30 @@ int main(void)
     {
       Initialize();
     }
-
     else
     {
       controller.UpdateIMU();
+    }
 
-      // wallData = controller.getWallData(ir_data);
-      // robotPos = controller.getRobotPosition();
-      //壁情報を更新 次に進むべき方向を計算
-      // agent.update(robotPos, wallData);
-
-      // FINISHEDになったら計測走行にうつる
-      // if (agent.getState() == Agent::FINISHED)
-      // {
-      //ロボットを停止させ、スタートする向きに戻す
-      // robotPositionInit();
-      //最短経路の計算 割と時間がかかる(数秒)
-      // agent.calcRunSequence(false);
-      // const OperationList &runSequence = agent.getRunSequence();
-      // for (size_t i = 0; i < runSequence.size(); i++)
-      // {
-      // Operationの実行が終わるまで待つ(nマス進んだ,右に曲がった)
-      // while (!operationFinished())
-      //   ;
-
-      // i番目のを実行
-      // robotMove(runSequence[i]); // robotMode関数はOperation型を受け取ってそれを実行する関数
-      // }
-      // }
-      //ゴールにたどり着いた瞬間に一度だけmazeのバックアップをとる
-      // if (prev_State == Agent::SEARCHING_NOT_GOAL && agent.getState() == SEARCHING_REACHED_GOAL)
-      // {
-      //   maze_backup = maze;
-      // }
-      // prev_State = agent.getState();
-
-      // Agentの状態が探索中の場合は次に進むべき方向を取得する
-      // Direction nextDir = agent.getNextDirection();
-      // robotMove(nextDir);  //robotMove関数はDirection型を受け取ってロボットをそっちに動かす関数
-
-      if (state.mode == State::OUTPUT)
+    if (state.mode == State::OUTPUT)
+    {
+      if (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_2) == 0)
       {
-        if (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_2) == 0)
-        {
-          controller.OutputLog();
-          // step_identification.OutputLog();
-        }
-      }
-
-      else if (state.mode == State::WAIT)
-      {
-        HAL_Delay(500);
-        state.mode = State::PIVOT_TURN_LEFT90;
-        state.interruption = State::INTERRUPT;
+        controller.OutputLog();
+        // step_identification.OutputLog();
       }
     }
+    else if (state.mode == State::WAIT)
+    {
+      HAL_Delay(500);
+      // state.mode = State::PIVOT_TURN_LEFT90;
+      state.interruption = State::INTERRUPT;
+    }
+    // else if (state.mode == State::CALC_PATH)
+    // {
+    //   agent.calcRunSequence(false);
+    //   const OperationList &runSequence = agent.getRunSequence();
+    // }
   } // end while
   /* USER CODE END 3 */
 }

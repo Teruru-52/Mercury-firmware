@@ -6,11 +6,12 @@ namespace undercarriage
         : odom(sampling_period),
           pid_angle(4.0, 0.0, 0.0, 0.0, control_period),
           pid_rotational_vel(1.1976, 85.1838, -0.00099, 0.0039227, control_period),
-          pid_traslational_vel(6.8176, 82.0249, -0.033349, 0.023191, control_period),
+          //   pid_traslational_vel(6.8176, 82.0249, -0.033349, 0.023191, control_period),
+          pid_traslational_vel(2.0, 82.0249, -0.0003, 0.002, control_period),
           pid_ir_sensor_front(0.001, 0.001, 0.0, 0.0, control_period),
           pid_ir_sensor_side(0.001, 0.001, 0.0, 0.0, control_period),
           kanayama(3.0, 3.0, 10.0),
-          blind_state(State::PIVOT_TURN_RIGHT90),
+          state(State::FORWARD),
           ref_l(FORWARD_LENGTH1),
           ref_theta(0),
           flag(false),
@@ -214,10 +215,10 @@ namespace undercarriage
         }
         else
         {
-            if (ref_l == FORWARD_LENGTH1)
-            {
-                ref_l = FORWARD_LENGTH2;
-            }
+            // if (ref_l != FORWARD_LENGTH2)
+            // {
+            //     ref_l = FORWARD_LENGTH2;
+            // }
             flag = true;
         }
     }
@@ -226,7 +227,7 @@ namespace undercarriage
     {
         if (cnt < 500)
         {
-            InputVelocity(-1.0, -1.0);
+            InputVelocity(-0.5, 0.0);
             cnt++;
         }
         else
@@ -258,49 +259,107 @@ namespace undercarriage
 
     void Controller::BlindAlley(const std::vector<uint32_t> &ir_data)
     {
-        if (blind_state.mode == State::PIVOT_TURN_RIGHT90)
+        if (state.mode == State::FORWARD)
+        {
+            ref_l = FORWARD_LENGTH3;
+            GoStraight(ir_data);
+            if (GetFlag())
+            {
+                Reset();
+                state.mode = State::PIVOT_TURN_RIGHT90;
+            }
+        }
+        if (state.mode == State::PIVOT_TURN_RIGHT90)
         {
             PivotTurnRight90();
             if (GetFlag())
             {
                 Reset();
-                blind_state.mode = State::FRONT_WALL_CORRECTION;
+                state.mode = State::FRONT_WALL_CORRECTION;
             }
         }
-        if (blind_state.mode == State::FRONT_WALL_CORRECTION)
+        if (state.mode == State::FRONT_WALL_CORRECTION)
         {
             FrontWallCorrection(ir_data);
             if (GetFlag())
             {
                 Reset();
-                blind_state.mode = State::PIVOT_TURN_LEFT90;
+                state.mode = State::PIVOT_TURN_RIGHT90_2;
             }
         }
-        if (blind_state.mode == State::PIVOT_TURN_LEFT90)
+        if (state.mode == State::PIVOT_TURN_RIGHT90_2)
         {
-            PivotTurnLeft90();
+            PivotTurnRight90();
             if (GetFlag())
             {
                 Reset();
-                blind_state.mode = State::BACK;
+                state.mode = State::BACK;
             }
         }
-        if (blind_state.mode == State::BACK)
+        if (state.mode == State::BACK)
         {
             Back();
             if (GetFlag())
             {
                 Reset();
-                ref_l = FORWARD_LENGTH3;
-                blind_state.mode = State::FORWARD;
+                state.mode = State::FORWARD2;
             }
         }
-        if (blind_state.mode == State::FORWARD)
+        if (state.mode == State::FORWARD2)
+        {
+            ref_l = FORWARD_LENGTH1;
+            GoStraight(ir_data);
+            if (GetFlag())
+            {
+                state.mode = State::TURN_RIGHT90;
+            }
+        }
+    }
+
+    void Controller::StartMove(const std::vector<uint32_t> &ir_data)
+    {
+        if (state.mode == State::PIVOT_TURN_RIGHT90)
+        {
+            PivotTurnRight90();
+            if (GetFlag())
+            {
+                Reset();
+                state.mode = State::FRONT_WALL_CORRECTION;
+            }
+        }
+        if (state.mode == State::FRONT_WALL_CORRECTION)
+        {
+            FrontWallCorrection(ir_data);
+            if (GetFlag())
+            {
+                Reset();
+                state.mode = State::PIVOT_TURN_LEFT90;
+            }
+        }
+        if (state.mode == State::PIVOT_TURN_LEFT90)
+        {
+            PivotTurnLeft90();
+            if (GetFlag())
+            {
+                Reset();
+                state.mode = State::BACK;
+            }
+        }
+        if (state.mode == State::BACK)
+        {
+            Back();
+            if (GetFlag())
+            {
+                Reset();
+                state.mode = State::FORWARD;
+            }
+        }
+        if (state.mode == State::FORWARD)
         {
             GoStraight(ir_data);
             if (GetFlag())
             {
-                blind_state.mode = State::PIVOT_TURN_RIGHT90;
+                state.mode = State::PIVOT_TURN_RIGHT90;
             }
         }
     }
@@ -398,6 +457,27 @@ namespace undercarriage
         return robot_position;
     }
 
+    void Controller::UpdatePos(const Direction &dir)
+    {
+        robot_dir = dir;
+        if (NORTH == dir.byte)
+        {
+            robot_position += IndexVec::vecNorth;
+        }
+        else if (SOUTH == dir.byte)
+        {
+            robot_position += IndexVec::vecSouth;
+        }
+        else if (EAST == dir.byte)
+        {
+            robot_position += IndexVec::vecEast;
+        }
+        else if (WEST == dir.byte)
+        {
+            robot_position += IndexVec::vecWest;
+        }
+    }
+
     void Controller::robotMove(const Operation &op, const std::vector<uint32_t> &ir_data)
     {
         flag = false;
@@ -460,32 +540,12 @@ namespace undercarriage
             // 袋小路
             if (prev_wall_cnt == 3)
             {
-                PivotTurnRight90();
-                Back();
-                PivotTurnRight90();
+                BlindAlley(ir_data);
             }
             else
             {
                 PivotTurn180();
             }
-        }
-
-        robot_dir = dir;
-        if (NORTH == dir.byte)
-        {
-            robot_position += IndexVec::vecNorth;
-        }
-        else if (SOUTH == dir.byte)
-        {
-            robot_position += IndexVec::vecSouth;
-        }
-        else if (EAST == dir.byte)
-        {
-            robot_position += IndexVec::vecEast;
-        }
-        else if (WEST == dir.byte)
-        {
-            robot_position += IndexVec::vecWest;
         }
     }
 

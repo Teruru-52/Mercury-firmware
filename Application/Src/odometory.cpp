@@ -23,6 +23,7 @@ namespace undercarriage
     x_local = 0;
     y_local = 0;
     l = 0;
+    ResetTheta();
   }
 
   void Odometory::ResetTheta()

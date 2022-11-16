@@ -14,7 +14,7 @@
 
 #define FORWARD_LENGTH1 0.144
 #define FORWARD_LENGTH2 0.18
-#define FORWARD_LENGTH3 0.054
+#define FORWARD_LENGTH3 0.03 // 0.09
 
 namespace undercarriage
 {
@@ -38,6 +38,7 @@ namespace undercarriage
         void Back();
         void FrontWallCorrection(const std::vector<uint32_t> &ir_data);
         void BlindAlley(const std::vector<uint32_t> &ir_data);
+        void StartMove(const std::vector<uint32_t> &ir_data);
         void Brake();
         void InputVelocity(float input_v, float input_w);
         bool GetFlag();
@@ -47,6 +48,7 @@ namespace undercarriage
         void OutputLog();
 
         Direction getWallData(const std::vector<uint32_t> &ir_data);
+        void UpdatePos(const Direction &dir);
         IndexVec getRobotPosition();
         void robotMove(const Operation &op, const std::vector<uint32_t> &ir_data);
         void robotMove(const Direction &dir, const std::vector<uint32_t> &ir_data);
@@ -63,7 +65,7 @@ namespace undercarriage
         undercarriage::Kanayama kanayama;
         trajectory::PivotTurn180 pivot_turn180;
         trajectory::PivotTurn90 pivot_turn90;
-        State blind_state;
+        State state;
 
         float v_left;
         float v_right;
