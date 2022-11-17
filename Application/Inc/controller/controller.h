@@ -14,7 +14,7 @@
 
 #define FORWARD_LENGTH1 0.144
 #define FORWARD_LENGTH2 0.18
-#define FORWARD_LENGTH3 0.03 // 0.09
+#define FORWARD_LENGTH3 0.09
 
 namespace undercarriage
 {

@@ -125,14 +125,14 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
           controller.StartMove(ir_data);
           if (controller.GetFlag())
           {
-            printf("finish start move");
+            printf("finish START_MOVE");
             controller.Reset();
             wallData = 0x0E;
             robotPos = controller.getRobotPosition();
             agent.update(robotPos, wallData);
             nextDir = NORTH;
             controller.UpdatePos(nextDir);
-            state.mode = State::OUTPUT;
+            state.mode = State::SEARCH;
           }
         }
 
@@ -141,6 +141,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
           controller.robotMove(nextDir, ir_data);
           if (controller.GetFlag())
           {
+            printf("flag true");
             controller.Reset();
             wallData = controller.getWallData(ir_data);
             robotPos = controller.getRobotPosition();

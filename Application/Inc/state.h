@@ -24,6 +24,7 @@ public:
         PIVOT_TURN_LEFT90,
         PIVOT_TURN180,
         FRONT_WALL_CORRECTION,
+        FRONT_WALL_CORRECTION2,
         BLIND_ALLEY,
         BACK,
         START_MOVE,

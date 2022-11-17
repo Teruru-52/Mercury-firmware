@@ -11,7 +11,7 @@ namespace undercarriage
           pid_ir_sensor_front(0.001, 0.001, 0.0, 0.0, control_period),
           pid_ir_sensor_side(0.001, 0.001, 0.0, 0.0, control_period),
           kanayama(3.0, 3.0, 10.0),
-          state(State::FORWARD),
+          state(State::PIVOT_TURN_RIGHT90),
           ref_l(FORWARD_LENGTH1),
           ref_theta(0),
           flag(false),
@@ -84,7 +84,6 @@ namespace undercarriage
         else
         {
             // robot_dir_index = (robot_dir_index + 1) % 4;
-            printf("finish\n");
             Brake();
             pivot_turn90.ResetTrajectoryIndex();
             pivot_turn90.ResetFlag();
@@ -263,6 +262,7 @@ namespace undercarriage
         }
         else
         {
+            pid_ir_sensor_front.ResetPID();
             flag = true;
         }
     }
@@ -276,6 +276,15 @@ namespace undercarriage
             if (GetFlag())
             {
                 Reset();
+                state.mode = State::FRONT_WALL_CORRECTION;
+            }
+        }
+        if (state.mode == State::FRONT_WALL_CORRECTION)
+        {
+            FrontWallCorrection(ir_data);
+            if (GetFlag())
+            {
+                Reset();
                 state.mode = State::PIVOT_TURN_RIGHT90;
             }
         }
@@ -285,10 +294,10 @@ namespace undercarriage
             if (GetFlag())
             {
                 Reset();
-                state.mode = State::FRONT_WALL_CORRECTION;
+                state.mode = State::FRONT_WALL_CORRECTION2;
             }
         }
-        if (state.mode == State::FRONT_WALL_CORRECTION)
+        if (state.mode == State::FRONT_WALL_CORRECTION2)
         {
             FrontWallCorrection(ir_data);
             if (GetFlag())
