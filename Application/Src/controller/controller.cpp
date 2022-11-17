@@ -6,8 +6,8 @@ namespace undercarriage
         : odom(sampling_period),
           pid_angle(4.0, 0.0, 0.0, 0.0, control_period),
           pid_rotational_vel(1.1976, 85.1838, -0.00099, 0.0039227, control_period),
-          //   pid_traslational_vel(6.8176, 82.0249, -0.033349, 0.023191, control_period),
-          pid_traslational_vel(2.0, 82.0249, -0.0003, 0.002, control_period),
+          pid_traslational_vel(6.8176, 82.0249, -0.033349, 0.023191, control_period),
+          //   pid_traslational_vel(2.0, 82.0249, -0.0003, 0.002, control_period),
           pid_ir_sensor_front(0.001, 0.001, 0.0, 0.0, control_period),
           pid_ir_sensor_side(0.001, 0.001, 0.0, 0.0, control_period),
           kanayama(3.0, 3.0, 10.0),
@@ -88,6 +88,8 @@ namespace undercarriage
             Brake();
             pivot_turn90.ResetTrajectoryIndex();
             pivot_turn90.ResetFlag();
+            pid_rotational_vel.ResetPID();
+            odom.Reset();
             flag = true;
         }
     }
@@ -110,6 +112,8 @@ namespace undercarriage
             Brake();
             pivot_turn90.ResetTrajectoryIndex();
             pivot_turn90.ResetFlag();
+            pid_rotational_vel.ResetPID();
+            odom.Reset();
             flag = true;
         }
     }
@@ -132,6 +136,8 @@ namespace undercarriage
             Brake();
             pivot_turn180.ResetTrajectoryIndex();
             pivot_turn180.ResetFlag();
+            pid_rotational_vel.ResetPID();
+            odom.Reset();
             flag = true;
         }
     }
@@ -149,13 +155,15 @@ namespace undercarriage
             u_w = pid_rotational_vel.Update(ref_vel[1] - cur_vel[1]) + Tp1_w * ref_vel[1] / Kp_w;
             InputVelocity(u_v, u_w);
 
-            Logger();
+            // Logger();
         }
         else
         {
             // robot_dir_index = (robot_dir_index + 3) % 4;
             kanayama.Reset();
-            ref_theta += M_PI_2;
+            pid_rotational_vel.ResetPID();
+            pid_traslational_vel.ResetPID();
+            odom.Reset();
             flag = true;
         }
     }
@@ -173,13 +181,15 @@ namespace undercarriage
             u_w = pid_rotational_vel.Update(ref_vel[1] - cur_vel[1]) + Tp1_w * ref_vel[1] / Kp_w;
             InputVelocity(u_v, u_w);
 
-            Logger();
+            // Logger();
         }
         else
         {
             // robot_dir_index = (robot_dir_index + 1) % 4;
             kanayama.Reset();
-            ref_theta -= M_PI_2;
+            pid_rotational_vel.ResetPID();
+            pid_traslational_vel.ResetPID();
+            odom.Reset();
             flag = true;
         }
     }
@@ -209,16 +219,20 @@ namespace undercarriage
             }
 
             u_v = pid_traslational_vel.Update(ref_v - cur_vel[0]) + Tp1_v * ref_v / Kp_v;
-            u_w = pid_ir_sensor_side.Update(error_fl - error_fr) + pid_angle.Update(ref_theta - cur_pos[2]);
+            u_w = pid_ir_sensor_side.Update(error_fl - error_fr) + pid_angle.Update(-cur_pos[2]);
             // u_w = pid_angle.Update(ref_theta - cur_pos[2]);
             InputVelocity(u_v, u_w);
         }
         else
         {
-            // if (ref_l != FORWARD_LENGTH2)
-            // {
-            //     ref_l = FORWARD_LENGTH2;
-            // }
+            if (ref_l != FORWARD_LENGTH2)
+            {
+                ref_l = FORWARD_LENGTH2;
+            }
+            pid_rotational_vel.ResetPID();
+            pid_traslational_vel.ResetPID();
+            pid_ir_sensor_side.ResetPID();
+            odom.Reset();
             flag = true;
         }
     }
@@ -234,8 +248,8 @@ namespace undercarriage
         {
             ref_l = FORWARD_LENGTH1;
             flag = true;
-            odom.ResetTheta();
-            ref_theta = 0;
+            // odom.ResetTheta();
+            odom.Reset();
             base_theta = 0;
         }
     }
@@ -386,7 +400,6 @@ namespace undercarriage
         flag = false;
         index_log = 0;
         cnt = 0;
-        odom.Reset();
     }
 
     void Controller::MotorTest(float v_left, float v_right)
