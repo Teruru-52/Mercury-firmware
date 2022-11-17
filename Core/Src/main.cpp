@@ -125,13 +125,14 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
           controller.StartMove(ir_data);
           if (controller.GetFlag())
           {
+            printf("finish start move");
             controller.Reset();
             wallData = 0x0E;
             robotPos = controller.getRobotPosition();
             agent.update(robotPos, wallData);
             nextDir = NORTH;
             controller.UpdatePos(nextDir);
-            state.mode = State::SEARCH;
+            state.mode = State::OUTPUT;
           }
         }
 
@@ -170,7 +171,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
         if (cnt1kHz % 500 == 0)
         {
-          controller.OutputLog();
+          // controller.OutputLog();
           // printf("%f\n", bat_vol);
           // printf("%lu, %lu,%lu, %lu\n", ir_data[0], ir_data[1], ir_data[2], ir_data[3]);
           // printf("%lu, %lu\n", ir_data[2], ir_data[3]);
@@ -261,9 +262,10 @@ int main(void)
 
     if (state.mode == State::OUTPUT)
     {
+      controller.Brake();
       if (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_2) == 0)
       {
-        controller.OutputLog();
+        // controller.OutputLog();
         // step_identification.OutputLog();
       }
     }

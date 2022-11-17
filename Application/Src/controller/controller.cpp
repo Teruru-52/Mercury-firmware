@@ -225,10 +225,6 @@ namespace undercarriage
         }
         else
         {
-            if (ref_l != FORWARD_LENGTH2)
-            {
-                ref_l = FORWARD_LENGTH2;
-            }
             pid_rotational_vel.ResetPID();
             pid_traslational_vel.ResetPID();
             pid_ir_sensor_side.ResetPID();
@@ -366,6 +362,7 @@ namespace undercarriage
             {
                 Reset();
                 state.mode = State::FORWARD;
+                ref_l = FORWARD_LENGTH1;
             }
         }
         if (state.mode == State::FORWARD)
@@ -444,7 +441,7 @@ namespace undercarriage
             robot_dir_index++;
         }
 
-        if ((ir_data[0] + ir_data[1]) * 0.5 > 2500)
+        if ((ir_data[0] + ir_data[1]) * 0.5 > 2200)
         {
             wall.byte |= NORTH << robot_dir_index;
         }
@@ -535,6 +532,7 @@ namespace undercarriage
         // 直進
         if (dir_diff == 0)
         {
+            ref_l = FORWARD_LENGTH2;
             GoStraight(ir_data);
         }
         // 右
