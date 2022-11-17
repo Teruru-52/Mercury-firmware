@@ -75,9 +75,11 @@ namespace undercarriage
         std::vector<float> ref_vel{0, 0};
         const float Tp1_w = 31.83;
         const float Kp_w = 144.2;
-        const float Tp1_v = 0.18577;
+        // const float Tp1_v = 0.18577;
+        const float Tp1_v = 0.032;
         const float Kp_v = 0.79586;
-        const float ref_v = 0.5064989;
+        // const float ref_v = 0.5064989;
+        const float ref_v = 0.2132397;
         float ref_w;
         float ref_l;
         float ref_theta;
