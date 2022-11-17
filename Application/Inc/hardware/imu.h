@@ -17,9 +17,10 @@ namespace hardware
         void CalcOffset();
         void Update();
         void UpdateGyro();
-        // void UpdateAcc();
+        void UpdateAcc();
         float GetAngle();
         float GetAngularVelocity();
+        float GetAccX();
         void ResetTheta();
 
     private:
@@ -27,10 +28,12 @@ namespace hardware
         // default
         // const float gyro_factor = 16.4;
         const float gyro_factor = 16.6;
+        const float acc_factor = 8192.0;
 
         float theta;
         float gyro_z;
         float pre_gyro_z;
+        float acc_x;
         float offset_gz;
     };
 }

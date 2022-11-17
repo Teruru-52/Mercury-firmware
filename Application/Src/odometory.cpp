@@ -45,6 +45,7 @@ namespace undercarriage
 
     v = encoder.GetVelocity();
     omega = imu.GetAngularVelocity();
+    ax = imu.GetAccX();
     theta = imu.GetAngle();
 
     // Euler method
@@ -79,6 +80,11 @@ namespace undercarriage
     cur_vel[0] = v;
     cur_vel[1] = omega;
     return cur_vel;
+  }
+
+  float Odometory::GetAccX()
+  {
+    return ax;
   }
 
   float Odometory::GetLength()

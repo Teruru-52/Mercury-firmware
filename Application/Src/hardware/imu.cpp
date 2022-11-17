@@ -61,6 +61,8 @@ namespace hardware
         HAL_Delay(50);
         write_byte(0x1B, 0x18); // set gyro config (2000dps)
         HAL_Delay(50);
+        write_byte(0x1C, 0x08); // set acc config (4g)
+        HAL_Delay(50);
     }
 
     void IMU::CalcOffset()
@@ -82,7 +84,7 @@ namespace hardware
     void IMU::Update()
     {
         UpdateGyro();
-        // UpdateAcc();
+        UpdateAcc();
     }
 
     void IMU::UpdateGyro()
@@ -92,6 +94,15 @@ namespace hardware
         // H:8bit shift, Link h and l
         gz_raw = (int16_t)((int16_t)(read_byte(0x47) << 8) | read_byte(0x48));
         gyro_z = (float)(gz_raw) / gyro_factor * M_PI / 180.0f - offset_gz; // dps to deg/sec
+    }
+
+    void IMU::UpdateAcc()
+    {
+        int16_t ax_raw;
+
+        // H:8bit shift, Link h and l
+        ax_raw = (int16_t)((int16_t)(read_byte(0x3B) << 8) | read_byte(0x3C));
+        acc_x = (float)(ax_raw) / acc_factor;
     }
 
     float IMU::GetAngle()
@@ -108,6 +119,11 @@ namespace hardware
     float IMU::GetAngularVelocity()
     {
         return gyro_z;
+    }
+
+    float IMU::GetAccX()
+    {
+        return acc_x;
     }
 
     void IMU::ResetTheta()

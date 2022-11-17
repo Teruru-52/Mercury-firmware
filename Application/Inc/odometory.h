@@ -18,6 +18,7 @@ namespace undercarriage
         float sampling_period; // [s]
         float v;
         float omega;
+        float ax;
         float x_global;
         float y_global;
         float x_local;
@@ -39,6 +40,7 @@ namespace undercarriage
         int16_t GetPulse();
         std::vector<float> GetPosition();
         std::vector<float> GetVelocity();
+        float GetAccX();
         float GetLength();
         void OutputLog();
     };
