@@ -30,6 +30,7 @@ public:
         START_MOVE,
         SEARCH,
         CALC_PATH,
+        SPEAKER,
         OUTPUT,
         WAIT,
         ELSE
