@@ -12,6 +12,7 @@
 #include "Maze.h"
 #include "Agent.h"
 
+#define FORWARD_LENGTH4 0.0
 #define FORWARD_LENGTH1 0.144
 #define FORWARD_LENGTH2 0.18
 #define FORWARD_LENGTH3 0.09
@@ -22,6 +23,9 @@ namespace undercarriage
     {
     public:
         Controller(float sampling_period, float control_period);
+
+        int8_t dir_diff;
+        Direction robot_dir;
 
         void InitializeOdometory();
         void UpdateBatteryVoltage(float bat_vol);
@@ -49,9 +53,11 @@ namespace undercarriage
 
         Direction getWallData(const std::vector<uint32_t> &ir_data);
         void UpdatePos(const Direction &dir);
+        void UpdateDir(const Direction &dir);
         IndexVec getRobotPosition();
         void robotMove(const Operation &op, const std::vector<uint32_t> &ir_data);
         void robotMove(const Direction &dir, const std::vector<uint32_t> &ir_data);
+        void robotMove2(const Direction &dir, const std::vector<uint32_t> &ir_data);
         void robotMove(const State::Mode &mode, const std::vector<uint32_t> &ir_data);
 
     private:
@@ -75,14 +81,13 @@ namespace undercarriage
         std::vector<float> ref_vel{0, 0};
         const float Tp1_w = 31.83;
         const float Kp_w = 144.2;
-        // const float Tp1_v = 0.18577;
-        const float Tp1_v = 0.032;
+        const float Tp1_v = 0.18577;
+        // const float Tp1_v = 0.032;
         const float Kp_v = 0.79586;
-        // const float ref_v = 0.5064989;
-        const float ref_v = 0.2132397;
+        const float ref_v = 0.5064989;
+        // const float ref_v = 0.2132397;
         float ref_w;
         float ref_l;
-        float ref_theta;
         const float ir_fl_base = 2220;
         const float ir_fr_base = 2280;
         const float ir_sl_base = 3400;
@@ -104,8 +109,9 @@ namespace undercarriage
         float *kanayama_w;
 
         int prev_wall_cnt = 0;
+        // int8_t dir_diff;
         IndexVec robot_position;
-        Direction robot_dir;
+        // Direction robot_dir;
         // int8_t robot_dir_index = 0;
     };
 } // namespace undercarriage
