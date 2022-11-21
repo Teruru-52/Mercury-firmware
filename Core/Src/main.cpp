@@ -45,7 +45,7 @@ Direction nextDir;
 State state;
 
 hardware::LED led;
-hardware::IRsensor irsensors(2400);
+hardware::IRsensor irsensors(2180);
 hardware::Speaker speaker;
 undercarriage::Controller controller(0.001, 0.001);
 /* USER CODE END PTD */
@@ -92,6 +92,13 @@ void Initialize()
     speaker.Beep();
     state.interruption = State::INTERRUPT;
     state.mode = State::START_MOVE;
+
+    // wallData = 0x0E;
+    wallData = Direction(14);
+    robotPos = controller.getRobotPosition();
+    agent.update(robotPos, wallData);
+    nextDir = Direction(1);
+    // printf("%u\n", wallData);
   }
 }
 
@@ -125,34 +132,47 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
           controller.StartMove(ir_data);
           if (controller.GetFlag())
           {
-            printf("finish START_MOVE");
             controller.Reset();
-            wallData = 0x0E;
+            controller.UpdateDir(nextDir);
+            controller.UpdatePos(nextDir);
+            wallData = controller.getWallData(ir_data);
             robotPos = controller.getRobotPosition();
             agent.update(robotPos, wallData);
-            nextDir = NORTH;
-            controller.UpdatePos(nextDir);
+            nextDir = agent.getNextDirection();
+
             state.mode = State::SEARCH;
+            // state.interruption = State::NOT_INTERRUPT;
+            // state.mode = State::SPEAKER;
+
+            // controller.Brake();
+            // printf("finish START_MOVE\n");
+            // printf("%u\n", wallData);
+            printf("%u\n", nextDir);
+            // printf("%u\n", controller.robot_dir);
           }
         }
 
         else if (state.mode == State::SEARCH)
         {
-          controller.robotMove(nextDir, ir_data);
+          controller.robotMove2(nextDir, ir_data);
           if (controller.GetFlag())
           {
-            printf("flag true");
             controller.Reset();
+            controller.UpdateDir(nextDir);
+            controller.UpdatePos(nextDir);
             wallData = controller.getWallData(ir_data);
             robotPos = controller.getRobotPosition();
             agent.update(robotPos, wallData);
             nextDir = agent.getNextDirection();
-            controller.UpdatePos(nextDir);
-          }
-          if (prevState == Agent::SEARCHING_NOT_GOAL && agent.getState() == Agent::SEARCHING_REACHED_GOAL)
-          {
-            state.interruption = State::NOT_INTERRUPT;
-            state.mode = State::OUTPUT;
+            // printf("%u\n", wallData);
+            printf("%u\n", nextDir);
+            // printf("%d\n", controller.dir_diff);
+            // printf("%u\n", controller.robot_dir);
+            // printf("%u, %u\n", nextDir, controller.dir_diff);
+
+            state.mode = State::SEARCH;
+            // state.interruption = State::NOT_INTERRUPT;
+            // state.mode = State::SPEAKER;
           }
           // if (agent.getState() == Agent::FINISHED)
           // {
@@ -269,6 +289,14 @@ int main(void)
         // controller.OutputLog();
         // step_identification.OutputLog();
       }
+    }
+    else if (state.mode == State::SPEAKER)
+    {
+      controller.Brake();
+      speaker.Beep();
+      // HAL_Delay(500);
+      state.mode = State::SEARCH;
+      state.interruption = State::INTERRUPT;
     }
     else if (state.mode == State::WAIT)
     {
