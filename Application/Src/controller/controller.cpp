@@ -23,9 +23,13 @@ namespace undercarriage
     {
         // ref_size = pivot_turn180.GetRefSize();
         // ref_size = pivot_turn90.GetRefSize();
-        ref_size = 284; // kanayama ref_time = 0.151678
+        // ref_size = 284; // kanayama ref_time = 0.151678
+        ref_size = acc1.GetRefSize();
+        // ref_size = acc2.GetRefSize();
+        // ref_size = acc3.GetRefSize();
         x = new float[ref_size];
         y = new float[ref_size];
+        len = new float[ref_size];
         theta = new float[ref_size];
         v = new float[ref_size];
         omega = new float[ref_size];
@@ -51,6 +55,11 @@ namespace undercarriage
         cur_vel = odom.GetVelocity();
     }
 
+    void Controller::ResetOdometory()
+    {
+        odom.Reset();
+    }
+
     void Controller::UpdateIMU()
     {
         odom.UpdateIMU();
@@ -67,6 +76,141 @@ namespace undercarriage
         u_v = 0.0;
         u_w = pid_angle.Update(-cur_pos[2]) + pid_rotational_vel.Update(-cur_vel[1]);
         InputVelocity(u_v, u_w);
+    }
+
+    void Controller::Acceleration1(const std::vector<uint32_t> &ir_data)
+    {
+        if (acc1.GetFlag())
+        {
+            float error_fl = 0;
+            float error_fr = 0;
+
+            if (ir_data[0] > 2150)
+            {
+                error_fl = ir_fl_base - (float)ir_data[0];
+            }
+            else
+            {
+                error_fl = 0;
+            }
+
+            if (ir_data[1] > 2150)
+            {
+                error_fr = ir_fr_base - (float)ir_data[1];
+            }
+            else
+            {
+                error_fr = 0;
+            }
+            acc1.UpdateRef();
+            ref_v = acc1.GetRefVelocity();
+            u_v = pid_traslational_vel.Update(ref_v - cur_vel[0]) + Tp1_v * ref_v / Kp_v;
+            u_w = pid_ir_sensor_side.Update(error_fl - error_fr) + pid_angle.Update(-cur_pos[2]);
+            InputVelocity(u_v, u_w);
+
+            Logger();
+        }
+        else
+        {
+            Brake();
+            acc1.ResetTrajectoryIndex();
+            acc1.ResetFlag();
+            pid_traslational_vel.ResetPID();
+            pid_angle.ResetPID();
+            pid_ir_sensor_side.ResetPID();
+            odom.Reset();
+            flag = true;
+        }
+    }
+
+    void Controller::Acceleration2(const std::vector<uint32_t> &ir_data)
+    {
+        if (acc2.GetFlag())
+        {
+            float error_fl = 0;
+            float error_fr = 0;
+
+            if (ir_data[0] > 2150)
+            {
+                error_fl = ir_fl_base - (float)ir_data[0];
+            }
+            else
+            {
+                error_fl = 0;
+            }
+
+            if (ir_data[1] > 2150)
+            {
+                error_fr = ir_fr_base - (float)ir_data[1];
+            }
+            else
+            {
+                error_fr = 0;
+            }
+            acc2.UpdateRef();
+            ref_v = acc2.GetRefVelocity();
+            u_v = pid_traslational_vel.Update(ref_v - cur_vel[0]) + Tp1_v * ref_v / Kp_v;
+            u_w = pid_ir_sensor_side.Update(error_fl - error_fr) + pid_angle.Update(-cur_pos[2]);
+            InputVelocity(u_v, u_w);
+
+            Logger();
+        }
+        else
+        {
+            Brake();
+            acc2.ResetTrajectoryIndex();
+            acc2.ResetFlag();
+            pid_traslational_vel.ResetPID();
+            pid_angle.ResetPID();
+            pid_ir_sensor_side.ResetPID();
+            odom.Reset();
+            flag = true;
+        }
+    }
+
+    void Controller::Acceleration3(const std::vector<uint32_t> &ir_data)
+    {
+        if (acc3.GetFlag())
+        {
+            float error_fl = 0;
+            float error_fr = 0;
+
+            if (ir_data[0] > 2150)
+            {
+                error_fl = ir_fl_base - (float)ir_data[0];
+            }
+            else
+            {
+                error_fl = 0;
+            }
+
+            if (ir_data[1] > 2150)
+            {
+                error_fr = ir_fr_base - (float)ir_data[1];
+            }
+            else
+            {
+                error_fr = 0;
+            }
+            acc3.UpdateRef();
+            ref_v = acc3.GetRefVelocity();
+            u_v = pid_traslational_vel.Update(ref_v - cur_vel[0]) + Tp1_v * ref_v / Kp_v;
+            u_w = pid_ir_sensor_side.Update(error_fl - error_fr) + pid_angle.Update(-cur_pos[2]);
+            InputVelocity(u_v, u_w);
+
+            Logger();
+        }
+        else
+        {
+            Brake();
+            acc3.ResetTrajectoryIndex();
+            acc3.ResetFlag();
+            pid_traslational_vel.ResetPID();
+            pid_angle.ResetPID();
+            pid_ir_sensor_side.ResetPID();
+            odom.Reset();
+            flag = true;
+        }
     }
 
     void Controller::PivotTurnRight90()
@@ -420,27 +564,29 @@ namespace undercarriage
 
     void Controller::Logger()
     {
-        x[index_log] = cur_pos[0];
-        y[index_log] = cur_pos[1];
-        theta[index_log] = cur_pos[2];
+        // x[index_log] = cur_pos[0];
+        // y[index_log] = cur_pos[1];
+        len[index_log] = l;
         v[index_log] = cur_vel[0];
-        omega[index_log] = cur_vel[1];
-        kanayama_v[index_log] = ref_vel[0];
-        kanayama_w[index_log] = ref_vel[1];
+        // theta[index_log] = cur_pos[2];
+        // omega[index_log] = cur_vel[1];
+        // kanayama_v[index_log] = ref_vel[0];
+        // kanayama_w[index_log] = ref_vel[1];
         index_log++;
     }
 
     void Controller::OutputLog()
     {
-        printf("%f, %f, %f, %f\n", cur_pos[0], cur_pos[1], cur_pos[2], l);
+        // printf("%f, %f, %f, %f\n", cur_pos[0], cur_pos[1], cur_pos[2], l);
         // printf("%f, %f\n", cur_pos[2], cur_vel[1]);
         // printf("%f\n", l);
         // printf("%f, %f\n", u_v, u_w);
-        //     for (int i = 0; i < ref_size; i++)
-        //     {
-        //         printf("%f, %f, %f, %f, %f, %f, %f\n", x[i], y[i], theta[i], v[i], omega[i], kanayama_v[i], kanayama_w[i]);
-        //         // printf("%f, %f\n", theta[i], omega[i]);
-        //     }
+        for (int i = 0; i < ref_size; i++)
+        {
+            //         printf("%f, %f, %f, %f, %f, %f, %f\n", x[i], y[i], theta[i], v[i], omega[i], kanayama_v[i], kanayama_w[i]);
+            //         // printf("%f, %f\n", theta[i], omega[i]);
+            printf("%f, %f\n", len[i], v[i]);
+        }
     }
 
     Direction Controller::getWallData(const std::vector<uint32_t> &ir_data)

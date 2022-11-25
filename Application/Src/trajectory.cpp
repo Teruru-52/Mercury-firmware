@@ -2,6 +2,144 @@
 
 namespace trajectory
 {
+    // Acceleration1
+    Acceleration1::Acceleration1()
+        : index(0),
+          flag(true)
+    {
+        ref_size = GetRefSize();
+    }
+
+    void Acceleration1::ResetTrajectoryIndex()
+    {
+        index = 0;
+    }
+
+    void Acceleration1::UpdateRef()
+    {
+        if (index < ref_size)
+        {
+            ref = ref_v[index];
+            index++;
+        }
+        else if (index == ref_size)
+        {
+            flag = false;
+        }
+    }
+
+    int Acceleration1::GetRefSize()
+    {
+        return ref_v.size();
+    }
+
+    bool Acceleration1::GetFlag()
+    {
+        return flag;
+    }
+
+    void Acceleration1::ResetFlag()
+    {
+        flag = true;
+    }
+
+    float Acceleration1::GetRefVelocity()
+    {
+        return ref;
+    }
+
+    // Acceleration2
+    Acceleration2::Acceleration2()
+        : index(0),
+          flag(true)
+    {
+        ref_size = GetRefSize();
+    }
+
+    void Acceleration2::ResetTrajectoryIndex()
+    {
+        index = 0;
+    }
+
+    void Acceleration2::UpdateRef()
+    {
+        if (index < ref_size)
+        {
+            ref = ref_v[index];
+            index++;
+        }
+        else if (index == ref_size)
+        {
+            flag = false;
+        }
+    }
+
+    int Acceleration2::GetRefSize()
+    {
+        return ref_v.size();
+    }
+
+    bool Acceleration2::GetFlag()
+    {
+        return flag;
+    }
+
+    void Acceleration2::ResetFlag()
+    {
+        flag = true;
+    }
+
+    float Acceleration2::GetRefVelocity()
+    {
+        return ref;
+    }
+
+    // Acceleration3
+    Acceleration3::Acceleration3()
+        : index(0),
+          flag(true)
+    {
+        ref_size = GetRefSize();
+    }
+
+    void Acceleration3::ResetTrajectoryIndex()
+    {
+        index = 0;
+    }
+
+    void Acceleration3::UpdateRef()
+    {
+        if (index < ref_size)
+        {
+            ref = ref_v[index];
+            index++;
+        }
+        else if (index == ref_size)
+        {
+            flag = false;
+        }
+    }
+
+    int Acceleration3::GetRefSize()
+    {
+        return ref_v.size();
+    }
+
+    bool Acceleration3::GetFlag()
+    {
+        return flag;
+    }
+
+    void Acceleration3::ResetFlag()
+    {
+        flag = true;
+    }
+
+    float Acceleration3::GetRefVelocity()
+    {
+        return ref;
+    }
+
     // PivotTurn90
     PivotTurn90::PivotTurn90()
         : index(0),

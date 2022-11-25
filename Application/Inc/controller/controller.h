@@ -30,9 +30,13 @@ namespace undercarriage
         void InitializeOdometory();
         void UpdateBatteryVoltage(float bat_vol);
         void UpdateOdometory();
+        void ResetOdometory();
         void UpdateIMU();
         void SetBase();
         void PartyTrick();
+        void Acceleration1(const std::vector<uint32_t> &ir_data);
+        void Acceleration2(const std::vector<uint32_t> &ir_data);
+        void Acceleration3(const std::vector<uint32_t> &ir_data);
         void PivotTurnRight90();
         void PivotTurnLeft90();
         void PivotTurn180();
@@ -71,6 +75,9 @@ namespace undercarriage
         undercarriage::Kanayama kanayama;
         trajectory::PivotTurn180 pivot_turn180;
         trajectory::PivotTurn90 pivot_turn90;
+        trajectory::Acceleration1 acc1;
+        trajectory::Acceleration2 acc2;
+        trajectory::Acceleration3 acc3;
         State state;
 
         float v_left;
@@ -84,8 +91,8 @@ namespace undercarriage
         const float Tp1_v = 0.18577;
         // const float Tp1_v = 0.032;
         const float Kp_v = 0.79586;
-        const float ref_v = 0.5064989;
-        // const float ref_v = 0.2132397;
+        // const float ref_v = 0.5064989;
+        float ref_v = 0.2132397;
         float ref_w;
         float ref_l;
         const float ir_fl_base = 2220;
@@ -102,6 +109,7 @@ namespace undercarriage
         float base_theta;
         float *x;
         float *y;
+        float *len;
         float *theta;
         float *v;
         float *omega;
