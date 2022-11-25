@@ -13,6 +13,12 @@ namespace hardware
         Update_R();
     }
 
+    void Encoder::Reset()
+    {
+        TIM3->CNT = 0;
+        TIM4->CNT = 0;
+    }
+
     void Encoder::Update_L()
     {
         pulse_left = 0;

@@ -11,6 +11,7 @@ namespace hardware
         Encoder(float sampling_period);
 
         void Update();
+        void Reset();
         void Update_L();
         void Update_R();
         float GetAngularVelocity(int16_t pulse);
