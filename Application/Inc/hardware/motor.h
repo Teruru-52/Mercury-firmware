@@ -12,7 +12,7 @@ namespace hardware
         // IRsensor battery;
 
         float bat_vol;
-        int max_input = 1600;
+        int max_input = 1600 - 1;
         int duty_left;
         int duty_right;
 
