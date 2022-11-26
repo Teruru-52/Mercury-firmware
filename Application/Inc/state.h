@@ -8,13 +8,23 @@ class State
 public:
     typedef enum
     {
+        FUNC0,
+        FUNC1,
+        FUNC2,
+        FUNC3
+    } Function;
+
+    typedef enum
+    {
         INTERRUPT,
         NOT_INTERRUPT
     } Interruption;
 
     typedef enum
     {
+        SELECT_FUNCTION,
         INITIALIZE,
+        INITIALIZE_POSITION,
         FORWARD,
         FORWARD2,
         TURN_LEFT90,
@@ -31,15 +41,17 @@ public:
         SEARCH,
         CALC_PATH,
         SPEAKER,
+        LED,
         OUTPUT,
         WAIT,
         ELSE
     } Mode;
 
+    Function func;
     Interruption interruption;
     Mode mode;
 
-    State(Mode init_mode = INITIALIZE) : interruption(NOT_INTERRUPT), mode(init_mode) {}
+    State(Mode init_mode = SELECT_FUNCTION) : func(FUNC0), interruption(NOT_INTERRUPT), mode(init_mode) {}
 };
 
 #endif /* _STATE_H_ */
