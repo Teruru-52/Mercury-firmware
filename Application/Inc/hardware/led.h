@@ -26,6 +26,8 @@ namespace hardware
 
         void on_all();
         void off_all();
+
+        void Flashing();
     };
 } // namespace hardware
 #endif //  HARDWARE_LED_HPP_

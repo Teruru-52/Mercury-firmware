@@ -78,4 +78,15 @@ namespace hardware
         off_front_right();
     }
 
+    void LED::Flashing()
+    {
+        for (int i = 0; i < 2; i++)
+        {
+            on_all();
+            HAL_Delay(500);
+            off_all();
+            HAL_Delay(500);
+        }
+    }
+
 }
