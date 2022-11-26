@@ -35,6 +35,7 @@ namespace undercarriage
         void UpdateIMU();
         void Reset();
         void ResetTheta();
+        int16_t GetPulse();
         std::vector<float> GetPosition();
         std::vector<float> GetVelocity();
         float GetLength();

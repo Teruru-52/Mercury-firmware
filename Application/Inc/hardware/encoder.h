@@ -14,6 +14,7 @@ namespace hardware
         void Reset();
         void Update_L();
         void Update_R();
+        int16_t GetPulse();
         float GetAngularVelocity(int16_t pulse);
         float GetVelocity();
 

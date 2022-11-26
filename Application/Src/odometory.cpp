@@ -32,6 +32,12 @@ namespace undercarriage
     imu.ResetTheta();
   }
 
+  int16_t Odometory::GetPulse()
+  {
+    int16_t pulse = encoder.GetPulse();
+    return pulse;
+  }
+
   void Odometory::Update()
   {
     encoder.Update();

@@ -51,6 +51,17 @@ namespace hardware
         }
     }
 
+    int16_t Encoder::GetPulse()
+    {
+        int16_t enc_buff = TIM4->CNT;
+        pulse_right = (int16_t)enc_buff * -1;
+        if (pulse_right < 0)
+        {
+            pulse_right *= -1;
+        }
+        return pulse_right;
+    }
+
     float Encoder::GetAngularVelocity(int16_t pulse)
     {
         return (float)pulse * (2.0 * M_PI / ppr) * gear_ratio / sampling_period / 4.0;
