@@ -9,6 +9,8 @@ namespace hardware
     {
     public:
         void Beep();
+        void SpeakerOn();
+        void SpeakerOff();
     };
 } // namespace hardware
 
