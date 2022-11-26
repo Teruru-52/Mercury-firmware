@@ -81,25 +81,51 @@ int cnt1kHz = 0;
 
 float bat_vol;
 std::vector<uint32_t> ir_data{0, 0, 0, 0};
+int16_t pulse;
+
+void SelectFunc(int16_t pulse)
+{
+  if (pulse < 8192)
+  {
+    led.off_back_right();
+    led.off_back_left();
+    state.func = State::FUNC0;
+  }
+  else if (pulse < 16384)
+  {
+    led.on_back_right();
+    led.off_back_left();
+    state.func = State::FUNC1;
+  }
+  else if (pulse < 24576)
+  {
+    led.off_back_right();
+    led.on_back_left();
+    state.func = State::FUNC2;
+  }
+  else
+  {
+    led.on_back_right();
+    led.on_back_left();
+    state.func = State::FUNC3;
+  }
+}
 
 void Initialize()
 {
-  irsensors.UpdateSideValue();
-  if (irsensors.StartInitialize())
-  {
-    speaker.Beep();
-    controller.InitializeOdometory();
-    speaker.Beep();
-    state.interruption = State::INTERRUPT;
-    state.mode = State::START_MOVE;
+  speaker.Beep();
+  controller.InitializeOdometory();
+  speaker.Beep();
+  controller.ResetOdometory();
+  state.interruption = State::INTERRUPT;
+  state.mode = State::START_MOVE;
 
-    // wallData = 0x0E;
-    wallData = Direction(14);
-    robotPos = controller.getRobotPosition();
-    agent.update(robotPos, wallData);
-    nextDir = Direction(1);
-    // printf("%u\n", wallData);
-  }
+  // wallData = 0x0E;
+  wallData = Direction(14);
+  robotPos = controller.getRobotPosition();
+  agent.update(robotPos, wallData);
+  nextDir = Direction(1);
+  // printf("%u\n", wallData);
 }
 
 void UpdateUndercarriage()
@@ -140,9 +166,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
             agent.update(robotPos, wallData);
             nextDir = agent.getNextDirection();
 
-            state.mode = State::SEARCH;
-            // state.interruption = State::NOT_INTERRUPT;
-            // state.mode = State::SPEAKER;
+            // state.mode = State::SEARCH;
+            state.interruption = State::NOT_INTERRUPT;
+            state.mode = State::OUTPUT;
 
             // controller.Brake();
             // printf("finish START_MOVE\n");
@@ -169,18 +195,30 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
             // printf("%d\n", controller.dir_diff);
             // printf("%u\n", controller.robot_dir);
             // printf("%u, %u\n", nextDir, controller.dir_diff);
-
-            state.mode = State::SEARCH;
-            // state.interruption = State::NOT_INTERRUPT;
-            // state.mode = State::SPEAKER;
           }
-          // if (agent.getState() == Agent::FINISHED)
-          // {
-          //   state.interruption = State::NOT_INTERRUPT;
-          //   state.mode = State::OUTPUT;
-          // }
-
+          if (prevState == Agent::SEARCHING_NOT_GOAL && agent.getState() == Agent::SEARCHING_REACHED_GOAL)
+          {
+            controller.Brake();
+            state.interruption = State::NOT_INTERRUPT;
+            state.mode = State::LED;
+          }
+          else if (agent.getState() == Agent::FINISHED)
+          {
+            controller.Brake();
+            state.interruption = State::NOT_INTERRUPT;
+            state.mode = State::LED;
+          }
           prevState = agent.getState();
+        }
+
+        else if (state.mode == State::INITIALIZE_POSITION)
+        {
+          controller.InitializePosition(ir_data);
+          if (controller.GetFlag())
+          {
+            state.interruption = State::NOT_INTERRUPT;
+            state.mode = State::OUTPUT;
+          }
         }
 
         if (cnt1kHz == 0)
@@ -272,7 +310,18 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    if (state.mode == State::INITIALIZE)
+    if (state.mode == State::SELECT_FUNCTION)
+    {
+      irsensors.UpdateSideValue();
+      pulse = controller.GetPulse();
+      SelectFunc(pulse);
+
+      if (irsensors.StartInitialize())
+      {
+        state.mode = State::INITIALIZE;
+      }
+    }
+    else if (state.mode == State::INITIALIZE)
     {
       Initialize();
     }
@@ -290,6 +339,23 @@ int main(void)
         // step_identification.OutputLog();
       }
     }
+
+    else if (state.mode == State::LED)
+    {
+      speaker.SpeakerOn();
+      led.Flashing();
+      speaker.SpeakerOff();
+      if (agent.getState() == Agent::SEARCHING_REACHED_GOAL)
+      {
+        state.mode = State::SEARCH;
+      }
+      else if (agent.getState() == Agent::FINISHED)
+      {
+        state.mode = State::INITIALIZE_POSITION;
+      }
+      state.interruption = State::INTERRUPT;
+    }
+
     else if (state.mode == State::SPEAKER)
     {
       controller.Brake();
@@ -298,6 +364,7 @@ int main(void)
       state.mode = State::SEARCH;
       state.interruption = State::INTERRUPT;
     }
+
     else if (state.mode == State::WAIT)
     {
       HAL_Delay(500);

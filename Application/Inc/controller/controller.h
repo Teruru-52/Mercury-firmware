@@ -31,6 +31,7 @@ namespace undercarriage
         void UpdateBatteryVoltage(float bat_vol);
         void UpdateOdometory();
         void ResetOdometory();
+        int16_t GetPulse();
         void UpdateIMU();
         void SetBase();
         void PartyTrick();
@@ -47,6 +48,7 @@ namespace undercarriage
         void FrontWallCorrection(const std::vector<uint32_t> &ir_data);
         void BlindAlley(const std::vector<uint32_t> &ir_data);
         void StartMove(const std::vector<uint32_t> &ir_data);
+        void InitializePosition(const std::vector<uint32_t> &ir_data);
         void Brake();
         void InputVelocity(float input_v, float input_w);
         bool GetFlag();
@@ -62,6 +64,7 @@ namespace undercarriage
         void robotMove(const Operation &op, const std::vector<uint32_t> &ir_data);
         void robotMove(const Direction &dir, const std::vector<uint32_t> &ir_data);
         void robotMove2(const Direction &dir, const std::vector<uint32_t> &ir_data);
+        void robotMove3(const Direction &dir, const std::vector<uint32_t> &ir_data);
         void robotMove(const State::Mode &mode, const std::vector<uint32_t> &ir_data);
 
     private:
