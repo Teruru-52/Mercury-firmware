@@ -40,6 +40,7 @@ public:
         START_MOVE,
         SEARCH,
         CALC_PATH,
+        RUN_SEQUENCE,
         SPEAKER,
         LED,
         OUTPUT,
