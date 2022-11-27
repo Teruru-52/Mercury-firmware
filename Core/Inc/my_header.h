@@ -16,5 +16,6 @@
 #include "mazeData.h"
 #include "ShortestPath.h"
 #include "Agent.h"
+#include "Operation.h"
 
 #endif // _MY_HEADER_H_
