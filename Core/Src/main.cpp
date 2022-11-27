@@ -78,9 +78,11 @@ IndexVec robotPos;
 
 int cnt16kHz = 0;
 int cnt1kHz = 0;
+int cnt1Hz = 0;
 
 float bat_vol;
 std::vector<uint32_t> ir_data{0, 0, 0, 0};
+OperationList runSequence;
 int16_t pulse;
 
 void SelectFunc(int16_t pulse)
@@ -166,21 +168,16 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
             agent.update(robotPos, wallData);
             nextDir = agent.getNextDirection();
 
-            // state.mode = State::SEARCH;
-            state.interruption = State::NOT_INTERRUPT;
-            state.mode = State::OUTPUT;
-
-            // controller.Brake();
-            // printf("finish START_MOVE\n");
+            state.mode = State::SEARCH;
             // printf("%u\n", wallData);
-            printf("%u\n", nextDir);
+            // printf("%u\n", nextDir);
             // printf("%u\n", controller.robot_dir);
           }
         }
 
         else if (state.mode == State::SEARCH)
         {
-          controller.robotMove2(nextDir, ir_data);
+          controller.robotMove3(nextDir, ir_data);
           if (controller.GetFlag())
           {
             controller.Reset();
@@ -189,26 +186,32 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
             wallData = controller.getWallData(ir_data);
             robotPos = controller.getRobotPosition();
             agent.update(robotPos, wallData);
+
+            if (cnt1Hz > 210 && agent.getState() == Agent::SEARCHING_REACHED_GOAL)
+            {
+              agent.forceGotoStart();
+            }
+
             nextDir = agent.getNextDirection();
             // printf("%u\n", wallData);
-            printf("%u\n", nextDir);
+            // printf("%u\n", nextDir);
             // printf("%d\n", controller.dir_diff);
             // printf("%u\n", controller.robot_dir);
-            // printf("%u, %u\n", nextDir, controller.dir_diff);
+
+            if (prevState == Agent::SEARCHING_NOT_GOAL && agent.getState() == Agent::SEARCHING_REACHED_GOAL)
+            {
+              controller.Brake();
+              state.interruption = State::NOT_INTERRUPT;
+              state.mode = State::LED;
+            }
+            else if (agent.getState() == Agent::FINISHED)
+            {
+              controller.Brake();
+              state.interruption = State::NOT_INTERRUPT;
+              state.mode = State::LED;
+            }
+            prevState = agent.getState();
           }
-          if (prevState == Agent::SEARCHING_NOT_GOAL && agent.getState() == Agent::SEARCHING_REACHED_GOAL)
-          {
-            controller.Brake();
-            state.interruption = State::NOT_INTERRUPT;
-            state.mode = State::LED;
-          }
-          else if (agent.getState() == Agent::FINISHED)
-          {
-            controller.Brake();
-            state.interruption = State::NOT_INTERRUPT;
-            state.mode = State::LED;
-          }
-          prevState = agent.getState();
         }
 
         else if (state.mode == State::INITIALIZE_POSITION)
@@ -216,13 +219,32 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
           controller.InitializePosition(ir_data);
           if (controller.GetFlag())
           {
+            controller.Reset();
             state.interruption = State::NOT_INTERRUPT;
-            state.mode = State::OUTPUT;
+            state.mode = State::CALC_PATH;
           }
         }
 
-        if (cnt1kHz == 0)
+        else if (state.mode == State::RUN_SEQUENCE)
         {
+          static size_t i = 0;
+          controller.robotMove(runSequence[i], ir_data);
+          if (controller.GetFlag())
+          {
+            controller.Reset();
+            if (i == runSequence.size() - 1)
+            {
+              controller.Brake();
+              state.interruption = State::NOT_INTERRUPT;
+              state.mode = State::OUTPUT;
+            }
+            i++;
+          }
+        }
+
+        if (cnt1kHz == 999)
+        {
+          cnt1Hz++;
           led.on_back_right();
         }
         else
@@ -333,11 +355,16 @@ int main(void)
     if (state.mode == State::OUTPUT)
     {
       controller.Brake();
-      if (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_2) == 0)
+      irsensors.UpdateSideValue();
+      speaker.SpeakerOn();
+
+      if (irsensors.StartInitialize())
       {
-        // controller.OutputLog();
+        controller.OutputLog();
         // step_identification.OutputLog();
       }
+      // if (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_2) == 0)
+      // {}
     }
 
     else if (state.mode == State::LED)
@@ -371,11 +398,15 @@ int main(void)
       // state.mode = State::PIVOT_TURN_LEFT90;
       state.interruption = State::INTERRUPT;
     }
-    // else if (state.mode == State::CALC_PATH)
-    // {
-    //   agent.calcRunSequence(false);
-    //   const OperationList &runSequence = agent.getRunSequence();
-    // }
+
+    else if (state.mode == State::CALC_PATH)
+    {
+      agent.caclRunSequence(false);
+      runSequence = agent.getRunSequence();
+      HAL_Delay(2500);
+      state.mode = State::RUN_SEQUENCE;
+      state.interruption = State::INTERRUPT;
+    }
   } // end while
   /* USER CODE END 3 */
 }
