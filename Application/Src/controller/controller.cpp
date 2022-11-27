@@ -91,7 +91,7 @@ namespace undercarriage
             float error_fl = 0;
             float error_fr = 0;
 
-            if (ir_data[0] > 2150)
+            if (ir_data[0] > 2180)
             {
                 error_fl = ir_fl_base - (float)ir_data[0];
             }
@@ -100,7 +100,7 @@ namespace undercarriage
                 error_fl = 0;
             }
 
-            if (ir_data[1] > 2150)
+            if (ir_data[1] > 2180)
             {
                 error_fr = ir_fr_base - (float)ir_data[1];
             }
@@ -114,7 +114,7 @@ namespace undercarriage
             u_w = pid_ir_sensor_side.Update(error_fl - error_fr) + pid_angle.Update(base_theta - cur_pos[2]);
             InputVelocity(u_v, u_w);
 
-            Logger();
+            // Logger();
         }
         else
         {
@@ -136,7 +136,7 @@ namespace undercarriage
             float error_fl = 0;
             float error_fr = 0;
 
-            if (ir_data[0] > 2150)
+            if (ir_data[0] > 2180)
             {
                 error_fl = ir_fl_base - (float)ir_data[0];
             }
@@ -145,7 +145,7 @@ namespace undercarriage
                 error_fl = 0;
             }
 
-            if (ir_data[1] > 2150)
+            if (ir_data[1] > 2180)
             {
                 error_fr = ir_fr_base - (float)ir_data[1];
             }
@@ -159,7 +159,7 @@ namespace undercarriage
             u_w = pid_ir_sensor_side.Update(error_fl - error_fr) + pid_angle.Update(base_theta - cur_pos[2]);
             InputVelocity(u_v, u_w);
 
-            Logger();
+            // Logger();
         }
         else
         {
@@ -181,7 +181,7 @@ namespace undercarriage
             float error_fl = 0;
             float error_fr = 0;
 
-            if (ir_data[0] > 2150)
+            if (ir_data[0] > 2180)
             {
                 error_fl = ir_fl_base - (float)ir_data[0];
             }
@@ -190,7 +190,7 @@ namespace undercarriage
                 error_fl = 0;
             }
 
-            if (ir_data[1] > 2150)
+            if (ir_data[1] > 2180)
             {
                 error_fr = ir_fr_base - (float)ir_data[1];
             }
@@ -204,13 +204,58 @@ namespace undercarriage
             u_w = pid_ir_sensor_side.Update(error_fl - error_fr) + pid_angle.Update(base_theta - cur_pos[2]);
             InputVelocity(u_v, u_w);
 
-            Logger();
+            // Logger();
         }
         else
         {
             Brake();
             acc3.ResetTrajectoryIndex();
             acc3.ResetFlag();
+            pid_traslational_vel.ResetPID();
+            pid_angle.ResetPID();
+            pid_ir_sensor_side.ResetPID();
+            odom.Reset();
+            flag = true;
+        }
+    }
+
+    void Controller::Acceleration4(const std::vector<uint32_t> &ir_data)
+    {
+        if (acc4.GetFlag())
+        {
+            float error_fl = 0;
+            float error_fr = 0;
+
+            if (ir_data[0] > 2180)
+            {
+                error_fl = ir_fl_base - (float)ir_data[0];
+            }
+            else
+            {
+                error_fl = 0;
+            }
+
+            if (ir_data[1] > 2180)
+            {
+                error_fr = ir_fr_base - (float)ir_data[1];
+            }
+            else
+            {
+                error_fr = 0;
+            }
+            acc4.UpdateRef();
+            ref_v = acc4.GetRefVelocity();
+            u_v = pid_traslational_vel.Update(ref_v - cur_vel[0]) + Tp1_v * ref_v / Kp_v;
+            u_w = pid_ir_sensor_side.Update(error_fl - error_fr) + pid_angle.Update(base_theta - cur_pos[2]);
+            InputVelocity(u_v, u_w);
+
+            // Logger();
+        }
+        else
+        {
+            Brake();
+            acc4.ResetTrajectoryIndex();
+            acc4.ResetFlag();
             pid_traslational_vel.ResetPID();
             pid_angle.ResetPID();
             pid_ir_sensor_side.ResetPID();
@@ -354,7 +399,7 @@ namespace undercarriage
         float error_fr;
         if (l < ref_l)
         {
-            if (ir_data[0] > 2150)
+            if (ir_data[0] > 2180)
             {
                 error_fl = ir_fl_base - (float)ir_data[0];
             }
@@ -363,7 +408,7 @@ namespace undercarriage
                 error_fl = 0;
             }
 
-            if (ir_data[1] > 2150)
+            if (ir_data[1] > 2180)
             {
                 error_fr = ir_fr_base - (float)ir_data[1];
             }
@@ -426,9 +471,9 @@ namespace undercarriage
     {
         if (state.mode == State::FORWARD)
         {
-            ref_l = FORWARD_LENGTH3;
-            GoStraight(ir_data);
-            // Acceleration3(ir_data);
+            // ref_l = FORWARD_LENGTH3;
+            // GoStraight(ir_data);
+            Acceleration3(ir_data);
             if (GetFlag())
             {
                 Reset();
@@ -482,9 +527,9 @@ namespace undercarriage
         }
         if (state.mode == State::FORWARD2)
         {
-            ref_l = FORWARD_LENGTH1;
-            GoStraight(ir_data);
-            // Acceleration1(ir_data);
+            // ref_l = FORWARD_LENGTH1;
+            // GoStraight(ir_data);
+            Acceleration1(ir_data);
             if (GetFlag())
             {
                 state.mode = State::FORWARD;
@@ -532,9 +577,9 @@ namespace undercarriage
         }
         if (state.mode == State::FORWARD)
         {
-            ref_l = FORWARD_LENGTH1;
-            GoStraight(ir_data);
-            // Acceleration1(ir_data);
+            // ref_l = FORWARD_LENGTH1;
+            // GoStraight(ir_data);
+            Acceleration1(ir_data);
             if (GetFlag())
             {
                 state.mode = State::FORWARD;
@@ -546,9 +591,9 @@ namespace undercarriage
     {
         if (state.mode == State::FORWARD)
         {
-            ref_l = FORWARD_LENGTH3;
-            GoStraight(ir_data);
-            // Acceleration3(ir_data);
+            // ref_l = FORWARD_LENGTH3;
+            // GoStraight(ir_data);
+            Acceleration3(ir_data);
             if (GetFlag())
             {
                 Reset();
@@ -567,6 +612,24 @@ namespace undercarriage
         if (state.mode == State::PIVOT_TURN180)
         {
             PivotTurn180();
+            if (GetFlag())
+            {
+                Reset();
+                state.mode = State::BACK;
+            }
+        }
+        if (state.mode == State::BACK)
+        {
+            Back();
+            if (GetFlag())
+            {
+                Reset();
+                state.mode = State::FORWARD2;
+            }
+        }
+        if (state.mode == State::FORWARD2)
+        {
+            Acceleration4(ir_data);
             if (GetFlag())
             {
                 state.mode = State::FORWARD;
@@ -647,12 +710,12 @@ namespace undercarriage
             wall.byte |= NORTH << robot_dir_index;
         }
 
-        if (ir_data[0] > 2200)
+        if (ir_data[0] > 2180)
         {
             wall.byte |= NORTH << (robot_dir_index + 3) % 4;
         }
 
-        if (ir_data[1] > 2200)
+        if (ir_data[1] > 2180)
         {
             wall.byte |= NORTH << (robot_dir_index + 1) % 4;
         }
@@ -695,17 +758,98 @@ namespace undercarriage
 
     void Controller::robotMove(const Operation &op, const std::vector<uint32_t> &ir_data)
     {
-        flag = false;
         switch (op.op)
         {
         case Operation::FORWARD:
-            GoStraight(ir_data);
+            if (state.mode == State::FORWARD)
+            {
+                // GoStraight(ir_data);
+                Acceleration2(ir_data);
+            }
             break;
         case Operation::TURN_LEFT90:
-            KanayamaTurnLeft90();
+            // KanayamaTurnLeft90();
+            if (state.mode == State::FORWARD)
+            {
+                Reset();
+                if (ir_data[2] > 2180 && ir_data[3] > 2180)
+                {
+                    state.mode = State::FRONT_WALL_CORRECTION;
+                }
+                else
+                {
+                    state.mode = State::PIVOT_TURN_LEFT90;
+                }
+            }
+
+            if (state.mode == State::FRONT_WALL_CORRECTION)
+            {
+                FrontWallCorrection(ir_data);
+                if (GetFlag())
+                {
+                    Reset();
+                    state.mode = State::PIVOT_TURN_LEFT90;
+                }
+            }
+
+            if (state.mode == State::PIVOT_TURN_LEFT90)
+            {
+                PivotTurnLeft90();
+                if (GetFlag())
+                {
+                    Reset();
+                    state.mode = State::FORWARD2;
+                }
+            }
+
+            if (state.mode == State::FORWARD2)
+            {
+                Acceleration2(ir_data);
+                if (GetFlag())
+                {
+                    state.mode = State::FORWARD;
+                }
+            }
             break;
         case Operation::TURN_RIGHT90:
-            KanayamaTurnRight90();
+            // KanayamaTurnRight90();
+            if (state.mode == State::FORWARD)
+            {
+                if (ir_data[2] > 2180 && ir_data[3] > 2180)
+                {
+                    state.mode = State::FRONT_WALL_CORRECTION;
+                }
+                else
+                {
+                    state.mode = State::PIVOT_TURN_RIGHT90;
+                }
+            }
+            if (state.mode == State::FRONT_WALL_CORRECTION)
+            {
+                FrontWallCorrection(ir_data);
+                if (GetFlag())
+                {
+                    Reset();
+                    state.mode = State::PIVOT_TURN_RIGHT90;
+                }
+            }
+            if (state.mode == State::PIVOT_TURN_RIGHT90)
+            {
+                PivotTurnRight90();
+                if (GetFlag())
+                {
+                    Reset();
+                    state.mode = State::FORWARD2;
+                }
+            }
+            if (state.mode == State::FORWARD2)
+            {
+                Acceleration2(ir_data);
+                if (GetFlag())
+                {
+                    state.mode = State::FORWARD;
+                }
+            }
             break;
         case Operation::STOP:
             Brake();
@@ -957,7 +1101,6 @@ namespace undercarriage
         {
             if (state.mode == State::FORWARD)
             {
-
                 Acceleration3(ir_data);
                 if (GetFlag())
                 {

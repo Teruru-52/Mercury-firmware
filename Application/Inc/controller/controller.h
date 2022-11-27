@@ -13,7 +13,7 @@
 #include "Agent.h"
 
 #define FORWARD_LENGTH4 0.0
-#define FORWARD_LENGTH1 0.144
+#define FORWARD_LENGTH1 0.138
 #define FORWARD_LENGTH2 0.18
 #define FORWARD_LENGTH3 0.09
 
@@ -38,6 +38,7 @@ namespace undercarriage
         void Acceleration1(const std::vector<uint32_t> &ir_data);
         void Acceleration2(const std::vector<uint32_t> &ir_data);
         void Acceleration3(const std::vector<uint32_t> &ir_data);
+        void Acceleration4(const std::vector<uint32_t> &ir_data);
         void PivotTurnRight90();
         void PivotTurnLeft90();
         void PivotTurn180();
@@ -81,6 +82,7 @@ namespace undercarriage
         trajectory::Acceleration1 acc1;
         trajectory::Acceleration2 acc2;
         trajectory::Acceleration3 acc3;
+        trajectory::Acceleration4 acc4;
         State state;
 
         float v_left;
