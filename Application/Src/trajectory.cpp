@@ -140,6 +140,52 @@ namespace trajectory
         return ref;
     }
 
+    // Acceleration4
+    Acceleration4::Acceleration4()
+        : index(0),
+          flag(true)
+    {
+        ref_size = GetRefSize();
+    }
+
+    void Acceleration4::ResetTrajectoryIndex()
+    {
+        index = 0;
+    }
+
+    void Acceleration4::UpdateRef()
+    {
+        if (index < ref_size)
+        {
+            ref = ref_v[index];
+            index++;
+        }
+        else if (index == ref_size)
+        {
+            flag = false;
+        }
+    }
+
+    int Acceleration4::GetRefSize()
+    {
+        return ref_v.size();
+    }
+
+    bool Acceleration4::GetFlag()
+    {
+        return flag;
+    }
+
+    void Acceleration4::ResetFlag()
+    {
+        flag = true;
+    }
+
+    float Acceleration4::GetRefVelocity()
+    {
+        return ref;
+    }
+
     // PivotTurn90
     PivotTurn90::PivotTurn90()
         : index(0),
