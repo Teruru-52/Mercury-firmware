@@ -270,6 +270,7 @@ int main(void)
     if (state.mode == State::ELSE)
     {
       controller.PivotTurn(90);
+      state.mode = State::OUTPUT;
     }
 
     else if (state.mode == State::SEARCH)
@@ -330,7 +331,6 @@ int main(void)
     {
       controller.Brake();
       irsensors.UpdateSideValue();
-      speaker.SpeakerOn();
 
       if (irsensors.StartInitialize())
       {
