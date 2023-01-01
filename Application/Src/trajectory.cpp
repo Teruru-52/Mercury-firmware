@@ -43,6 +43,12 @@ namespace trajectory
         flag = true;
     }
 
+    void Acceleration1::Reset()
+    {
+        ResetTrajectoryIndex();
+        ResetFlag();
+    }
+
     float Acceleration1::GetRefVelocity()
     {
         return ref;
@@ -87,6 +93,12 @@ namespace trajectory
     void Acceleration2::ResetFlag()
     {
         flag = true;
+    }
+
+    void Acceleration2::Reset()
+    {
+        ResetTrajectoryIndex();
+        ResetFlag();
     }
 
     float Acceleration2::GetRefVelocity()
@@ -135,6 +147,12 @@ namespace trajectory
         flag = true;
     }
 
+    void Acceleration3::Reset()
+    {
+        ResetTrajectoryIndex();
+        ResetFlag();
+    }
+
     float Acceleration3::GetRefVelocity()
     {
         return ref;
@@ -179,6 +197,12 @@ namespace trajectory
     void Acceleration4::ResetFlag()
     {
         flag = true;
+    }
+
+    void Acceleration4::Reset()
+    {
+        ResetTrajectoryIndex();
+        ResetFlag();
     }
 
     float Acceleration4::GetRefVelocity()
@@ -227,6 +251,12 @@ namespace trajectory
         flag = true;
     }
 
+    void PivotTurn90::Reset()
+    {
+        ResetTrajectoryIndex();
+        ResetFlag();
+    }
+
     float PivotTurn90::GetRefVelocity()
     {
         return ref;
@@ -271,6 +301,12 @@ namespace trajectory
     void PivotTurn180::ResetFlag()
     {
         flag = true;
+    }
+
+    void PivotTurn180::Reset()
+    {
+        ResetTrajectoryIndex();
+        ResetFlag();
     }
 
     float PivotTurn180::GetRefVelocity()
@@ -322,6 +358,12 @@ namespace trajectory
     void TurnLeft90::ResetFlag()
     {
         flag = true;
+    }
+
+    void TurnLeft90::Reset()
+    {
+        ResetTrajectoryIndex();
+        ResetFlag();
     }
 
     // M Sequence

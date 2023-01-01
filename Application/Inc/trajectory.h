@@ -16,6 +16,7 @@ namespace trajectory
         int GetRefSize();
         bool GetFlag();
         void ResetFlag();
+        void Reset();
         float GetRefVelocity();
 
     private:
@@ -798,6 +799,7 @@ namespace trajectory
         int GetRefSize();
         bool GetFlag();
         void ResetFlag();
+        void Reset();
         float GetRefVelocity();
 
     private:
@@ -1719,6 +1721,7 @@ namespace trajectory
         int GetRefSize();
         bool GetFlag();
         void ResetFlag();
+        void Reset();
         float GetRefVelocity();
 
     private:
@@ -2391,6 +2394,7 @@ namespace trajectory
         int GetRefSize();
         bool GetFlag();
         void ResetFlag();
+        void Reset();
         float GetRefVelocity();
 
     private:
@@ -2881,6 +2885,7 @@ namespace trajectory
         int GetRefSize();
         bool GetFlag();
         void ResetFlag();
+        void Reset();
         float GetRefVelocity();
 
     private:
@@ -3213,6 +3218,7 @@ namespace trajectory
         int GetRefSize();
         bool GetFlag();
         void ResetFlag();
+        void Reset();
         float GetRefVelocity();
 
     private:
@@ -3760,6 +3766,7 @@ namespace trajectory
         std::vector<float> GetRef();
         bool GetFlag();
         void ResetFlag();
+        void Reset();
 
     private:
         int index;

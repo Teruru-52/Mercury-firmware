@@ -99,8 +99,6 @@ namespace hardware
 
         ir_fl = dma_f[0];
         ir_fr = dma_f[1];
-
-        bat_vol = (float)dma_f[2] * 3.3 / 4096.0 * 3.0;
     }
 
     void IRsensor::Update()
@@ -141,12 +139,14 @@ namespace hardware
 
     float IRsensor::GetBatteryVoltage()
     {
+        bat_vol = (float)dma_f[2] * 3.3 / 4096.0 * 3.0;
         return bat_vol;
     }
 
     void IRsensor::BatteryCheck()
     {
         UpdateFrontValue();
+        bat_vol = (float)dma_f[2] * 3.3 / 4096.0 * 3.0;
         if (bat_vol > 7.0)
         {
             led.on_side_right();
@@ -163,7 +163,7 @@ namespace hardware
         {
             led.on_side_left();
         }
-        printf("%f [V]", bat_vol);
+        printf("%f [V]\n", bat_vol);
     }
 
     bool IRsensor::StartInitialize()

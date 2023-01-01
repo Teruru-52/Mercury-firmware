@@ -7,15 +7,14 @@
 #include "../odometory.h"
 #include "../controller/pid_controller.h"
 #include "../controller/kanayama.h"
-#include "../state.h"
 #include "Operation.h"
 #include "Maze.h"
 #include "Agent.h"
 
-#define FORWARD_LENGTH4 0.0
 #define FORWARD_LENGTH1 0.138
 #define FORWARD_LENGTH2 0.18
 #define FORWARD_LENGTH3 0.09
+#define FORWARD_LENGTH4 0.54
 
 namespace undercarriage
 {
@@ -23,6 +22,23 @@ namespace undercarriage
     {
     public:
         Controller(float sampling_period, float control_period);
+
+        typedef enum
+        {
+            FORWARD,
+            ACCELERATION1,
+            ACCELERATION2,
+            ACCELERATION3,
+            ACCELERATION4,
+            TURN_LEFT90,
+            TURN_RIGHT90,
+            PIVOT_TURN_RIGHT90,
+            PIVOT_TURN_LEFT90,
+            PIVOT_TURN180,
+            FRONT_WALL_CORRECTION,
+            BACK,
+            STOP
+        } Mode;
 
         int8_t dir_diff;
         Direction robot_dir;
@@ -34,6 +50,13 @@ namespace undercarriage
         int16_t GetPulse();
         void UpdateIMU();
         void SetBase();
+
+        void PivotTurn(float angle);
+        void Turn(float angle);
+        void Acceleration(float length);
+        void FrontWallCorrection();
+        void Back();
+
         void PartyTrick();
         void Acceleration1(const std::vector<uint32_t> &ir_data);
         void Acceleration2(const std::vector<uint32_t> &ir_data);
@@ -45,28 +68,29 @@ namespace undercarriage
         void KanayamaTurnLeft90();
         void KanayamaTurnRight90();
         void GoStraight(const std::vector<uint32_t> &ir_data);
-        void Back();
+        void Back(int time);
         void FrontWallCorrection(const std::vector<uint32_t> &ir_data);
-        void BlindAlley(const std::vector<uint32_t> &ir_data);
-        void StartMove(const std::vector<uint32_t> &ir_data);
+        void BlindAlley();
+        void StartMove();
         void InitializePosition(const std::vector<uint32_t> &ir_data);
         void Brake();
         void InputVelocity(float input_v, float input_w);
         bool GetFlag();
         void Reset();
+        void ResetWallFlag();
         void MotorTest(float v_left, float v_right);
         void Logger();
         void OutputLog();
 
+        bool wallDataReady();
         Direction getWallData(const std::vector<uint32_t> &ir_data);
         void UpdatePos(const Direction &dir);
         void UpdateDir(const Direction &dir);
         IndexVec getRobotPosition();
+        void robotMove(const std::vector<uint32_t> &ir_data);
         void robotMove(const Operation &op, const std::vector<uint32_t> &ir_data);
         void robotMove(const Direction &dir, const std::vector<uint32_t> &ir_data);
         void robotMove2(const Direction &dir, const std::vector<uint32_t> &ir_data);
-        void robotMove3(const Direction &dir, const std::vector<uint32_t> &ir_data);
-        void robotMove(const State::Mode &mode, const std::vector<uint32_t> &ir_data);
 
     private:
         undercarriage::Odometory odom;
@@ -83,7 +107,7 @@ namespace undercarriage
         trajectory::Acceleration2 acc2;
         trajectory::Acceleration3 acc3;
         trajectory::Acceleration4 acc4;
-        State state;
+        Mode mode;
 
         float v_left;
         float v_right;
@@ -104,7 +128,8 @@ namespace undercarriage
         const float ir_fr_base = 2280;
         const float ir_sl_base = 3400;
         const float ir_sr_base = 3400;
-        bool flag;
+        bool flag_controller;
+        bool flag_wall;
         int cnt;
         int index_log;
         float l;

@@ -12,9 +12,10 @@ namespace undercarriage
           pid_ir_sensor_front(0.0005, 0.0005, 0.0, 0.0, control_period),
           pid_ir_sensor_side(0.001, 0.001, 0.0, 0.0, control_period),
           kanayama(3.0, 3.0, 10.0),
-          state(State::PIVOT_TURN_RIGHT90),
+          mode(STOP),
           ref_l(FORWARD_LENGTH1),
-          flag(false),
+          flag_controller(false),
+          flag_wall(false),
           cnt(0),
           index_log(0),
           base_theta(0),
@@ -76,6 +77,104 @@ namespace undercarriage
         base_theta = cur_pos[2];
     }
 
+    void Controller::PivotTurn(float angle)
+    {
+        if (angle == 90.0)
+        {
+            mode = PIVOT_TURN_LEFT90;
+        }
+        else if (angle == -90.0)
+        {
+            mode = PIVOT_TURN_RIGHT90;
+        }
+        else if (angle == 180.0)
+        {
+            mode = PIVOT_TURN180;
+        }
+        while (1)
+        {
+            if (flag_controller)
+            {
+                Reset();
+                break;
+            }
+        }
+    }
+
+    void Controller::Turn(float angle)
+    {
+        if (angle == 90.0)
+        {
+            mode = TURN_LEFT90;
+        }
+        else if (angle == -90.0)
+        {
+            mode = TURN_RIGHT90;
+        }
+        while (1)
+        {
+            if (flag_controller)
+            {
+                Reset();
+                break;
+            }
+        }
+    }
+
+    void Controller::Acceleration(float length)
+    {
+        if (length == 0.138)
+        {
+            mode = ACCELERATION1;
+        }
+        else if (length == 0.18)
+        {
+            mode = ACCELERATION2;
+        }
+        else if (length == 0.09)
+        {
+            mode = ACCELERATION3;
+        }
+        else if (length == 0.54)
+        {
+            mode = ACCELERATION4;
+        }
+        while (1)
+        {
+            if (flag_controller)
+            {
+                Reset();
+                break;
+            }
+        }
+    }
+
+    void Controller::FrontWallCorrection()
+    {
+        mode = FRONT_WALL_CORRECTION;
+        while (1)
+        {
+            if (flag_controller)
+            {
+                Reset();
+                break;
+            }
+        }
+    }
+
+    void Controller::Back()
+    {
+        mode = BACK;
+        while (1)
+        {
+            if (flag_controller)
+            {
+                Reset();
+                break;
+            }
+        }
+    }
+
     void Controller::PartyTrick()
     {
         // u_v = pid_traslational_vel.Update(-cur_vel[0]);
@@ -119,13 +218,7 @@ namespace undercarriage
         else
         {
             Brake();
-            acc1.ResetTrajectoryIndex();
-            acc1.ResetFlag();
-            pid_traslational_vel.ResetPID();
-            pid_angle.ResetPID();
-            pid_ir_sensor_side.ResetPID();
-            odom.Reset();
-            flag = true;
+            flag_controller = true;
         }
     }
 
@@ -164,13 +257,7 @@ namespace undercarriage
         else
         {
             Brake();
-            acc2.ResetTrajectoryIndex();
-            acc2.ResetFlag();
-            pid_traslational_vel.ResetPID();
-            pid_angle.ResetPID();
-            pid_ir_sensor_side.ResetPID();
-            odom.Reset();
-            flag = true;
+            flag_controller = true;
         }
     }
 
@@ -209,13 +296,7 @@ namespace undercarriage
         else
         {
             Brake();
-            acc3.ResetTrajectoryIndex();
-            acc3.ResetFlag();
-            pid_traslational_vel.ResetPID();
-            pid_angle.ResetPID();
-            pid_ir_sensor_side.ResetPID();
-            odom.Reset();
-            flag = true;
+            flag_controller = true;
         }
     }
 
@@ -254,13 +335,7 @@ namespace undercarriage
         else
         {
             Brake();
-            acc4.ResetTrajectoryIndex();
-            acc4.ResetFlag();
-            pid_traslational_vel.ResetPID();
-            pid_angle.ResetPID();
-            pid_ir_sensor_side.ResetPID();
-            odom.Reset();
-            flag = true;
+            flag_controller = true;
         }
     }
 
@@ -280,12 +355,8 @@ namespace undercarriage
         {
             // robot_dir_index = (robot_dir_index + 1) % 4;
             Brake();
-            pivot_turn90.ResetTrajectoryIndex();
-            pivot_turn90.ResetFlag();
-            pid_rotational_vel.ResetPID();
-            odom.Reset();
             base_theta -= M_PI_2;
-            flag = true;
+            flag_controller = true;
         }
     }
 
@@ -303,14 +374,9 @@ namespace undercarriage
         }
         else
         {
-            // robot_dir_index = (robot_dir_index + 3) % 4;
             Brake();
-            pivot_turn90.ResetTrajectoryIndex();
-            pivot_turn90.ResetFlag();
-            pid_rotational_vel.ResetPID();
-            odom.Reset();
             base_theta += M_PI_2;
-            flag = true;
+            flag_controller = true;
         }
     }
 
@@ -328,14 +394,9 @@ namespace undercarriage
         }
         else
         {
-            // robot_dir_index = (robot_dir_index + 2) % 4;
             Brake();
-            pivot_turn180.ResetTrajectoryIndex();
-            pivot_turn180.ResetFlag();
-            pid_rotational_vel.ResetPID();
-            odom.Reset();
             base_theta += M_PI;
-            flag = true;
+            flag_controller = true;
         }
     }
 
@@ -356,13 +417,8 @@ namespace undercarriage
         }
         else
         {
-            // robot_dir_index = (robot_dir_index + 3) % 4;
-            kanayama.Reset();
-            pid_rotational_vel.ResetPID();
-            pid_traslational_vel.ResetPID();
-            odom.Reset();
             base_theta += M_PI_2;
-            flag = true;
+            flag_controller = true;
         }
     }
 
@@ -383,13 +439,8 @@ namespace undercarriage
         }
         else
         {
-            // robot_dir_index = (robot_dir_index + 1) % 4;
-            kanayama.Reset();
-            pid_rotational_vel.ResetPID();
-            pid_traslational_vel.ResetPID();
-            odom.Reset();
             base_theta -= M_PI_2;
-            flag = true;
+            flag_controller = true;
         }
     }
 
@@ -424,27 +475,21 @@ namespace undercarriage
         }
         else
         {
-            pid_angle.ResetPID();
-            pid_traslational_vel.ResetPID();
-            pid_ir_sensor_side.ResetPID();
-            odom.Reset();
-            flag = true;
+            flag_controller = true;
         }
     }
 
-    void Controller::Back()
+    void Controller::Back(int time)
     {
-        if (cnt < 500)
+        if (cnt < time)
         {
             InputVelocity(-0.5, 0.0);
             cnt++;
         }
         else
         {
-            ref_l = FORWARD_LENGTH1;
-            flag = true;
+            flag_controller = true;
             odom.ResetTheta();
-            odom.Reset();
             base_theta = 0;
         }
     }
@@ -462,179 +507,37 @@ namespace undercarriage
         }
         else
         {
-            pid_ir_sensor_front.ResetPID();
-            flag = true;
+            flag_controller = true;
         }
     }
 
-    void Controller::BlindAlley(const std::vector<uint32_t> &ir_data)
+    void Controller::BlindAlley()
     {
-        if (state.mode == State::FORWARD)
-        {
-            // ref_l = FORWARD_LENGTH3;
-            // GoStraight(ir_data);
-            Acceleration3(ir_data);
-            if (GetFlag())
-            {
-                Reset();
-                state.mode = State::FRONT_WALL_CORRECTION;
-            }
-        }
-        if (state.mode == State::FRONT_WALL_CORRECTION)
-        {
-            FrontWallCorrection(ir_data);
-            if (GetFlag())
-            {
-                Reset();
-                state.mode = State::PIVOT_TURN_RIGHT90;
-            }
-        }
-        if (state.mode == State::PIVOT_TURN_RIGHT90)
-        {
-            PivotTurnRight90();
-            if (GetFlag())
-            {
-                Reset();
-                state.mode = State::FRONT_WALL_CORRECTION2;
-            }
-        }
-        if (state.mode == State::FRONT_WALL_CORRECTION2)
-        {
-            FrontWallCorrection(ir_data);
-            if (GetFlag())
-            {
-                Reset();
-                state.mode = State::PIVOT_TURN_RIGHT90_2;
-            }
-        }
-        if (state.mode == State::PIVOT_TURN_RIGHT90_2)
-        {
-            PivotTurnRight90();
-            if (GetFlag())
-            {
-                Reset();
-                state.mode = State::BACK;
-            }
-        }
-        if (state.mode == State::BACK)
-        {
-            Back();
-            if (GetFlag())
-            {
-                Reset();
-                state.mode = State::FORWARD2;
-            }
-        }
-        if (state.mode == State::FORWARD2)
-        {
-            // ref_l = FORWARD_LENGTH1;
-            // GoStraight(ir_data);
-            Acceleration1(ir_data);
-            if (GetFlag())
-            {
-                state.mode = State::FORWARD;
-            }
-        }
+        Acceleration(0.09);
+        FrontWallCorrection();
+        PivotTurn(-90);
+        FrontWallCorrection();
+        PivotTurn(-90);
+        Back();
+        Acceleration(0.138);
     }
 
-    void Controller::StartMove(const std::vector<uint32_t> &ir_data)
+    void Controller::StartMove()
     {
-        if (state.mode == State::PIVOT_TURN_RIGHT90)
-        {
-            PivotTurnRight90();
-            if (GetFlag())
-            {
-                Reset();
-                state.mode = State::FRONT_WALL_CORRECTION;
-            }
-        }
-        if (state.mode == State::FRONT_WALL_CORRECTION)
-        {
-            FrontWallCorrection(ir_data);
-            if (GetFlag())
-            {
-                Reset();
-                state.mode = State::PIVOT_TURN_LEFT90;
-            }
-        }
-        if (state.mode == State::PIVOT_TURN_LEFT90)
-        {
-            PivotTurnLeft90();
-            if (GetFlag())
-            {
-                Reset();
-                state.mode = State::BACK;
-            }
-        }
-        if (state.mode == State::BACK)
-        {
-            Back();
-            if (GetFlag())
-            {
-                Reset();
-                state.mode = State::FORWARD;
-            }
-        }
-        if (state.mode == State::FORWARD)
-        {
-            // ref_l = FORWARD_LENGTH1;
-            // GoStraight(ir_data);
-            Acceleration1(ir_data);
-            if (GetFlag())
-            {
-                state.mode = State::FORWARD;
-            }
-        }
+        PivotTurn(-90);
+        FrontWallCorrection();
+        PivotTurn(90);
+        Back();
+        Acceleration(0.138);
     }
 
     void Controller::InitializePosition(const std::vector<uint32_t> &ir_data)
     {
-        if (state.mode == State::FORWARD)
-        {
-            // ref_l = FORWARD_LENGTH3;
-            // GoStraight(ir_data);
-            Acceleration3(ir_data);
-            if (GetFlag())
-            {
-                Reset();
-                state.mode = State::FRONT_WALL_CORRECTION;
-            }
-        }
-        if (state.mode == State::FRONT_WALL_CORRECTION)
-        {
-            FrontWallCorrection(ir_data);
-            if (GetFlag())
-            {
-                Reset();
-                state.mode = State::PIVOT_TURN180;
-            }
-        }
-        if (state.mode == State::PIVOT_TURN180)
-        {
-            PivotTurn180();
-            if (GetFlag())
-            {
-                Reset();
-                state.mode = State::BACK;
-            }
-        }
-        if (state.mode == State::BACK)
-        {
-            Back();
-            if (GetFlag())
-            {
-                Reset();
-                state.mode = State::FORWARD2;
-            }
-        }
-        if (state.mode == State::FORWARD2)
-        {
-            Acceleration4(ir_data);
-            if (GetFlag())
-            {
-                state.mode = State::FORWARD;
-            }
-        }
+        Acceleration(0.09);
+        FrontWallCorrection();
+        PivotTurn(180);
+        Back();
+        Acceleration(0.54);
     }
 
     void Controller::Brake()
@@ -651,14 +554,35 @@ namespace undercarriage
 
     bool Controller::GetFlag()
     {
-        return flag;
+        return flag_controller;
     }
 
     void Controller::Reset()
     {
-        flag = false;
+        acc1.Reset();
+        acc2.Reset();
+        acc3.Reset();
+        acc4.Reset();
+        kanayama.Reset();
+        pivot_turn180.Reset();
+        pivot_turn90.Reset();
+
+        pid_angle.ResetPID();
+        pid_rotational_vel.ResetPID();
+        pid_traslational_vel.ResetPID();
+        pid_ir_sensor_front.ResetPID();
+        pid_ir_sensor_side.ResetPID();
+
+        odom.Reset();
+
+        flag_controller = false;
         index_log = 0;
         cnt = 0;
+    }
+
+    void Controller::ResetWallFlag()
+    {
+        flag_wall = false;
     }
 
     void Controller::MotorTest(float v_left, float v_right)
@@ -691,6 +615,11 @@ namespace undercarriage
             //         // printf("%f, %f\n", theta[i], omega[i]);
             printf("%f, %f\n", len[i], v[i]);
         }
+    }
+
+    bool Controller::wallDataReady()
+    {
+        return flag_wall;
     }
 
     Direction Controller::getWallData(const std::vector<uint32_t> &ir_data)
@@ -756,101 +685,87 @@ namespace undercarriage
         robot_dir = dir;
     }
 
+    void Controller::robotMove(const std::vector<uint32_t> &ir_data)
+    {
+        switch (mode)
+        {
+        case ACCELERATION1:
+            Acceleration1(ir_data);
+            break;
+        case ACCELERATION2:
+            Acceleration2(ir_data);
+            break;
+        case ACCELERATION3:
+            Acceleration3(ir_data);
+            break;
+        case ACCELERATION4:
+            Acceleration4(ir_data);
+            break;
+        case TURN_LEFT90:
+            KanayamaTurnLeft90();
+            break;
+        case TURN_RIGHT90:
+            KanayamaTurnRight90();
+            break;
+        case PIVOT_TURN_RIGHT90:
+            PivotTurnRight90();
+            break;
+        case PIVOT_TURN_LEFT90:
+            PivotTurnLeft90();
+            break;
+        case PIVOT_TURN180:
+            PivotTurn180();
+            break;
+        case FRONT_WALL_CORRECTION:
+            FrontWallCorrection(ir_data);
+            break;
+        case BACK:
+            Back(500);
+            break;
+        case STOP:
+            Brake();
+            break;
+        default:
+            break;
+        }
+    }
+
     void Controller::robotMove(const Operation &op, const std::vector<uint32_t> &ir_data)
     {
         switch (op.op)
         {
         case Operation::FORWARD:
-            if (state.mode == State::FORWARD)
-            {
-                // GoStraight(ir_data);
-                Acceleration2(ir_data);
-            }
+            Acceleration(0.18);
             break;
+
         case Operation::TURN_LEFT90:
-            // KanayamaTurnLeft90();
-            if (state.mode == State::FORWARD)
-            {
-                Reset();
-                if (ir_data[2] > 2180 && ir_data[3] > 2180)
-                {
-                    state.mode = State::FRONT_WALL_CORRECTION;
-                }
-                else
-                {
-                    state.mode = State::PIVOT_TURN_LEFT90;
-                }
-            }
+            // Turn(90);
 
-            if (state.mode == State::FRONT_WALL_CORRECTION)
+            if (ir_data[2] > 2180 && ir_data[3] > 2180)
             {
-                FrontWallCorrection(ir_data);
-                if (GetFlag())
-                {
-                    Reset();
-                    state.mode = State::PIVOT_TURN_LEFT90;
-                }
+                FrontWallCorrection();
             }
-
-            if (state.mode == State::PIVOT_TURN_LEFT90)
+            else
             {
-                PivotTurnLeft90();
-                if (GetFlag())
-                {
-                    Reset();
-                    state.mode = State::FORWARD2;
-                }
+                PivotTurn(90);
             }
-
-            if (state.mode == State::FORWARD2)
-            {
-                Acceleration2(ir_data);
-                if (GetFlag())
-                {
-                    state.mode = State::FORWARD;
-                }
-            }
+            Acceleration(0.18);
             break;
+
         case Operation::TURN_RIGHT90:
-            // KanayamaTurnRight90();
-            if (state.mode == State::FORWARD)
+            // Turn(-90);
+
+            if (ir_data[2] > 2180 && ir_data[3] > 2180)
             {
-                if (ir_data[2] > 2180 && ir_data[3] > 2180)
-                {
-                    state.mode = State::FRONT_WALL_CORRECTION;
-                }
-                else
-                {
-                    state.mode = State::PIVOT_TURN_RIGHT90;
-                }
+                FrontWallCorrection();
             }
-            if (state.mode == State::FRONT_WALL_CORRECTION)
+            else
             {
-                FrontWallCorrection(ir_data);
-                if (GetFlag())
-                {
-                    Reset();
-                    state.mode = State::PIVOT_TURN_RIGHT90;
-                }
+                PivotTurn(-90);
             }
-            if (state.mode == State::PIVOT_TURN_RIGHT90)
-            {
-                PivotTurnRight90();
-                if (GetFlag())
-                {
-                    Reset();
-                    state.mode = State::FORWARD2;
-                }
-            }
-            if (state.mode == State::FORWARD2)
-            {
-                Acceleration2(ir_data);
-                if (GetFlag())
-                {
-                    state.mode = State::FORWARD;
-                }
-            }
+            Acceleration(0.18);
             break;
+
         case Operation::STOP:
             Brake();
             break;
@@ -881,18 +796,17 @@ namespace undercarriage
         // 直進
         if (dir_diff == 0)
         {
-            ref_l = FORWARD_LENGTH2;
             GoStraight(ir_data);
         }
         // 右
         else if (dir_diff == 1 || dir_diff == -3)
         {
-            KanayamaTurnRight90();
+            Turn(-90);
         }
         // 左
         else if (dir_diff == -1 || dir_diff == 3)
         {
-            KanayamaTurnLeft90();
+            Turn(90);
         }
         // 180度ターン
         else
@@ -900,13 +814,14 @@ namespace undercarriage
             // 袋小路
             if (prev_wall_cnt == 3)
             {
-                BlindAlley(ir_data);
+                BlindAlley();
             }
             else
             {
                 PivotTurn180();
             }
         }
+        flag_wall = true;
     }
 
     void Controller::robotMove2(const Direction &dir, const std::vector<uint32_t> &ir_data)
@@ -931,104 +846,35 @@ namespace undercarriage
         // 直進
         if (dir_diff == 0)
         {
-            ref_l = FORWARD_LENGTH2;
-            GoStraight(ir_data);
+            Acceleration(0.18);
         }
         // 右
         else if (dir_diff == 1 || dir_diff == -3)
         {
-            if (state.mode == State::FORWARD)
-            {
-                ref_l = FORWARD_LENGTH3 + FORWARD_LENGTH4;
-                GoStraight(ir_data);
-                if (GetFlag())
-                {
-                    Reset();
-                    if (ir_data[2] > 2180 && ir_data[3] > 2180)
-                    {
-                        state.mode = State::FRONT_WALL_CORRECTION;
-                    }
-                    else
-                    {
-                        state.mode = State::PIVOT_TURN_RIGHT90;
-                    }
-                }
-            }
-            if (state.mode == State::FRONT_WALL_CORRECTION)
+            Acceleration(0.09);
+            if (ir_data[2] > 2180 && ir_data[3] > 2180)
             {
                 FrontWallCorrection(ir_data);
-                if (GetFlag())
-                {
-                    Reset();
-                    state.mode = State::PIVOT_TURN_RIGHT90;
-                }
             }
-            if (state.mode == State::PIVOT_TURN_RIGHT90)
+            else
             {
-                PivotTurnRight90();
-                if (GetFlag())
-                {
-                    Reset();
-                    state.mode = State::FORWARD2;
-                }
+                PivotTurn(-90);
             }
-            if (state.mode == State::FORWARD2)
-            {
-                ref_l = FORWARD_LENGTH3 - FORWARD_LENGTH4;
-                GoStraight(ir_data);
-                if (GetFlag())
-                {
-                    state.mode = State::FORWARD;
-                }
-            }
+            Acceleration(0.09);
         }
         // 左
         else if (dir_diff == -1 || dir_diff == 3)
         {
-            if (state.mode == State::FORWARD)
-            {
-                ref_l = FORWARD_LENGTH3 + FORWARD_LENGTH4;
-                GoStraight(ir_data);
-                if (GetFlag())
-                {
-                    Reset();
-                    if (ir_data[2] > 2180 && ir_data[3] > 2180)
-                    {
-                        state.mode = State::FRONT_WALL_CORRECTION;
-                    }
-                    else
-                    {
-                        state.mode = State::PIVOT_TURN_LEFT90;
-                    }
-                }
-            }
-            if (state.mode == State::FRONT_WALL_CORRECTION)
+            Acceleration(0.09);
+            if (ir_data[2] > 2180 && ir_data[3] > 2180)
             {
                 FrontWallCorrection(ir_data);
-                if (GetFlag())
-                {
-                    Reset();
-                    state.mode = State::PIVOT_TURN_LEFT90;
-                }
             }
-            if (state.mode == State::PIVOT_TURN_LEFT90)
+            else
             {
-                PivotTurnLeft90();
-                if (GetFlag())
-                {
-                    Reset();
-                    state.mode = State::FORWARD2;
-                }
+                PivotTurn(90);
             }
-            if (state.mode == State::FORWARD2)
-            {
-                ref_l = FORWARD_LENGTH3 - FORWARD_LENGTH4;
-                GoStraight(ir_data);
-                if (GetFlag())
-                {
-                    state.mode = State::FORWARD;
-                }
-            }
+            Acceleration(0.09);
         }
         // 180度ターン
         else
@@ -1036,220 +882,15 @@ namespace undercarriage
             // 袋小路
             if (prev_wall_cnt == 3)
             {
-                BlindAlley(ir_data);
+                BlindAlley();
             }
             else
             {
-                if (state.mode == State::FORWARD)
-                {
-                    ref_l = FORWARD_LENGTH3;
-                    GoStraight(ir_data);
-                    if (GetFlag())
-                    {
-                        Reset();
-                        state.mode = State::PIVOT_TURN_RIGHT90;
-                    }
-                }
-                if (state.mode == State::PIVOT_TURN_RIGHT90)
-                {
-                    PivotTurn180();
-                    if (GetFlag())
-                    {
-                        Reset();
-                        state.mode = State::FORWARD2;
-                    }
-                }
-                if (state.mode == State::FORWARD2)
-                {
-                    ref_l = FORWARD_LENGTH3;
-                    GoStraight(ir_data);
-                    if (GetFlag())
-                    {
-                        state.mode = State::FORWARD;
-                    }
-                }
+                Acceleration(0.09);
+                PivotTurn180();
+                Acceleration(0.09);
             }
         }
+        flag_wall = true;
     }
-
-    void Controller::robotMove3(const Direction &dir, const std::vector<uint32_t> &ir_data)
-    {
-        int8_t robot_dir_index = 0;
-        while (1)
-        {
-            if (robot_dir.byte == NORTH << robot_dir_index)
-                break;
-            robot_dir_index++;
-        }
-
-        int8_t next_dir_index = 0;
-        while (1)
-        {
-            if (dir.byte == NORTH << next_dir_index)
-                break;
-            next_dir_index++;
-        }
-
-        dir_diff = next_dir_index - robot_dir_index;
-        // 直進
-        if (dir_diff == 0)
-        {
-            Acceleration2(ir_data);
-        }
-        // 右
-        else if (dir_diff == 1 || dir_diff == -3)
-        {
-            if (state.mode == State::FORWARD)
-            {
-                Acceleration3(ir_data);
-                if (GetFlag())
-                {
-                    Reset();
-                    if (ir_data[2] > 2180 && ir_data[3] > 2180)
-                    {
-                        state.mode = State::FRONT_WALL_CORRECTION;
-                    }
-                    else
-                    {
-                        state.mode = State::PIVOT_TURN_RIGHT90;
-                    }
-                }
-            }
-            if (state.mode == State::FRONT_WALL_CORRECTION)
-            {
-                FrontWallCorrection(ir_data);
-                if (GetFlag())
-                {
-                    Reset();
-                    state.mode = State::PIVOT_TURN_RIGHT90;
-                }
-            }
-            if (state.mode == State::PIVOT_TURN_RIGHT90)
-            {
-                PivotTurnRight90();
-                if (GetFlag())
-                {
-                    Reset();
-                    state.mode = State::FORWARD2;
-                }
-            }
-            if (state.mode == State::FORWARD2)
-            {
-                Acceleration3(ir_data);
-                if (GetFlag())
-                {
-                    state.mode = State::FORWARD;
-                }
-            }
-        }
-        // 左
-        else if (dir_diff == -1 || dir_diff == 3)
-        {
-            if (state.mode == State::FORWARD)
-            {
-                Acceleration3(ir_data);
-                if (GetFlag())
-                {
-                    Reset();
-                    if (ir_data[2] > 2180 && ir_data[3] > 2180)
-                    {
-                        state.mode = State::FRONT_WALL_CORRECTION;
-                    }
-                    else
-                    {
-                        state.mode = State::PIVOT_TURN_LEFT90;
-                    }
-                }
-            }
-            if (state.mode == State::FRONT_WALL_CORRECTION)
-            {
-                FrontWallCorrection(ir_data);
-                if (GetFlag())
-                {
-                    Reset();
-                    state.mode = State::PIVOT_TURN_LEFT90;
-                }
-            }
-            if (state.mode == State::PIVOT_TURN_LEFT90)
-            {
-                PivotTurnLeft90();
-                if (GetFlag())
-                {
-                    Reset();
-                    state.mode = State::FORWARD2;
-                }
-            }
-            if (state.mode == State::FORWARD2)
-            {
-                Acceleration3(ir_data);
-                if (GetFlag())
-                {
-                    state.mode = State::FORWARD;
-                }
-            }
-        }
-        // 180度ターン
-        else
-        {
-            // 袋小路
-            if (prev_wall_cnt == 3)
-            {
-                BlindAlley(ir_data);
-            }
-            else
-            {
-                if (state.mode == State::FORWARD)
-                {
-                    Acceleration3(ir_data);
-                    if (GetFlag())
-                    {
-                        Reset();
-                        state.mode = State::PIVOT_TURN_RIGHT90;
-                    }
-                }
-                if (state.mode == State::PIVOT_TURN_RIGHT90)
-                {
-                    PivotTurn180();
-                    if (GetFlag())
-                    {
-                        Reset();
-                        state.mode = State::FORWARD2;
-                    }
-                }
-                if (state.mode == State::FORWARD2)
-                {
-                    Acceleration3(ir_data);
-                    if (GetFlag())
-                    {
-                        state.mode = State::FORWARD;
-                    }
-                }
-            }
-        }
-    }
-
-    // void Controller::robotMove(const State::Mode &mode, const std::vector<uint32_t> &ir_data)
-    // {
-    //     flag = false;
-    //     switch (mode)
-    //     {
-    //     case State::FORWARD:
-    //         GoStraight(ir_data);
-    //         break;
-    //     case State::TURN_LEFT90:
-    //         KanayamaTurnLeft90();
-    //         break;
-    //     case State::PIVOT_TURN_RIGHT90:
-    //         PivotTurnRight90();
-    //         break;
-    //     case State::PIVOT_TURN180:
-    //         PivotTurn180();
-    //         break;
-    //     case State::BACK:
-    //         Back();
-    //         break;
-    //     default:
-    //         break;
-    //     }
-    // }
 }
