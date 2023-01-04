@@ -5,6 +5,7 @@ namespace hardware
     IMU::IMU(float sampling_period)
         : sampling_period(sampling_period),
           theta(0),
+          pre_gyro_z(0),
           offset_gz(0) {}
 
     uint8_t IMU::read_byte(uint8_t reg)
@@ -95,7 +96,12 @@ namespace hardware
 
     float IMU::GetAngle()
     {
-        theta += gyro_z * sampling_period;
+        // Euler method
+        // theta += gyro_z * sampling_period;
+
+        // Bilinear transform
+        theta += (gyro_z + pre_gyro_z) * sampling_period * 0.5;
+        pre_gyro_z = gyro_z;
         return theta;
     }
 

@@ -2,29 +2,44 @@
 
 Integrator::Integrator(float control_period)
     : control_period(control_period),
-      error_sum(0) {}
+      error_sum(0),
+      pre_error(0) {}
 
 float Integrator::Update(float error)
 {
-    error_sum += error * control_period;
+    // Euler method
+    // error_sum += error * control_period;
+
+    // Bilinear transform
+    error_sum += (error + pre_error) * control_period * 0.5;
+    pre_error = error;
+
     return error_sum;
 }
 
 void Integrator::ResetIntegrator()
 {
     error_sum = 0.0;
+    pre_error = 0.0;
 }
 
 Differentiator::Differentiator(float tf, float control_period)
     : tf(tf),
       control_period(control_period),
       coeff(tf / (tf + control_period)),
+      deriv(0),
       pre_error(0),
       pre_deriv(0) {}
 
 float Differentiator::Update(float error)
 {
-    float deriv = (error - pre_error) / control_period;
+    // Euler method
+    // float deriv = (error - pre_error) / control_period;
+
+    // Bilinear transform
+    deriv = (error - pre_error) * 2.0f / control_period - pre_deriv;
+
+    // Low pass Filter (first order)
     pre_deriv = coeff * pre_deriv + (1.0f - coeff) * deriv;
     pre_error = error;
     return pre_deriv;

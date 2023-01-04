@@ -10,7 +10,8 @@ namespace undercarriage
         y_global(0),
         x_local(0),
         y_local(0),
-        l(0) {}
+        l(0),
+        pre_v(0) {}
 
   void Odometory::Initialize()
   {
@@ -45,11 +46,19 @@ namespace undercarriage
     v = encoder.GetVelocity();
     omega = imu.GetAngularVelocity();
     theta = imu.GetAngle();
-    x_local += v * cos(theta) * sampling_period;
-    y_local += v * sin(theta) * sampling_period;
+
+    // Euler method
+    // x_local += v * cos(theta) * sampling_period;
+    // y_local += v * sin(theta) * sampling_period;
     // x_gloabl += x_local;
     // y_global += y_local;
-    l += v * sampling_period;
+    // l += v * sampling_period;
+
+    // Bilinear transform
+    x_local += (v + pre_v) * cos(theta) * sampling_period * 0.5;
+    y_local += (v + pre_v) * sin(theta) * sampling_period * 0.5;
+    l += (v + pre_v) * sampling_period * 0.5;
+    pre_v = v;
   }
 
   void Odometory::UpdateIMU()

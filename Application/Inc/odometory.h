@@ -24,6 +24,7 @@ namespace undercarriage
         float y_local;
         float theta;
         float l;
+        float pre_v;
         std::vector<float> cur_pos{0, 0, 0};
         std::vector<float> cur_vel{0, 0};
 

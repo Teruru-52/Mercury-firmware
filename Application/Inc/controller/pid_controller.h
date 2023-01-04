@@ -16,6 +16,7 @@ public:
 private:
     float control_period;
     float error_sum;
+    float pre_error;
 };
 
 class Differentiator
@@ -30,6 +31,7 @@ private:
     float tf;
     float control_period;
     float coeff;
+    float deriv;
     float pre_error;
     float pre_deriv;
 };

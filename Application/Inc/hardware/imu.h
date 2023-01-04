@@ -26,10 +26,11 @@ namespace hardware
         float sampling_period;
         // default
         // const float gyro_factor = 16.4;
-        const float gyro_factor = 15.55;
+        const float gyro_factor = 16.6;
 
         float theta;
         float gyro_z;
+        float pre_gyro_z;
         float offset_gz;
     };
 }
