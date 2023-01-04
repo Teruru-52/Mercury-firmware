@@ -2,225 +2,187 @@
 
 namespace trajectory
 {
-    // Acceleration1
-    Acceleration1::Acceleration1()
-        : index(0),
-          flag(true)
+    // Slalom
+    Slalom::Slalom()
+        : ss_turn90_1(ctrl::Pose(90, 90, M_PI / 2), 80, 0, 500 * M_PI, 5 * M_PI, M_PI),
+          ss(ss_turn90_1),
+          st(ss),
+          flag_slalom(false)
     {
-        ref_size = GetRefSize();
+        ResetTrajectory();
     }
 
-    void Acceleration1::ResetTrajectoryIndex()
+    void Slalom::ResetTrajectory(int angle)
     {
-        index = 0;
-    }
-
-    void Acceleration1::UpdateRef()
-    {
-        if (index < ref_size)
+        switch (slalom_mode)
         {
-            ref = ref_v[index];
-            index++;
+        // case 1:
+        //     if (angle == 90)
+        //     {
+        // このコピーの仕方がバグに繋がる
+        //         ss = ss_turn90_1;
+        //         st = ctrl::slalom::Trajectory(ss);
+        //     }
+        //     else if (angle == -90)
+        //     {
+        //         ss = ss_turn90_1;
+        //         st = ctrl::slalom::Trajectory(ss, true);
+        //     }
+        //     break;
+        // case 2:
+        //     if (angle == 90.0)
+        //     {
+        //         ss = ss_turn90_2;
+        //         st = ctrl::slalom::Trajectory(ss);
+        //     }
+        //     break;
+        default:
+            break;
         }
-        else if (index == ref_size)
+
+        v = ss.v_ref;
+        st.reset(v, 0, ss.straight_prev / v);
+        const ctrl::AccelDesigner ad(ss.dddth_max, ss.ddth_max, ss.dth_max, 0, 0,
+                                     ss.curve.th);
+        t_end = st.getAccelDesigner().t_3() + ss.straight_prev / v;
+    }
+
+    void Slalom::SetMode(int slalom_mode)
+    {
+        this->slalom_mode = slalom_mode;
+    }
+
+    int Slalom::GetRefSize()
+    {
+        ref_size = (st.getAccelDesigner().t_3() + ss.straight_prev / v) * 1e+3;
+        return ref_size;
+    }
+
+    void Slalom::UpdateRef()
+    {
+        st.update(state, t, Ts, 0);
+        ref_pos[0] = state.q.x * 1e-3;
+        ref_pos[1] = state.q.y * 1e-3;
+        ref_pos[2] = state.q.th;
+        ref_vel[0] = v * 1e-3;
+        ref_vel[1] = state.dq.th;
+
+        t += Ts;
+        if (t + Ts > t_end)
         {
-            flag = false;
-        }
-    }
-
-    int Acceleration1::GetRefSize()
-    {
-        return ref_v.size();
-    }
-
-    bool Acceleration1::GetFlag()
-    {
-        return flag;
-    }
-
-    void Acceleration1::ResetFlag()
-    {
-        flag = true;
-    }
-
-    void Acceleration1::Reset()
-    {
-        ResetTrajectoryIndex();
-        ResetFlag();
-    }
-
-    float Acceleration1::GetRefVelocity()
-    {
-        return ref;
-    }
-
-    // Acceleration2
-    Acceleration2::Acceleration2()
-        : index(0),
-          flag(true)
-    {
-        ref_size = GetRefSize();
-    }
-
-    void Acceleration2::ResetTrajectoryIndex()
-    {
-        index = 0;
-    }
-
-    void Acceleration2::UpdateRef()
-    {
-        if (index < ref_size)
-        {
-            ref = ref_v[index];
-            index++;
-        }
-        else if (index == ref_size)
-        {
-            flag = false;
+            flag_slalom = true;
         }
     }
 
-    int Acceleration2::GetRefSize()
+    std::vector<float> Slalom::GetRefPosition()
     {
-        return ref_v.size();
+        return ref_pos;
     }
 
-    bool Acceleration2::GetFlag()
+    std::vector<float> Slalom::GetRefVelocity()
     {
-        return flag;
+        return ref_vel;
     }
 
-    void Acceleration2::ResetFlag()
+    bool Slalom::Finished()
     {
-        flag = true;
+        return flag_slalom;
     }
 
-    void Acceleration2::Reset()
+    void Slalom::Reset()
     {
-        ResetTrajectoryIndex();
-        ResetFlag();
+        flag_slalom = false;
+        t = 0;
     }
 
-    float Acceleration2::GetRefVelocity()
+    // Acceleration
+    Acceleration::Acceleration()
+        : flag_acc(false)
     {
-        return ref;
+        ResetAccCurve(START);
     }
 
-    // Acceleration3
-    Acceleration3::Acceleration3()
-        : index(0),
-          flag(true)
+    void Acceleration::ResetAccCurve(const AccType &acc_type)
     {
-        ref_size = GetRefSize();
-    }
-
-    void Acceleration3::ResetTrajectoryIndex()
-    {
-        index = 0;
-    }
-
-    void Acceleration3::UpdateRef()
-    {
-        if (index < ref_size)
+        switch (acc_mode)
         {
-            ref = ref_v[index];
-            index++;
+        case 1:
+            switch (acc_type)
+            {
+            case STOP:
+                ad.reset(10, 1.5, 0.5, v_mode1, 0, 0.09);
+                break;
+            case START:
+                ad.reset(10, 1.5, 0.5, 0, v_mode1, 0.138);
+                break;
+            default:
+                break;
+            }
+            break;
+        // case 2:
+        //     break;
+        default:
+            break;
         }
-        else if (index == ref_size)
+        t_end = ad.t_end();
+    }
+
+    void Acceleration::SetMode(int acc_mode)
+    {
+        this->acc_mode = acc_mode;
+    }
+
+    int Acceleration::GetRefSize()
+    {
+        ref_size = ad.t_end() * 1e+3;
+        return ref_size;
+    }
+
+    void Acceleration::UpdateRef()
+    {
+        ref_acc = ad.a(t);
+        ref_vel = ad.v(t);
+        ref_pos = ad.x(t);
+
+        t += Ts;
+        if (t > t_end)
         {
-            flag = false;
-        }
-    }
-
-    int Acceleration3::GetRefSize()
-    {
-        return ref_v.size();
-    }
-
-    bool Acceleration3::GetFlag()
-    {
-        return flag;
-    }
-
-    void Acceleration3::ResetFlag()
-    {
-        flag = true;
-    }
-
-    void Acceleration3::Reset()
-    {
-        ResetTrajectoryIndex();
-        ResetFlag();
-    }
-
-    float Acceleration3::GetRefVelocity()
-    {
-        return ref;
-    }
-
-    // Acceleration4
-    Acceleration4::Acceleration4()
-        : index(0),
-          flag(true)
-    {
-        ref_size = GetRefSize();
-    }
-
-    void Acceleration4::ResetTrajectoryIndex()
-    {
-        index = 0;
-    }
-
-    void Acceleration4::UpdateRef()
-    {
-        if (index < ref_size)
-        {
-            ref = ref_v[index];
-            index++;
-        }
-        else if (index == ref_size)
-        {
-            flag = false;
+            flag_acc = true;
         }
     }
 
-    int Acceleration4::GetRefSize()
+    float Acceleration::GetRefPosition()
     {
-        return ref_v.size();
+        return ref_pos;
     }
 
-    bool Acceleration4::GetFlag()
+    float Acceleration::GetRefVelocity()
     {
-        return flag;
+        return ref_vel;
     }
 
-    void Acceleration4::ResetFlag()
+    float Acceleration::GetRefAcceleration()
     {
-        flag = true;
+        return ref_acc;
     }
 
-    void Acceleration4::Reset()
+    bool Acceleration::Finished()
     {
-        ResetTrajectoryIndex();
-        ResetFlag();
+        return flag_acc;
     }
 
-    float Acceleration4::GetRefVelocity()
+    void Acceleration::Reset()
     {
-        return ref;
+        flag_acc = false;
+        t = 0;
     }
 
     // PivotTurn90
     PivotTurn90::PivotTurn90()
         : index(0),
-          flag(true)
+          flag(false)
     {
         ref_size = GetRefSize();
-    }
-
-    void PivotTurn90::ResetTrajectoryIndex()
-    {
-        index = 0;
     }
 
     void PivotTurn90::UpdateRef()
@@ -232,7 +194,7 @@ namespace trajectory
         }
         else if (index == ref_size)
         {
-            flag = false;
+            flag = true;
         }
     }
 
@@ -241,20 +203,15 @@ namespace trajectory
         return ref_w.size();
     }
 
-    bool PivotTurn90::GetFlag()
+    bool PivotTurn90::Finished()
     {
         return flag;
     }
 
-    void PivotTurn90::ResetFlag()
-    {
-        flag = true;
-    }
-
     void PivotTurn90::Reset()
     {
-        ResetTrajectoryIndex();
-        ResetFlag();
+        flag = false;
+        index = 0;
     }
 
     float PivotTurn90::GetRefVelocity()
@@ -265,14 +222,9 @@ namespace trajectory
     // PivotTurn180
     PivotTurn180::PivotTurn180()
         : index(0),
-          flag(true)
+          flag(false)
     {
         ref_size = GetRefSize();
-    }
-
-    void PivotTurn180::ResetTrajectoryIndex()
-    {
-        index = 0;
     }
 
     void PivotTurn180::UpdateRef()
@@ -284,7 +236,7 @@ namespace trajectory
         }
         else if (index == ref_size)
         {
-            flag = false;
+            flag = true;
         }
     }
 
@@ -293,77 +245,20 @@ namespace trajectory
         return ref_w.size();
     }
 
-    bool PivotTurn180::GetFlag()
+    bool PivotTurn180::Finished()
     {
         return flag;
     }
 
-    void PivotTurn180::ResetFlag()
-    {
-        flag = true;
-    }
-
     void PivotTurn180::Reset()
     {
-        ResetTrajectoryIndex();
-        ResetFlag();
+        flag = false;
+        index = 0;
     }
 
     float PivotTurn180::GetRefVelocity()
     {
         return ref;
-    }
-
-    // TurnLeft
-    TurnLeft90::TurnLeft90()
-        : index(0),
-          flag(true)
-    {
-        ref_size = GetRefSize();
-    }
-
-    void TurnLeft90::ResetTrajectoryIndex()
-    {
-        index = 0;
-    }
-
-    int TurnLeft90::GetRefSize()
-    {
-        return ref_csv.size();
-    }
-
-    void TurnLeft90::UpdateRef()
-    {
-        if (index < ref_size - 1)
-        {
-            ref = ref_csv[index];
-            index++;
-        }
-        else if (index == ref_size - 1)
-        {
-            flag = false;
-        }
-    }
-
-    std::vector<float> TurnLeft90::GetRef()
-    {
-        return ref_csv[index];
-    }
-
-    bool TurnLeft90::GetFlag()
-    {
-        return flag;
-    }
-
-    void TurnLeft90::ResetFlag()
-    {
-        flag = true;
-    }
-
-    void TurnLeft90::Reset()
-    {
-        ResetTrajectoryIndex();
-        ResetFlag();
     }
 
     // M Sequence
