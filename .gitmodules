@@ -4,3 +4,6 @@
 [submodule "micromouse-control-module"]
 	path = micromouse-control-module
 	url = git@github.com:Teruru-52/micromouse-control-module.git
+[submodule "MazeSolver-2015"]
+	path = MazeSolver-2015
+	url = git@github.com:Teruru-52/MazeSolver2015.git
