@@ -2,29 +2,36 @@
 
 namespace undercarriage
 {
-    Controller::Controller(float sampling_period, float control_period)
-        : odom(sampling_period),
-          pid_angle(4.0, 0.0, 0.0, 0.0, control_period),
-          pid_rotational_vel(1.1976, 85.1838, -0.00099, 0.0039227, control_period),
-          //   pid_traslational_vel(6.8176, 82.0249, -0.033349, 0.023191, control_period),
-          pid_traslational_vel(6.8176, 82.0249, -0.033349, 0.023191, control_period),
-          //   pid_traslational_vel(2.0, 82.0249, -0.0003, 0.002, control_period),
-          pid_ir_sensor_front(0.0005, 0.0005, 0.0, 0.0, control_period),
-          pid_ir_sensor_side(0.001, 0.001, 0.0, 0.0, control_period),
-          kanayama(3.0, 3.0, 10.0),
+    Controller::Controller(undercarriage::Odometory *odom,
+                           PID *pid_angle,
+                           PID *pid_rotational_vel,
+                           PID *pid_traslational_vel,
+                           PID *pid_ir_sensor_front,
+                           PID *pid_ir_sensor_side,
+                           undercarriage::Kanayama *kanayama,
+                           trajectory::Slalom *slalom,
+                           trajectory::Acceleration *acc)
+        : odom(odom),
+          pid_angle(pid_angle),
+          pid_rotational_vel(pid_rotational_vel),
+          pid_traslational_vel(pid_traslational_vel),
+          pid_ir_sensor_front(pid_ir_sensor_front),
+          pid_ir_sensor_side(pid_ir_sensor_side),
+          kanayama(kanayama),
+          slalom(slalom),
+          acc(acc),
           mode(STOP),
           ref_l(FORWARD_LENGTH2),
           flag_controller(false),
           flag_wall(false),
           cnt(0),
           index_log(0),
-          base_theta(0),
           dir_diff(0),
           robot_position(0, 0),
           robot_dir(NORTH)
     {
-        // ref_size = slalom.GetRefSize();
-        ref_size = acc.GetRefSize();
+        // ref_size = slalom->GetRefSize();
+        ref_size = acc->GetRefSize();
         // ref_size = pivot_turn180.GetRefSize();
         // ref_size = pivot_turn90.GetRefSize();
         log_x = new float[ref_size];
@@ -34,6 +41,7 @@ namespace undercarriage
         log_v = new float[ref_size];
         log_ref_l = new float[ref_size];
         log_ref_v = new float[ref_size];
+        log_ref_a = new float[ref_size];
         log_omega = new float[ref_size];
         log_kanayama_v = new float[ref_size];
         log_kanayama_w = new float[ref_size];
@@ -41,7 +49,7 @@ namespace undercarriage
 
     void Controller::InitializeOdometory()
     {
-        odom.Initialize();
+        odom->Initialize();
     }
 
     void Controller::UpdateBatteryVoltage(float bat_vol)
@@ -51,37 +59,37 @@ namespace undercarriage
 
     void Controller::UpdateOdometory()
     {
-        odom.Update();
-        l = odom.GetLength();
-        cur_pos = odom.GetPosition();
-        cur_vel = odom.GetVelocity();
+        odom->Update();
+        l = odom->GetLength();
+        cur_pos = odom->GetPosition();
+        cur_vel = odom->GetVelocity();
     }
 
     void Controller::ResetOdometory()
     {
-        odom.Reset();
+        odom->Reset();
     }
 
     int16_t Controller::GetPulse()
     {
-        int16_t pulse = odom.GetPulse();
+        int16_t pulse = odom->GetPulse();
         return pulse;
     }
 
     void Controller::UpdateIMU()
     {
-        odom.UpdateIMU();
+        odom->UpdateIMU();
     }
 
     void Controller::SetBase()
     {
-        base_theta = cur_pos[2];
+        // base_theta = cur_pos[2];
     }
 
     void Controller::SetTrajectoryMode(int mode)
     {
-        slalom.SetMode(mode);
-        acc.SetMode(mode);
+        slalom->SetMode(mode);
+        acc->SetMode(mode);
     }
 
     void Controller::PivotTurn(int angle)
@@ -111,7 +119,7 @@ namespace undercarriage
     void Controller::Turn(float angle)
     {
         mode = TURN;
-        slalom.ResetTrajectory(angle);
+        slalom->ResetTrajectory(angle);
         while (1)
         {
             if (flag_controller)
@@ -125,7 +133,7 @@ namespace undercarriage
     void Controller::Acceleration(const AccType &acc_type)
     {
         mode = ACC_CURVE;
-        acc.ResetAccCurve(acc_type);
+        acc->ResetAccCurve(acc_type);
         while (1)
         {
             if (flag_controller)
@@ -164,9 +172,9 @@ namespace undercarriage
 
     void Controller::PartyTrick()
     {
-        // u_v = pid_traslational_vel.Update(-cur_vel[0]);
+        // u_v = pid_traslational_vel->Update(-cur_vel[0]);
         u_v = 0.0;
-        u_w = pid_angle.Update(-cur_pos[2]) + pid_rotational_vel.Update(-cur_vel[1]);
+        u_w = pid_angle->Update(-cur_pos[2]) + pid_rotational_vel->Update(-cur_vel[1]);
         InputVelocity(u_v, u_w);
     }
 
@@ -195,15 +203,14 @@ namespace undercarriage
     {
         pivot_turn90.UpdateRef();
         ref_w = -pivot_turn90.GetRefVelocity();
-        u_v = pid_traslational_vel.Update(-cur_vel[0]);
-        u_w = pid_rotational_vel.Update(ref_w - cur_vel[1]) + Tp1_w * ref_w / Kp_w;
+        u_v = pid_traslational_vel->Update(-cur_vel[0]);
+        u_w = pid_rotational_vel->Update(ref_w - cur_vel[1]) + Tp1_w * ref_w / Kp_w;
         InputVelocity(u_v, u_w);
         // Logger();
         if (pivot_turn90.Finished())
         {
             // robot_dir_index = (robot_dir_index + 1) % 4;
             Brake();
-            base_theta -= M_PI_2;
             flag_controller = true;
         }
     }
@@ -212,15 +219,14 @@ namespace undercarriage
     {
         pivot_turn90.UpdateRef();
         ref_w = pivot_turn90.GetRefVelocity();
-        u_v = pid_traslational_vel.Update(-cur_vel[0]);
-        u_w = pid_rotational_vel.Update(ref_w - cur_vel[1]) + Tp1_w * ref_w / Kp_w;
+        u_v = pid_traslational_vel->Update(-cur_vel[0]);
+        u_w = pid_rotational_vel->Update(ref_w - cur_vel[1]) + ref_w / Kp_w;
         InputVelocity(u_v, u_w);
         // Logger();
 
         if (pivot_turn90.Finished())
         {
             Brake();
-            base_theta += M_PI_2;
             flag_controller = true;
         }
     }
@@ -229,30 +235,30 @@ namespace undercarriage
     {
         pivot_turn180.UpdateRef();
         ref_w = pivot_turn180.GetRefVelocity();
-        u_v = pid_traslational_vel.Update(-cur_vel[0]);
-        u_w = pid_rotational_vel.Update(ref_w - cur_vel[1]) + Tp1_w * ref_w / Kp_w;
+        u_v = pid_traslational_vel->Update(-cur_vel[0]);
+        u_w = pid_rotational_vel->Update(ref_w - cur_vel[1]) + ref_w / Kp_w;
         InputVelocity(u_v, u_w);
         // Logger();
         if (pivot_turn180.Finished())
         {
             Brake();
-            base_theta += M_PI;
             flag_controller = true;
         }
     }
 
     void Controller::Turn()
     {
-        slalom.UpdateRef();
-        ref_pos = slalom.GetRefPosition();
-        ref_vel = slalom.GetRefVelocity();
-        kanayama.UpdateRef(ref_pos, ref_vel);
-        ref_vel = kanayama.CalcInput(cur_pos);
-        u_v = pid_traslational_vel.Update(ref_vel[0] - cur_vel[0]) + Tp1_v * ref_vel[0] / Kp_v;
-        u_w = pid_rotational_vel.Update(ref_vel[1] - cur_vel[1]) + Tp1_w * ref_vel[1] / Kp_w;
+        slalom->UpdateRef();
+        ref_pos = slalom->GetRefPosition();
+        ref_vel = slalom->GetRefVelocity();
+        // ref_acc = slalom->GetRefAcceleration();
+        kanayama->UpdateRef(ref_pos, ref_vel);
+        ref_vel = kanayama->CalcInput(cur_pos);
+        u_v = pid_traslational_vel->Update(ref_vel[0] - cur_vel[0]) + ref_vel[0] / Kp_v;
+        u_w = pid_rotational_vel->Update(ref_vel[1] - cur_vel[1]) + ref_vel[1] / Kp_w;
         InputVelocity(u_v, u_w);
         // Logger();
-        if (slalom.Finished())
+        if (slalom->Finished())
         {
             flag_controller = true;
         }
@@ -261,23 +267,23 @@ namespace undercarriage
     void Controller::Acceleration(const std::vector<uint32_t> &ir_data)
     {
         SideWallCorrection(ir_data);
-        acc.UpdateRef();
-        ref_pos[0] = acc.GetRefPosition();
+        acc->UpdateRef();
+        ref_pos[0] = acc->GetRefPosition();
         ref_pos[1] = 0.0;
         ref_pos[2] = 0.0;
-        ref_vel[0] = acc.GetRefVelocity();
+        ref_vel[0] = acc->GetRefVelocity();
         ref_vel[1] = 0.0;
-        ref_acc[0] = acc.GetRefAcceleration();
+        ref_acc[0] = acc->GetRefAcceleration();
         ref_acc[1] = 0.0;
-        // kanayama.UpdateRef(ref_pos, ref_vel);
-        // ref_vel = kanayama.CalcInput(cur_pos);
-        Logger();
-        u_v = pid_traslational_vel.Update(ref_vel[0] - cur_vel[0]) + Tp1_v * ref_vel[0] / Kp_v;
-        u_w = pid_rotational_vel.Update(-cur_vel[1]);
-        // u_v = pid_traslational_vel.Update(ref_v - cur_vel[0]) + Tp1_v * ref_v / Kp_v;
-        // u_w = pid_ir_sensor_side.Update(error_fl - error_fr) + pid_angle.Update(-cur_pos[2]);
+        // kanayama->UpdateRef(ref_pos, ref_vel);
+        // ref_vel = kanayama->CalcInput(cur_pos);
+        // Logger();
+        u_v = pid_traslational_vel->Update(ref_vel[0] - cur_vel[0]) + (Tp1_v * ref_acc[0] + ref_vel[0]) / Kp_v;
+        u_w = pid_rotational_vel->Update(-cur_vel[1]);
+        // u_v = pid_traslational_vel->Update(ref_v - cur_vel[0]) + Tp1_v * ref_v / Kp_v;
+        // u_w = pid_ir_sensor_side->Update(error_fl - error_fr) + pid_angle->Update(-cur_pos[2]);
         InputVelocity(u_v, u_w);
-        if (acc.Finished())
+        if (acc->Finished())
         {
             flag_controller = true;
         }
@@ -288,9 +294,9 @@ namespace undercarriage
     //     if (l < ref_l)
     //     {
     //         SideWallCorrection(ir_data);
-    //         u_v = pid_traslational_vel.Update(ref_v - cur_vel[0]) + Tp1_v * ref_v / Kp_v;
-    //         u_w = pid_ir_sensor_side.Update(error_fl - error_fr) + pid_angle.Update(base_theta - cur_pos[2]);
-    //         // u_w = pid_angle.Update(base_theta - cur_pos[2]);
+    //         u_v = pid_traslational_vel->Update(ref_v - cur_vel[0]) + Tp1_v * ref_v / Kp_v;
+    //         u_w = pid_ir_sensor_side->Update(error_fl - error_fr) + pid_angle->Update(base_theta - cur_pos[2]);
+    //         // u_w = pid_angle->Update(base_theta - cur_pos[2]);
     //         InputVelocity(u_v, u_w);
     //     }
     //     else
@@ -309,8 +315,8 @@ namespace undercarriage
         else
         {
             flag_controller = true;
-            odom.ResetTheta();
-            base_theta = 0;
+            odom->ResetTheta();
+            // base_theta = 0;
         }
     }
 
@@ -320,8 +326,8 @@ namespace undercarriage
         {
             float error_sl = ir_sl_base - (float)ir_data[2];
             float error_sr = ir_sr_base - (float)ir_data[3];
-            v_left = pid_ir_sensor_front.Update(error_sl);
-            v_right = pid_ir_sensor_front.Update(error_sr);
+            v_left = pid_ir_sensor_front->Update(error_sl);
+            v_right = pid_ir_sensor_front->Update(error_sr);
             motor.Drive(v_left, v_right);
             cnt++;
         }
@@ -379,19 +385,20 @@ namespace undercarriage
 
     void Controller::Reset()
     {
-        kanayama.Reset();
+        kanayama->Reset();
         pivot_turn180.Reset();
         pivot_turn90.Reset();
-        slalom.Reset();
-        acc.Reset();
+        slalom->Reset();
+        acc->Reset();
 
-        pid_angle.ResetPID();
-        pid_rotational_vel.ResetPID();
-        pid_traslational_vel.ResetPID();
-        pid_ir_sensor_front.ResetPID();
-        pid_ir_sensor_side.ResetPID();
+        pid_angle->ResetPID();
+        pid_rotational_vel->ResetPID();
+        pid_traslational_vel->ResetPID();
+        pid_ir_sensor_front->ResetPID();
+        pid_ir_sensor_side->ResetPID();
 
-        odom.Reset();
+        odom->Reset();
+        odom->ResetTheta();
 
         flag_controller = false;
         index_log = 0;
@@ -420,6 +427,7 @@ namespace undercarriage
         log_v[index_log] = cur_vel[0];
         log_ref_l[index_log] = ref_pos[0];
         log_ref_v[index_log] = ref_vel[0];
+        log_ref_a[index_log] = ref_acc[0];
         log_omega[index_log] = cur_vel[1];
         log_kanayama_v[index_log] = ref_vel[0];
         log_kanayama_w[index_log] = ref_vel[1];
@@ -437,7 +445,7 @@ namespace undercarriage
             // printf("%f, %f, %f, %f, %f\n", log_x[i], log_y[i], log_theta[i], log_kanayama_v[i], log_kanayama_w[i]);
             // printf("%f, %f, %f, %f, %f, %f, %f\n", log_x[i], log_y[i], log_theta[i], log_v[i], log_omega[i], log_kanayama_v[i], log_kanayama_w[i]);
             // printf("%f, %f\n", log_theta[i], log_omega[i]);
-            printf("%f, %f, %f, %f\n", log_l[i], log_v[i], log_ref_l[i], log_ref_v[i]);
+            printf("%f, %f, %f, %f, %f\n", log_l[i], log_v[i], log_ref_l[i], log_ref_v[i], log_ref_a[i]);
         }
     }
 
