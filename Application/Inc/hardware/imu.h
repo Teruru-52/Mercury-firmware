@@ -1,5 +1,5 @@
-#ifndef HARDWARE_IMU_HPP_
-#define HARDWARE_IMU_HPP_
+#ifndef HARDWARE_IMU_H_
+#define HARDWARE_IMU_H_
 
 #include "main.h"
 
@@ -29,12 +29,14 @@ namespace hardware
         // const float gyro_factor = 16.4;
         const float gyro_factor = 16.6;
         const float acc_factor = 8192.0;
+        const float g = 9.80;
 
         float theta;
         float gyro_z;
         float pre_gyro_z;
         float acc_x;
         float offset_gz;
+        float offset_ax;
     };
 }
-#endif // HARDWARE_IMU_HPP_
+#endif // HARDWARE_IMU_H_

@@ -18,7 +18,7 @@ namespace undercarriage
         float sampling_period; // [s]
         float v;
         float omega;
-        float ax;
+        float acc_x;
         float x_global;
         float y_global;
         float x_local;

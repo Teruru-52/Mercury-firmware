@@ -6,7 +6,8 @@ namespace hardware
         : sampling_period(sampling_period),
           theta(0),
           pre_gyro_z(0),
-          offset_gz(0) {}
+          offset_gz(0),
+          offset_ax(0) {}
 
     uint8_t IMU::read_byte(uint8_t reg)
     {
@@ -63,13 +64,17 @@ namespace hardware
         HAL_Delay(50);
         write_byte(0x1C, 0x08); // set acc config (4g)
         HAL_Delay(50);
+        // write_byte(0x1D, 0x00); // LPF (Accelerometer, Bandwidth460 Hz)
+        // HAL_Delay(50);
     }
 
     void IMU::CalcOffset()
     {
         int16_t gz_raw;
         float gz_sum = 0;
-        for (int i = 0; i < 1000; i++)
+        // turn of led (back left)
+        HAL_GPIO_WritePin(GPIOC, GPIO_PIN_9, GPIO_PIN_SET);
+        for (int i = 0; i < 500; i++)
         {
             // H:8bit shift, Link h and l
             gz_raw = (int16_t)((int16_t)(read_byte(0x47) << 8) | read_byte(0x48));
@@ -78,7 +83,25 @@ namespace hardware
             gz_sum += gyro_z;
             HAL_Delay(1);
         }
-        offset_gz = gz_sum / 1000.0f;
+        offset_gz = gz_sum / 500.0f;
+
+        int16_t ax_raw;
+        float ax_sum = 0;
+        // turn on led (back right)
+        HAL_GPIO_WritePin(GPIOC, GPIO_PIN_8, GPIO_PIN_SET);
+        for (int i = 0; i < 500; i++)
+        {
+            // H:8bit shift, Link h and l
+            ax_raw = (int16_t)((int16_t)(read_byte(0x3D) << 8) | read_byte(0x3E));
+            acc_x = (float)(ax_raw) / acc_factor;
+
+            ax_sum += acc_x;
+            HAL_Delay(1);
+        }
+        // turn off led
+        HAL_GPIO_WritePin(GPIOC, GPIO_PIN_8, GPIO_PIN_RESET);
+        HAL_GPIO_WritePin(GPIOC, GPIO_PIN_9, GPIO_PIN_RESET);
+        offset_ax = ax_sum / 500.0f;
     }
 
     void IMU::Update()
@@ -101,8 +124,8 @@ namespace hardware
         int16_t ax_raw;
 
         // H:8bit shift, Link h and l
-        ax_raw = (int16_t)((int16_t)(read_byte(0x3B) << 8) | read_byte(0x3C));
-        acc_x = (float)(ax_raw) / acc_factor;
+        ax_raw = (int16_t)((int16_t)(read_byte(0x3D) << 8) | read_byte(0x3E));
+        acc_x = (float)(ax_raw) / acc_factor - offset_ax;
     }
 
     float IMU::GetAngle()
@@ -123,7 +146,7 @@ namespace hardware
 
     float IMU::GetAccX()
     {
-        return acc_x;
+        return acc_x * g;
     }
 
     void IMU::ResetTheta()

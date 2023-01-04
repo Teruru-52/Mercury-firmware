@@ -39,6 +39,7 @@ namespace undercarriage
         log_theta = new float[ref_size];
         log_l = new float[ref_size];
         log_v = new float[ref_size];
+        log_a = new float[ref_size];
         log_ref_l = new float[ref_size];
         log_ref_v = new float[ref_size];
         log_ref_a = new float[ref_size];
@@ -63,6 +64,7 @@ namespace undercarriage
         l = odom->GetLength();
         cur_pos = odom->GetPosition();
         cur_vel = odom->GetVelocity();
+        acc_x = odom->GetAccX();
     }
 
     void Controller::ResetOdometory()
@@ -204,7 +206,7 @@ namespace undercarriage
         pivot_turn90.UpdateRef();
         ref_w = -pivot_turn90.GetRefVelocity();
         u_v = pid_traslational_vel->Update(-cur_vel[0]);
-        u_w = pid_rotational_vel->Update(ref_w - cur_vel[1]) + Tp1_w * ref_w / Kp_w;
+        u_w = pid_rotational_vel->Update(ref_w - cur_vel[1]) + ref_w / Kp_w;
         InputVelocity(u_v, u_w);
         // Logger();
         if (pivot_turn90.Finished())
@@ -277,7 +279,7 @@ namespace undercarriage
         ref_acc[1] = 0.0;
         // kanayama->UpdateRef(ref_pos, ref_vel);
         // ref_vel = kanayama->CalcInput(cur_pos);
-        // Logger();
+        Logger();
         u_v = pid_traslational_vel->Update(ref_vel[0] - cur_vel[0]) + (Tp1_v * ref_acc[0] + ref_vel[0]) / Kp_v;
         u_w = pid_rotational_vel->Update(-cur_vel[1]);
         // u_v = pid_traslational_vel->Update(ref_v - cur_vel[0]) + Tp1_v * ref_v / Kp_v;
@@ -425,6 +427,7 @@ namespace undercarriage
         // theta[index_log] = ref_pos[2];
         log_l[index_log] = l;
         log_v[index_log] = cur_vel[0];
+        log_a[index_log] = acc_x;
         log_ref_l[index_log] = ref_pos[0];
         log_ref_v[index_log] = ref_vel[0];
         log_ref_a[index_log] = ref_acc[0];
@@ -440,12 +443,13 @@ namespace undercarriage
         // printf("%f, %f\n", cur_pos[2], cur_vel[1]);
         // printf("%f\n", l);
         // printf("%f, %f\n", u_v, u_w);
+        // printf("%f\n", acc_x);
         for (int i = 0; i < ref_size; i++)
         {
             // printf("%f, %f, %f, %f, %f\n", log_x[i], log_y[i], log_theta[i], log_kanayama_v[i], log_kanayama_w[i]);
             // printf("%f, %f, %f, %f, %f, %f, %f\n", log_x[i], log_y[i], log_theta[i], log_v[i], log_omega[i], log_kanayama_v[i], log_kanayama_w[i]);
             // printf("%f, %f\n", log_theta[i], log_omega[i]);
-            printf("%f, %f, %f, %f, %f\n", log_l[i], log_v[i], log_ref_l[i], log_ref_v[i], log_ref_a[i]);
+            printf("%f, %f, %f, %f, %f, %f\n", log_l[i], log_v[i], log_a[i], log_ref_l[i], log_ref_v[i], log_ref_a[i]);
         }
     }
 

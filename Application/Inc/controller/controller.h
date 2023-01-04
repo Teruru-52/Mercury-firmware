@@ -138,6 +138,7 @@ namespace undercarriage
         std::vector<float> cur_pos{0, 0, 0};
         std::vector<float> def_pos{0, 0, 0};
         std::vector<float> cur_vel{0, 0};
+        float acc_x;
         // float base_theta;
         float error_fl;
         float error_fr;
@@ -146,6 +147,7 @@ namespace undercarriage
         float *log_theta;
         float *log_l;
         float *log_v;
+        float *log_a;
         float *log_ref_l;
         float *log_ref_v;
         float *log_ref_a;
