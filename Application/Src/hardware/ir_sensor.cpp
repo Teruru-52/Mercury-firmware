@@ -69,10 +69,14 @@ namespace hardware
         led.off_side_right();
     }
 
+    void IRsensor::StartDMA()
+    {
+        HAL_ADC_Start_DMA(&hadc1, (uint32_t *)dma_f, 3);
+        HAL_ADC_Start_DMA(&hadc2, (uint32_t *)dma_b, 2);
+    }
+
     void IRsensor::UpdateSideValue()
     {
-        HAL_ADC_Start_DMA(&hadc2, (uint32_t *)dma_b, 2);
-
         for (int i = sampling_count - 1; i > 0; i--)
         {
             sl[i] = sl[i - 1];
@@ -87,8 +91,6 @@ namespace hardware
 
     void IRsensor::UpdateFrontValue()
     {
-        HAL_ADC_Start_DMA(&hadc1, (uint32_t *)dma_f, 3);
-
         for (int i = sampling_count - 1; i > 0; i--)
         {
             fl[i] = fl[i - 1];
