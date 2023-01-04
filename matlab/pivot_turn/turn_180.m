@@ -72,7 +72,7 @@ while 1
 end
 
 figure(1);
-plot(theta_tar, 'LineWidth', 2);
+plot(theta_tar, 'LineWidth', 3);
 grid on;
 xlabel('Time [ms]','Interpreter','latex','FontSize',20);
 ylabel('$\theta_{ref}$ [rad/s]','Interpreter','latex','FontSize',20);
@@ -81,7 +81,7 @@ h_axes.XAxis.FontSize = 20;
 h_axes.YAxis.FontSize = 20;
 
 figure(2);
-plot(omega_tar, 'LineWidth', 2);
+plot(omega_tar, 'LineWidth', 3);
 grid on;
 xlabel('Time [ms]','Interpreter','latex','FontSize',20);
 ylabel('$\omega_{ref}$ [rad/s]','Interpreter','latex','FontSize',20);
@@ -115,7 +115,7 @@ hold on;
 grid on;
 plot(theta, 'LineWidth', 3);
 xlabel('Time [ms]','Interpreter','latex','FontSize',20);
-ylabel('$\theta$ [rad/s]','Interpreter','latex','FontSize',20);
+ylabel('$\theta$ [rad]','Interpreter','latex','FontSize',20);
 legend('$\theta_{ref}$','$\theta$','Interpreter','latex','Location','southeast','FontSize',20)
 h_axes = gca;
 h_axes.XAxis.FontSize = 20;

@@ -17,7 +17,8 @@ ref_theta = ref(:,3);
 ref_v = 0.5064989 * ones(length(data_x),1);
 ref_omega = ref(:,4);
 %% plot
-figure(1);
+f1 = figure(1);  
+set(f1, 'position', get(0, 'screensize'))
 
 subplot(3,2,[1,3,5]);
 plot(data_x,data_y,'LineWidth',2);
