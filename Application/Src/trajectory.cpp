@@ -3,10 +3,10 @@
 namespace trajectory
 {
     // Slalom
-    Slalom::Slalom()
-        : ss_turn90_1(ctrl::Pose(90, 90, M_PI / 2), 80, 0, 500 * M_PI, 5 * M_PI, M_PI),
+    Slalom::Slalom(ctrl::slalom::Shape *ss_turn90_1)
+        : ss_turn90_1(ss_turn90_1),
           ss(ss_turn90_1),
-          st(ss),
+          st(ctrl::slalom::Trajectory(*ss)),
           flag_slalom(false)
     {
         ResetTrajectory();
@@ -16,19 +16,18 @@ namespace trajectory
     {
         switch (slalom_mode)
         {
-        // case 1:
-        //     if (angle == 90)
-        //     {
-        // このコピーの仕方がバグに繋がる
-        //         ss = ss_turn90_1;
-        //         st = ctrl::slalom::Trajectory(ss);
-        //     }
-        //     else if (angle == -90)
-        //     {
-        //         ss = ss_turn90_1;
-        //         st = ctrl::slalom::Trajectory(ss, true);
-        //     }
-        //     break;
+        case 1:
+            if (angle == 90)
+            {
+                ss = ss_turn90_1;
+                st = ctrl::slalom::Trajectory(*ss);
+            }
+            else if (angle == -90)
+            {
+                ss = ss_turn90_1;
+                st = ctrl::slalom::Trajectory(*ss, true);
+            }
+            break;
         // case 2:
         //     if (angle == 90.0)
         //     {
@@ -40,11 +39,11 @@ namespace trajectory
             break;
         }
 
-        v = ss.v_ref;
-        st.reset(v, 0, ss.straight_prev / v);
-        const ctrl::AccelDesigner ad(ss.dddth_max, ss.ddth_max, ss.dth_max, 0, 0,
-                                     ss.curve.th);
-        t_end = st.getAccelDesigner().t_3() + ss.straight_prev / v;
+        v = ss->v_ref;
+        st.reset(v, 0, ss->straight_prev / v);
+        const ctrl::AccelDesigner ad(ss->dddth_max, ss->ddth_max, ss->dth_max, 0, 0,
+                                     ss->curve.th);
+        t_end = st.getAccelDesigner().t_3() + ss->straight_prev / v;
     }
 
     void Slalom::SetMode(int slalom_mode)
@@ -54,7 +53,7 @@ namespace trajectory
 
     int Slalom::GetRefSize()
     {
-        ref_size = (st.getAccelDesigner().t_3() + ss.straight_prev / v) * 1e+3;
+        ref_size = (st.getAccelDesigner().t_3() + ss->straight_prev / v) * 1e+3;
         return ref_size;
     }
 
@@ -66,6 +65,8 @@ namespace trajectory
         ref_pos[2] = state.q.th;
         ref_vel[0] = v * 1e-3;
         ref_vel[1] = state.dq.th;
+        ref_acc[0] = 0.0;
+        ref_acc[1] = state.ddq.th;
 
         t += Ts;
         if (t + Ts > t_end)
@@ -84,6 +85,11 @@ namespace trajectory
         return ref_vel;
     }
 
+    std::vector<float> Slalom::GetRefAcceleration()
+    {
+        return ref_acc;
+    }
+
     bool Slalom::Finished()
     {
         return flag_slalom;
@@ -96,8 +102,11 @@ namespace trajectory
     }
 
     // Acceleration
-    Acceleration::Acceleration()
-        : flag_acc(false)
+    Acceleration::Acceleration(const std::array<float, 8> &parameters_start1,
+                               const std::array<float, 8> &parameters_stop1)
+        : parameters_start1(parameters_start1),
+          parameters_stop1(parameters_stop1),
+          flag_acc(false)
     {
         ResetAccCurve(START);
     }
@@ -109,11 +118,11 @@ namespace trajectory
         case 1:
             switch (acc_type)
             {
-            case STOP:
-                ad.reset(10, 1.5, 0.5, v_mode1, 0, 0.09);
-                break;
             case START:
-                ad.reset(10, 1.5, 0.5, 0, v_mode1, 0.138);
+                ad.reset(parameters_start1);
+                break;
+            case STOP:
+                ad.reset(parameters_stop1);
                 break;
             default:
                 break;
