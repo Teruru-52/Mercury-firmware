@@ -1,9 +1,8 @@
-#ifndef UNDERCARRIAGE_KANAYAMA_HPP_
-#define UNDERCARRIAGE_KANAYAMA_HPP_
+#ifndef UNDERCARRIAGE_KANAYAMA_H_
+#define UNDERCARRIAGE_KANAYAMA_H_
 
 #include "main.h"
 #include <vector>
-#include "trajectory.h"
 
 namespace undercarriage
 {
@@ -35,4 +34,4 @@ namespace undercarriage
     };
 } // namespace undercarriage
 
-#endif //  UNDERCARRIAGE_KANAYAMA_HPP_
+#endif //  UNDERCARRIAGE_KANAYAMA_H_
