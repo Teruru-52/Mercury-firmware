@@ -3,10 +3,10 @@
 
 #include "main.h"
 #include <vector>
-#include "../hardware/motor.h"
-#include "../odometory.h"
-#include "../controller/pid_controller.h"
-#include "../controller/kanayama.h"
+#include "hardware/motor.h"
+#include "odometory.h"
+#include "controller/pid_controller.h"
+#include "controller/kanayama.h"
 #include "Operation.h"
 #include "Maze.h"
 #include "Agent.h"
@@ -15,6 +15,8 @@
 #define FORWARD_LENGTH2 0.18
 #define FORWARD_LENGTH3 0.09
 #define FORWARD_LENGTH4 0.54
+
+using AccType = trajectory::Acceleration::AccType;
 
 namespace undercarriage
 {
@@ -26,12 +28,8 @@ namespace undercarriage
         typedef enum
         {
             FORWARD,
-            ACCELERATION1,
-            ACCELERATION2,
-            ACCELERATION3,
-            ACCELERATION4,
-            TURN_LEFT90,
-            TURN_RIGHT90,
+            ACC_CURVE,
+            TURN,
             PIVOT_TURN_RIGHT90,
             PIVOT_TURN_LEFT90,
             PIVOT_TURN180,
@@ -40,9 +38,6 @@ namespace undercarriage
             STOP
         } Mode;
 
-        int8_t dir_diff;
-        Direction robot_dir;
-
         void InitializeOdometory();
         void UpdateBatteryVoltage(float bat_vol);
         void UpdateOdometory();
@@ -50,24 +45,22 @@ namespace undercarriage
         int16_t GetPulse();
         void UpdateIMU();
         void SetBase();
+        void SetTrajectoryMode(int mode = 1);
 
-        void PivotTurn(float angle);
+        void PivotTurn(int angle);
         void Turn(float angle);
-        void Acceleration(float length);
+        void Acceleration(const AccType &acc_type);
         void FrontWallCorrection();
         void Back();
 
         void PartyTrick();
-        void Acceleration1(const std::vector<uint32_t> &ir_data);
-        void Acceleration2(const std::vector<uint32_t> &ir_data);
-        void Acceleration3(const std::vector<uint32_t> &ir_data);
-        void Acceleration4(const std::vector<uint32_t> &ir_data);
+        void SideWallCorrection(const std::vector<uint32_t> &ir_data);
         void PivotTurnRight90();
         void PivotTurnLeft90();
         void PivotTurn180();
-        void KanayamaTurnLeft90();
-        void KanayamaTurnRight90();
-        void GoStraight(const std::vector<uint32_t> &ir_data);
+        void Turn();
+        void Acceleration(const std::vector<uint32_t> &ir_data);
+        // void GoStraight(const std::vector<uint32_t> &ir_data);
         void Back(int time);
         void FrontWallCorrection(const std::vector<uint32_t> &ir_data);
         void BlindAlley();
@@ -103,10 +96,8 @@ namespace undercarriage
         undercarriage::Kanayama kanayama;
         trajectory::PivotTurn180 pivot_turn180;
         trajectory::PivotTurn90 pivot_turn90;
-        trajectory::Acceleration1 acc1;
-        trajectory::Acceleration2 acc2;
-        trajectory::Acceleration3 acc3;
-        trajectory::Acceleration4 acc4;
+        trajectory::Slalom slalom;
+        trajectory::Acceleration acc;
         Mode mode;
 
         float v_left;
@@ -114,7 +105,9 @@ namespace undercarriage
         float u_w;
         float u_v;
         int ref_size;
+        std::vector<float> ref_pos{0, 0, 0};
         std::vector<float> ref_vel{0, 0};
+        std::vector<float> ref_acc{0, 0};
         const float Tp1_w = 31.83;
         const float Kp_w = 144.2;
         const float Tp1_v = 0.18577;
@@ -128,6 +121,7 @@ namespace undercarriage
         const float ir_fr_base = 2280;
         const float ir_sl_base = 3400;
         const float ir_sr_base = 3400;
+        const float ir_wall_base = 2180;
         bool flag_controller;
         bool flag_wall;
         int cnt;
@@ -137,19 +131,23 @@ namespace undercarriage
         std::vector<float> def_pos{0, 0, 0};
         std::vector<float> cur_vel{0, 0};
         float base_theta;
-        float *x;
-        float *y;
-        float *len;
-        float *theta;
-        float *v;
-        float *omega;
-        float *kanayama_v;
-        float *kanayama_w;
+        float error_fl;
+        float error_fr;
+        float *log_x;
+        float *log_y;
+        float *log_theta;
+        float *log_l;
+        float *log_v;
+        float *log_ref_l;
+        float *log_ref_v;
+        float *log_omega;
+        float *log_kanayama_v;
+        float *log_kanayama_w;
 
         int prev_wall_cnt = 0;
-        // int8_t dir_diff;
+        int8_t dir_diff;
         IndexVec robot_position;
-        // Direction robot_dir;
+        Direction robot_dir;
         // int8_t robot_dir_index = 0;
     };
 } // namespace undercarriage
