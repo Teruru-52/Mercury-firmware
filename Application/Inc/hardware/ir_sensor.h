@@ -44,6 +44,7 @@ namespace hardware
         void UI_led_onoff();
         void UI_led_off();
 
+        void StartDMA();
         void UpdateSideValue();
         void UpdateFrontValue();
         void Update();
