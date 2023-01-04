@@ -10,44 +10,17 @@ namespace undercarriage
           ref_u({0.0, 0.0}),
           flag(true) {}
 
-    void Kanayama::UpdateRef()
+    void Kanayama::UpdateRef(const std::vector<float> &ref_pos, const std::vector<float> &ref_vel)
     {
-        if (turnleft90.GetFlag())
-        {
-            turnleft90.UpdateRef();
-            ref = turnleft90.GetRef();
-            ref_x = ref[0];
-            ref_y = ref[1];
-            ref_theta = ref[2];
-            ref_w = ref[3];
-        }
-        else
-        {
-            flag = false;
-        }
-    }
-
-    void Kanayama::UpdateRef2()
-    {
-        if (turnleft90.GetFlag())
-        {
-            turnleft90.UpdateRef();
-            ref = turnleft90.GetRef();
-            ref_x = ref[0];
-            ref_y = -ref[1];
-            ref_theta = -ref[2];
-            ref_w = -ref[3];
-        }
-        else
-        {
-            flag = false;
-        }
+        ref_x = ref_pos[0];
+        ref_y = ref_pos[1];
+        ref_theta = ref_pos[2];
+        ref_v = ref_vel[0];
+        ref_w = ref_vel[1];
     }
 
     void Kanayama::Reset()
     {
-        turnleft90.ResetTrajectoryIndex();
-        turnleft90.ResetFlag();
         flag = true;
     }
 

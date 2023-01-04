@@ -3,7 +3,7 @@
 
 #include "main.h"
 #include <vector>
-#include "../trajectory.h"
+#include "trajectory.h"
 
 namespace undercarriage
 {
@@ -12,14 +12,12 @@ namespace undercarriage
     public:
         Kanayama(float Kx, float Ky, float Ktheta);
 
-        void UpdateRef();
-        void UpdateRef2();
+        void UpdateRef(const std::vector<float> &ref_pos, const std::vector<float> &ref_vel);
         void Reset();
         std::vector<float> CalcInput(const std::vector<float> &cur_pos);
         bool GetFlag();
 
     private:
-        trajectory::TurnLeft90 turnleft90;
         float Kx;
         float Ky;
         float Ktheta;
@@ -28,7 +26,7 @@ namespace undercarriage
         float ref_y;
         float ref_theta;
         float ref_w;
-        const float ref_v = 0.5064989;
+        float ref_v = 0.5064989;
         float x_e;
         float y_e;
         float theta_e;
