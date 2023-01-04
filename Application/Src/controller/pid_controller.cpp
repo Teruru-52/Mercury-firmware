@@ -48,6 +48,7 @@ float Differentiator::Update(float error)
 void Differentiator::ResetDifferentiator()
 {
     pre_error = 0.0;
+    pre_deriv = 0.0;
 }
 
 PID::PID(float kp, float ki, float kd, float tf, float control_period)
