@@ -43,12 +43,12 @@ Agent agent(maze);
 Agent::State prevState = Agent::State::IDLE;
 Direction nextDir;
 State state;
+extern undercarriage::Controller controller;
 using AccType = trajectory::Acceleration::AccType;
 
 hardware::LED led;
 hardware::IRsensor irsensors(2180);
 hardware::Speaker speaker;
-undercarriage::Controller controller(0.001, 0.001);
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -345,7 +345,8 @@ int main(void)
       // }
       controller.Acceleration(AccType::START);
       controller.Turn(90);
-      // controller.Acceleration(AccType::STOP);
+      controller.Turn(-90);
+      controller.Acceleration(AccType::STOP);
 
       led.on_back_left();
       state.mode = State::OUTPUT;

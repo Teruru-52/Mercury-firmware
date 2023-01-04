@@ -1,12 +1,14 @@
-#ifndef CONTROLLER_HPP_
-#define CONTROLLER_HPP_
+#ifndef CONTROLLER_H_
+#define CONTROLLER_H_
 
 #include "main.h"
+// #include "instance.h"
 #include <vector>
 #include "hardware/motor.h"
 #include "odometory.h"
 #include "controller/pid_controller.h"
 #include "controller/kanayama.h"
+#include "trajectory.h"
 #include "Operation.h"
 #include "Maze.h"
 #include "Agent.h"
@@ -23,7 +25,15 @@ namespace undercarriage
     class Controller
     {
     public:
-        Controller(float sampling_period, float control_period);
+        Controller(undercarriage::Odometory *odom,
+                   PID *pid_angle,
+                   PID *pid_rotational_vel,
+                   PID *pid_traslational_vel,
+                   PID *pid_ir_sensor_front,
+                   PID *pid_ir_sensor_side,
+                   undercarriage::Kanayama *kanayama,
+                   trajectory::Slalom *slalom,
+                   trajectory::Acceleration *acc);
 
         typedef enum
         {
@@ -86,18 +96,18 @@ namespace undercarriage
         void robotMove2(const Direction &dir, const std::vector<uint32_t> &ir_data);
 
     private:
-        undercarriage::Odometory odom;
+        undercarriage::Odometory *odom;
         hardware::Motor motor;
-        PID pid_angle;
-        PID pid_rotational_vel;
-        PID pid_traslational_vel;
-        PID pid_ir_sensor_front;
-        PID pid_ir_sensor_side;
-        undercarriage::Kanayama kanayama;
+        PID *pid_angle;
+        PID *pid_rotational_vel;
+        PID *pid_traslational_vel;
+        PID *pid_ir_sensor_front;
+        PID *pid_ir_sensor_side;
+        undercarriage::Kanayama *kanayama;
+        trajectory::Slalom *slalom;
+        trajectory::Acceleration *acc;
         trajectory::PivotTurn180 pivot_turn180;
         trajectory::PivotTurn90 pivot_turn90;
-        trajectory::Slalom slalom;
-        trajectory::Acceleration acc;
         Mode mode;
 
         float v_left;
@@ -110,11 +120,9 @@ namespace undercarriage
         std::vector<float> ref_acc{0, 0};
         const float Tp1_w = 31.83;
         const float Kp_w = 144.2;
-        const float Tp1_v = 0.18577;
-        // const float Tp1_v = 0.032;
-        const float Kp_v = 0.79586;
-        // const float ref_v = 0.5064989;
-        float ref_v = 0.2132397;
+        const float Tp1_v = 0.032;
+        const float Kp_v = 0.784493;
+        // float ref_v = 0.2132397;
         float ref_w;
         float ref_l;
         const float ir_fl_base = 2220;
@@ -130,7 +138,7 @@ namespace undercarriage
         std::vector<float> cur_pos{0, 0, 0};
         std::vector<float> def_pos{0, 0, 0};
         std::vector<float> cur_vel{0, 0};
-        float base_theta;
+        // float base_theta;
         float error_fl;
         float error_fr;
         float *log_x;
@@ -140,6 +148,7 @@ namespace undercarriage
         float *log_v;
         float *log_ref_l;
         float *log_ref_v;
+        float *log_ref_a;
         float *log_omega;
         float *log_kanayama_v;
         float *log_kanayama_w;
@@ -152,4 +161,4 @@ namespace undercarriage
     };
 } // namespace undercarriage
 
-#endif //  CONTROLLER_HPP_
+#endif //  CONTROLLER_H_

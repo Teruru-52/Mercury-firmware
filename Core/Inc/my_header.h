@@ -5,10 +5,12 @@
 #include "hardware/ir_sensor.h"
 #include "hardware/speaker.h"
 #include "controller/controller.h"
+#include "instance.h"
 #include "odometory.h"
 #include "digital_filter.h"
 #include "controller/m_identification.h"
 #include "controller/step_identification.h"
+#include "trajectory.h"
 #include "state.h"
 
 #include "MazeSolver_conf.h"

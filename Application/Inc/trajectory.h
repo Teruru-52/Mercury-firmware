@@ -1,5 +1,5 @@
-#ifndef TRAJECTORY_HPP_
-#define TRAJECTORY_HPP_
+#ifndef TRAJECTORY_H_
+#define TRAJECTORY_H_
 
 #include "main.h"
 #include "slalom.h"
@@ -7,32 +7,35 @@
 #include "state.h"
 #include "accel_designer.h"
 #include <vector>
+#include <array>
 
 namespace trajectory
 {
     class Slalom
     {
     public:
-        Slalom();
-        void ResetTrajectory(int angle = 90.0);
+        Slalom(ctrl::slalom::Shape *ss_turn90_1);
+        void ResetTrajectory(int angle = 90);
         void SetMode(int slalom_mode);
         int GetRefSize();
         void UpdateRef();
         std::vector<float> GetRefPosition();
         std::vector<float> GetRefVelocity();
+        std::vector<float> GetRefAcceleration();
         bool Finished();
         void Reset();
 
     private:
-        ctrl::slalom::Shape ss_turn90_1;
+        ctrl::slalom::Shape *ss_turn90_1;
         // ctrl::slalom::Shape ss_turn90_2;
         // ctrl::slalom::Shape ss_turn90_3;
-        ctrl::slalom::Shape ss;
+        ctrl::slalom::Shape *ss;
         ctrl::slalom::Trajectory st;
         ctrl::State state;
 
         std::vector<float> ref_pos = {0, 0, 0};
         std::vector<float> ref_vel = {0, 0};
+        std::vector<float> ref_acc = {0, 0};
         bool flag_slalom;
         int slalom_mode = 1;
         const float Ts = 1e-3;
@@ -54,7 +57,8 @@ namespace trajectory
             STOP
         } AccType;
 
-        Acceleration();
+        Acceleration(const std::array<float, 8> &parameters_start1,
+                     const std::array<float, 8> &parameters_stop1);
         void ResetAccCurve(const AccType &acc_type);
         void SetMode(int acc_mode = 1);
         int GetRefSize();
@@ -68,13 +72,15 @@ namespace trajectory
     private:
         ctrl::AccelDesigner ad;
 
+        const std::array<float, 8> parameters_start1;
+        const std::array<float, 8> parameters_stop1;
+
         float ref_pos;
         float ref_vel;
         float ref_acc;
         bool flag_acc;
         int acc_mode = 1;
         const float Ts = 1e-3;
-        const float v_mode1 = 0.186825;
         float v = 0;
         float t = 0;
         float t_end;
@@ -1230,4 +1236,4 @@ namespace trajectory
                        1.5};
     };
 }
-#endif //  TRAJECTORY_HPP_
+#endif //  TRAJECTORY_H_
