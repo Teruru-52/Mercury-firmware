@@ -43,6 +43,7 @@ Agent agent(maze);
 Agent::State prevState = Agent::State::IDLE;
 Direction nextDir;
 State state;
+using AccType = trajectory::Acceleration::AccType;
 
 hardware::LED led;
 hardware::IRsensor irsensors(2180);
@@ -90,25 +91,25 @@ void SelectFunc(int16_t pulse)
   {
     led.off_back_right();
     led.off_back_left();
-    state.func = State::FUNC0;
+    state.func = State::FUNC1;
   }
   else if (pulse < 16384)
   {
     led.on_back_right();
     led.off_back_left();
-    state.func = State::FUNC1;
+    state.func = State::FUNC2;
   }
   else if (pulse < 24576)
   {
     led.off_back_right();
     led.on_back_left();
-    state.func = State::FUNC2;
+    state.func = State::FUNC3;
   }
   else
   {
     led.on_back_right();
     led.on_back_left();
-    state.func = State::FUNC3;
+    state.func = State::FUNC4;
   }
 }
 
@@ -118,16 +119,29 @@ void Initialize()
   controller.InitializeOdometory();
   speaker.Beep();
   controller.ResetOdometory();
-  state.interruption = State::INTERRUPT;
-  // state.mode = State::SEARCH;
-  state.mode = State::ELSE;
 
-  // wallData = 0x0E;
-  wallData = Direction(14);
-  robotPos = controller.getRobotPosition();
-  agent.update(robotPos, wallData);
-  nextDir = Direction(1);
-  // printf("%u\n", wallData);
+  switch (state.func)
+  {
+  case State::FUNC1:
+    controller.SetTrajectoryMode(1);
+
+    // wallData = 0x0E;
+    wallData = Direction(14);
+    robotPos = controller.getRobotPosition();
+    agent.update(robotPos, wallData);
+    nextDir = Direction(1);
+    // printf("%u\n", wallData);
+
+    // state.mode = State::SEARCH;
+    state.mode = State::TEST;
+    break;
+  // case State::FUNC2:
+  //   controller.SetTrajectoryMode(2);
+  //   break;
+  default:
+    break;
+  }
+  state.interruption = State::INTERRUPT;
 }
 
 void UpdateUndercarriage()
@@ -140,11 +154,75 @@ void UpdateUndercarriage()
   controller.UpdateOdometory();
 }
 
+void Notification()
+{
+  state.interruption = State::NOT_INTERRUPT;
+  speaker.SpeakerOn();
+  led.Flashing();
+  speaker.SpeakerOff();
+  state.interruption = State::INTERRUPT;
+}
+
+void MazeSearch()
+{
+  while (1)
+  {
+    while (1)
+    {
+      if (controller.wallDataReady())
+      {
+        controller.ResetWallFlag();
+        break;
+      }
+    }
+    controller.UpdateDir(nextDir);
+    controller.UpdatePos(nextDir);
+    wallData = controller.getWallData(ir_data);
+    robotPos = controller.getRobotPosition();
+    agent.update(robotPos, wallData);
+    if (agent.getState() == Agent::FINISHED)
+      break;
+    if (prevState == Agent::SEARCHING_NOT_GOAL && agent.getState() == Agent::SEARCHING_REACHED_GOAL)
+    {
+      maze_backup = maze;
+      // Notification();
+    }
+    prevState = agent.getState();
+    if (cnt1Hz > 210 && agent.getState() == Agent::SEARCHING_REACHED_GOAL)
+    {
+      agent.forceGotoStart();
+    }
+    nextDir = agent.getNextDirection();
+    controller.robotMove2(nextDir, ir_data);
+  }
+}
+
+void TimeAttack()
+{
+  /**********************************
+   * 計測走行
+   *********************************/
+  // コマンドリストみたいなやつを取り出す
+  // runSequence = agent.getRunSequence();
+  // HAL_Delay(2500);
+
+  // // Operationを先頭から順番に実行していく
+  // for (size_t i = 0; i < runSequence.size(); i++)
+  // {
+  //   // Operationの実行が終わるまで待つ(nマス進んだ,右に曲がった)
+  //   while (!operationFinished())
+  //     ;
+
+  //   // i番目のを実行
+  //   controller.robotMove(runSequence[i]); // robotMode関数はOperation型を受け取ってそれを実行する関数
+  // }
+}
+
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
   if (state.interruption == State::INTERRUPT)
   {
-    if (htim == &htim1) // interruption 160kHz
+    if (htim == &htim1) // interruption 16kHz
     {
       irsensors.UpdateSideValue();
       irsensors.UpdateFrontValue();
@@ -169,7 +247,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         // controller.OutputLog();
         // printf("%f\n", bat_vol);
         // printf("%lu, %lu,%lu, %lu\n", ir_data[0], ir_data[1], ir_data[2], ir_data[3]);
-        printf("%lu, %lu\n", ir_data[2], ir_data[3]);
+        // printf("%lu, %lu\n", ir_data[2], ir_data[3]);
       }
     }
   }
@@ -234,9 +312,9 @@ int main(void)
 
   setbuf(stdout, NULL);
   speaker.Beep();
+  irsensors.StartDMA();
   irsensors.BatteryCheck();
   irsensors.on_all_led();
-  HAL_Delay(1000);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -254,119 +332,49 @@ int main(void)
 
       if (irsensors.StartInitialize())
       {
-        state.mode = State::INITIALIZE;
+        Initialize();
       }
     }
-    else if (state.mode == State::INITIALIZE)
+
+    else if (state.mode == State::TEST)
     {
-      Initialize();
       // controller.StartMove();
-    }
-    else
-    {
-      // controller.UpdateIMU();
+      // for (int i = 0; i < 12; i++)
+      // {
+      //   controller.PivotTurn(90);
+      // }
+      controller.Acceleration(AccType::START);
+      controller.Turn(90);
+      // controller.Acceleration(AccType::STOP);
+
+      led.on_back_left();
+      state.mode = State::OUTPUT;
     }
 
-    if (state.mode == State::ELSE)
+    else if (state.mode == State::OUTPUT)
     {
-      controller.PivotTurn(90);
-      state.mode = State::OUTPUT;
+      controller.Brake();
+      state.interruption = State::NOT_INTERRUPT;
+      irsensors.UpdateSideValue();
+
+      if (irsensors.StartInitialize())
+      // if (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_2) == 0)
+      {
+        controller.OutputLog();
+      }
     }
 
     else if (state.mode == State::SEARCH)
     {
-      while (1)
-      {
-        while (1)
-        {
-          if (controller.wallDataReady())
-          {
-            controller.ResetWallFlag();
-            break;
-          }
-        }
-        controller.UpdateDir(nextDir);
-        controller.UpdatePos(nextDir);
-        wallData = controller.getWallData(ir_data);
-        robotPos = controller.getRobotPosition();
-        agent.update(robotPos, wallData);
-        if (agent.getState() == Agent::FINISHED)
-          break;
-        if (prevState == Agent::SEARCHING_NOT_GOAL && agent.getState() == Agent::SEARCHING_REACHED_GOAL)
-        {
-          maze_backup = maze;
-        }
-        prevState = agent.getState();
-        if (cnt1Hz > 210 && agent.getState() == Agent::SEARCHING_REACHED_GOAL)
-        {
-          agent.forceGotoStart();
-        }
-        nextDir = agent.getNextDirection();
-        controller.robotMove2(nextDir, ir_data);
-      }
+      MazeSearch();
+      Notification();
 
       controller.InitializePosition(ir_data);
       agent.caclRunSequence(false);
 
-      /**********************************
-       * 計測走行
-       *********************************/
-      // コマンドリストみたいなやつを取り出す
-      // runSequence = agent.getRunSequence();
-      // HAL_Delay(2500);
-
-      // // Operationを先頭から順番に実行していく
-      // for (size_t i = 0; i < runSequence.size(); i++)
-      // {
-      //   // Operationの実行が終わるまで待つ(nマス進んだ,右に曲がった)
-      //   while (!operationFinished())
-      //     ;
-
-      //   // i番目のを実行
-      //   controller.robotMove(runSequence[i]); // robotMode関数はOperation型を受け取ってそれを実行する関数
-      // }
+      // state.mode = State::SELECT_FUNCTION;
+      // TimeAttack();
     }
-
-    if (state.mode == State::OUTPUT)
-    {
-      controller.Brake();
-      irsensors.UpdateSideValue();
-
-      if (irsensors.StartInitialize())
-      {
-        controller.OutputLog();
-        // step_identification.OutputLog();
-      }
-      // if (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_2) == 0)
-      // {}
-    }
-
-    // else if (state.mode == State::LED)
-    // {
-    //   state.interruption = State::NOT_INTERRUPT;
-    //   speaker.SpeakerOn();
-    //   led.Flashing();
-    //   speaker.SpeakerOff();
-    //   if (agent.getState() == Agent::SEARCHING_REACHED_GOAL)
-    //   {
-    //     state.mode = State::SEARCH;
-    //   }
-    //   else if (agent.getState() == Agent::FINISHED)
-    //   {
-    //     state.mode = State::INITIALIZE_POSITION;
-    //   }
-    //   state.interruption = State::INTERRUPT;
-    // }
-
-    // else if (state.mode == State::SPEAKER)
-    // {
-    //   controller.Brake();
-    //   speaker.Beep();
-    //   // HAL_Delay(500);
-    //   state.mode = State::SEARCH;
-    //   state.interruption = State::INTERRUPT;
-    // }
-
   } // end while
 
   /* USER CODE END 3 */
