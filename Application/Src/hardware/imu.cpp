@@ -72,7 +72,7 @@ namespace hardware
     {
         int16_t gz_raw;
         float gz_sum = 0;
-        // turn of led (back left)
+        // turn on led (back left)
         HAL_GPIO_WritePin(GPIOC, GPIO_PIN_9, GPIO_PIN_SET);
         for (int i = 0; i < 500; i++)
         {
