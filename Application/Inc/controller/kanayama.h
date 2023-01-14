@@ -9,28 +9,26 @@ namespace undercarriage
     class Kanayama
     {
     public:
-        Kanayama(float Kx, float Ky, float Ktheta);
+        Kanayama(const float Kx, const float Ky, const float Ktheta);
 
         void UpdateRef(const std::vector<float> &ref_pos, const std::vector<float> &ref_vel);
-        void Reset();
         std::vector<float> CalcInput(const std::vector<float> &cur_pos);
-        bool GetFlag();
+        void Reset();
 
     private:
-        float Kx;
-        float Ky;
-        float Ktheta;
-        std::vector<float> ref;
+        const float Kx;
+        const float Ky;
+        const float Ktheta;
+
         float ref_x;
         float ref_y;
         float ref_theta;
         float ref_w;
-        float ref_v = 0.5064989;
+        float ref_v;
         float x_e;
         float y_e;
         float theta_e;
-        std::vector<float> ref_u;
-        bool flag;
+        std::vector<float> ref_u = {0.0, 0.0};
     };
 } // namespace undercarriage
 

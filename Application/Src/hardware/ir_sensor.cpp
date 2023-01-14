@@ -2,9 +2,9 @@
 
 namespace hardware
 {
-    IRsensor::IRsensor(uint32_t threshold)
-        : threshold(threshold),
-          flag(false) {}
+    IRsensor::IRsensor(uint32_t ir_start_base, uint32_t ir_wall_base)
+        : ir_start_base(ir_start_base),
+          ir_wall_base(ir_wall_base) {}
 
     void IRsensor::on_front_led()
     {
@@ -40,22 +40,22 @@ namespace hardware
 
     void IRsensor::UI_led_onoff()
     {
-        if (ir_fl > threshold)
+        if (ir_fl > ir_wall_base)
             led.on_front_left();
         else
             led.off_front_left();
 
-        if (ir_fr > threshold)
+        if (ir_fr > ir_wall_base)
             led.on_front_right();
         else
             led.off_front_right();
 
-        if (ir_sl > threshold)
+        if (ir_sl > ir_wall_base)
             led.on_side_left();
         else
             led.off_side_left();
 
-        if (ir_sr > threshold)
+        if (ir_sr > ir_wall_base)
             led.on_side_right();
         else
             led.off_side_right();
@@ -170,18 +170,9 @@ namespace hardware
 
     bool IRsensor::StartInitialize()
     {
-        if (ir_sl > 2500 && ir_sr > 2500)
+        if (ir_sl > ir_start_base && ir_sr > ir_start_base)
             return true;
         else
             return false;
-    }
-
-    bool IRsensor::GetFrontWallFlag()
-    {
-        if (ir_fl > 2100 && ir_fr > 2100)
-        {
-            flag = true;
-        }
-        return flag;
     }
 }

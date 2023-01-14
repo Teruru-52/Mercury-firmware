@@ -1,4 +1,4 @@
-#include "../Inc/trajectory.h"
+#include "trajectory.h"
 
 namespace trajectory
 {
@@ -17,16 +17,16 @@ namespace trajectory
         switch (slalom_mode)
         {
         case 1:
-            if (angle == 90)
-            {
-                ss = ss_turn90_1;
-                st = ctrl::slalom::Trajectory(*ss);
-            }
-            else if (angle == -90)
-            {
-                ss = ss_turn90_1;
-                st = ctrl::slalom::Trajectory(*ss, true);
-            }
+            // if (angle == 90)
+            // {
+            //     ss = ss_turn90_1;
+            //     st = ctrl::slalom::Trajectory(*ss);
+            // }
+            // else if (angle == -90)
+            // {
+            //     ss = ss_turn90_1;
+            //     st = ctrl::slalom::Trajectory(*ss, true);
+            // }
             break;
         // case 2:
         //     if (angle == 90.0)
@@ -65,8 +65,12 @@ namespace trajectory
         ref_pos[2] = state.q.th;
         ref_vel[0] = v * 1e-3;
         ref_vel[1] = state.dq.th;
+        // ref_acc[0] = (state.ddq.x * cos(ref_pos[2]) + state.ddq.y * sin(ref_pos[2])) * 1e-3;
         ref_acc[0] = 0.0;
         ref_acc[1] = state.ddq.th;
+
+        // ref_acc[0] = state.ddq.x * 1e-3;
+        // ref_acc[1] = state.ddq.y * 1e-3;
 
         t += Ts;
         if (t + Ts > t_end)
@@ -103,26 +107,43 @@ namespace trajectory
 
     // Acceleration
     Acceleration::Acceleration(const std::array<float, 8> &parameters_start1,
+                               const std::array<float, 8> &parameters_forward1,
                                const std::array<float, 8> &parameters_stop1)
         : parameters_start1(parameters_start1),
+          parameters_forward1(parameters_forward1),
+          parameters_forward_half(parameters_stop1),
           parameters_stop1(parameters_stop1),
           flag_acc(false)
     {
-        ResetAccCurve(START);
+        ad1.reset(parameters_start1);
+        ad2.reset(parameters_forward1);
+        ad3.reset(parameters_stop1);
+        ResetAccCurve(start);
     }
 
     void Acceleration::ResetAccCurve(const AccType &acc_type)
     {
+        this->acc_type = acc_type;
         switch (acc_mode)
         {
         case 1:
             switch (acc_type)
             {
-            case START:
-                ad.reset(parameters_start1);
+            case start:
+                // ad.reset(parameters_start1);
+                t_end = ad1.t_end();
                 break;
-            case STOP:
-                ad.reset(parameters_stop1);
+            case forward_half:
+                // ad.reset(parameters_forward_half);
+                t_end = ad3.t_end();
+                break;
+            case forward1:
+                // ad.reset(parameters_forward1);
+                t_end = ad2.t_end();
+                break;
+            case stop:
+                // ad.reset(parameters_stop1);
+                t_end = ad3.t_end();
                 break;
             default:
                 break;
@@ -133,7 +154,7 @@ namespace trajectory
         default:
             break;
         }
-        t_end = ad.t_end();
+        // t_end = ad.t_end();
     }
 
     void Acceleration::SetMode(int acc_mode)
@@ -149,12 +170,38 @@ namespace trajectory
 
     void Acceleration::UpdateRef()
     {
-        ref_acc = ad.a(t);
-        ref_vel = ad.v(t);
-        ref_pos = ad.x(t);
+        switch (acc_type)
+        {
+        case start:
+            ref_acc = ad1.a(t);
+            ref_vel = ad1.v(t);
+            ref_pos = ad1.x(t);
+            break;
+        case forward_half:
+            ref_acc = ad3.a(t);
+            ref_vel = ad3.v(t);
+            ref_pos = ad3.x(t);
+            break;
+        case forward1:
+            ref_acc = ad2.a(t);
+            ref_vel = ad2.v(t);
+            ref_pos = ad2.x(t);
+            break;
+        case stop:
+            ref_acc = ad3.a(t);
+            ref_vel = ad3.v(t);
+            ref_pos = ad3.x(t);
+            break;
+        default:
+            break;
+        }
+
+        // ref_acc = ad.a(t);
+        // ref_vel = ad.v(t);
+        // ref_pos = ad.x(t);
 
         t += Ts;
-        if (t > t_end)
+        if (t + Ts > t_end)
         {
             flag_acc = true;
         }

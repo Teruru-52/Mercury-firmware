@@ -37,18 +37,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-Maze maze;
-Maze maze_backup;
-Agent agent(maze);
-Agent::State prevState = Agent::State::IDLE;
-Direction nextDir;
-State state;
-extern undercarriage::Controller controller;
 using AccType = trajectory::Acceleration::AccType;
-
-hardware::LED led;
-hardware::IRsensor irsensors(2180);
-hardware::Speaker speaker;
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -75,14 +64,16 @@ void SystemClock_Config(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 Direction wallData;
+Direction nextDir;
 IndexVec robotPos;
+Agent::State prevState = Agent::State::IDLE;
+OperationList runSequence;
 
 int cnt1kHz = 0;
 int cnt1Hz = 0;
 
 float bat_vol;
 std::vector<uint32_t> ir_data{0, 0, 0, 0};
-OperationList runSequence;
 int16_t pulse;
 
 void SelectFunc(int16_t pulse)
@@ -91,30 +82,31 @@ void SelectFunc(int16_t pulse)
   {
     led.off_back_right();
     led.off_back_left();
-    state.func = State::FUNC1;
+    state.func = State::func1;
   }
   else if (pulse < 16384)
   {
     led.on_back_right();
     led.off_back_left();
-    state.func = State::FUNC2;
+    state.func = State::func2;
   }
   else if (pulse < 24576)
   {
     led.off_back_right();
     led.on_back_left();
-    state.func = State::FUNC3;
+    state.func = State::func3;
   }
   else
   {
     led.on_back_right();
     led.on_back_left();
-    state.func = State::FUNC4;
+    state.func = State::func4;
   }
 }
 
 void Initialize()
 {
+  led.off_all();
   speaker.Beep();
   controller.InitializeOdometory();
   speaker.Beep();
@@ -122,26 +114,28 @@ void Initialize()
 
   switch (state.func)
   {
-  case State::FUNC1:
+  case State::func1:
+    state.mode = State::test;
+    break;
+
+  case State::func2:
     controller.SetTrajectoryMode(1);
 
     // wallData = 0x0E;
     wallData = Direction(14);
+    // robotPos = IndexVec(0, 0);
     robotPos = controller.getRobotPosition();
     agent.update(robotPos, wallData);
+    // nextDir = NORTH;
     nextDir = Direction(1);
-    // printf("%u\n", wallData);
 
-    // state.mode = State::SEARCH;
-    state.mode = State::TEST;
+    state.mode = State::search;
     break;
-  // case State::FUNC2:
-  //   controller.SetTrajectoryMode(2);
-  //   break;
+
   default:
     break;
   }
-  state.interruption = State::INTERRUPT;
+  state.interruption = State::interrupt;
 }
 
 void UpdateUndercarriage()
@@ -150,36 +144,38 @@ void UpdateUndercarriage()
   controller.UpdateBatteryVoltage(bat_vol);
   irsensors.Update();
   ir_data = irsensors.GetIRSensorData();
+  controller.SetIRdata(ir_data);
   controller.UpdateIMU();
   controller.UpdateOdometory();
 }
 
 void Notification()
 {
-  state.interruption = State::NOT_INTERRUPT;
+  state.interruption = State::not_interrupt;
   speaker.SpeakerOn();
   led.Flashing();
   speaker.SpeakerOff();
-  state.interruption = State::INTERRUPT;
+  state.interruption = State::interrupt;
 }
 
 void MazeSearch()
 {
   while (1)
   {
-    while (1)
-    {
-      if (controller.wallDataReady())
-      {
-        controller.ResetWallFlag();
-        break;
-      }
-    }
+    // while (1)
+    // {
+    //   if (controller.wallDataReady())
+    //   {
+    //     controller.ResetWallFlag();
+    //     break;
+    //   }
+    // }
     controller.UpdateDir(nextDir);
     controller.UpdatePos(nextDir);
     wallData = controller.getWallData(ir_data);
     robotPos = controller.getRobotPosition();
     agent.update(robotPos, wallData);
+    led.on_back_left();
     if (agent.getState() == Agent::FINISHED)
       break;
     if (prevState == Agent::SEARCHING_NOT_GOAL && agent.getState() == Agent::SEARCHING_REACHED_GOAL)
@@ -188,39 +184,41 @@ void MazeSearch()
       // Notification();
     }
     prevState = agent.getState();
-    if (cnt1Hz > 210 && agent.getState() == Agent::SEARCHING_REACHED_GOAL)
-    {
-      agent.forceGotoStart();
-    }
+    // if (cnt1Hz > 210 && agent.getState() == Agent::SEARCHING_REACHED_GOAL)
+    // {
+    //   agent.forceGotoStart();
+    // }
     nextDir = agent.getNextDirection();
-    controller.robotMove2(nextDir, ir_data);
+    controller.robotMove2(nextDir);
+    led.off_back_left();
+    // controller.Wait();
   }
 }
 
-void TimeAttack()
-{
-  /**********************************
-   * 計測走行
-   *********************************/
-  // コマンドリストみたいなやつを取り出す
-  // runSequence = agent.getRunSequence();
-  // HAL_Delay(2500);
+// void TimeAttack()
+// {
+/**********************************
+ * 計測走行
+ *********************************/
+// コマンドリストみたいなやつを取り出す
+// runSequence = agent.getRunSequence();
+// HAL_Delay(2500);
 
-  // // Operationを先頭から順番に実行していく
-  // for (size_t i = 0; i < runSequence.size(); i++)
-  // {
-  //   // Operationの実行が終わるまで待つ(nマス進んだ,右に曲がった)
-  //   while (!operationFinished())
-  //     ;
+// // Operationを先頭から順番に実行していく
+// for (size_t i = 0; i < runSequence.size(); i++)
+// {
+//   // Operationの実行が終わるまで待つ(nマス進んだ,右に曲がった)
+//   while (!operationFinished())
+//     ;
 
-  //   // i番目のを実行
-  //   controller.robotMove(runSequence[i]); // robotMode関数はOperation型を受け取ってそれを実行する関数
-  // }
-}
+//   // i番目のを実行
+//   controller.robotMove(runSequence[i]); // robotMode関数はOperation型を受け取ってそれを実行する関数
+// }
+// }
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-  if (state.interruption == State::INTERRUPT)
+  if (state.interruption == State::interrupt)
   {
     if (htim == &htim1) // interruption 16kHz
     {
@@ -232,7 +230,15 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     {
       cnt1kHz = (cnt1kHz + 1) % 1000;
       UpdateUndercarriage();
-      controller.robotMove(ir_data);
+      controller.robotMove();
+
+      if (controller.ErrorFlag())
+      {
+        controller.Brake();
+        speaker.SpeakerOn();
+        state.mode = State::error;
+        state.interruption = State::not_interrupt;
+      }
 
       if (cnt1kHz == 999)
       {
@@ -242,12 +248,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
       else
         led.off_back_right();
 
-      if (cnt1kHz % 500 == 0)
+      if (state.mode == State::test && cnt1kHz % 200 == 0)
       {
         // controller.OutputLog();
-        // printf("%f\n", bat_vol);
-        // printf("%lu, %lu,%lu, %lu\n", ir_data[0], ir_data[1], ir_data[2], ir_data[3]);
-        // printf("%lu, %lu\n", ir_data[2], ir_data[3]);
+        printf("%lu, %lu,%lu, %lu\n", ir_data[0], ir_data[1], ir_data[2], ir_data[3]);
       }
     }
   }
@@ -324,7 +328,7 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    if (state.mode == State::SELECT_FUNCTION)
+    if (state.mode == State::select_function)
     {
       irsensors.UpdateSideValue();
       pulse = controller.GetPulse();
@@ -336,26 +340,31 @@ int main(void)
       }
     }
 
-    else if (state.mode == State::TEST)
+    else if (state.mode == State::test)
     {
-      // controller.StartMove();
       // for (int i = 0; i < 12; i++)
       // {
       //   controller.PivotTurn(90);
       // }
-      controller.Acceleration(AccType::START);
-      controller.Turn(90);
-      controller.Turn(-90);
-      controller.Acceleration(AccType::STOP);
+      // Notification();
+
+      // controller.StartMove();
+      // controller.Acceleration(AccType::forward1);
+      // controller.Acceleration(AccType::forward1);
+      // controller.GoStraight();
+      // controller.GoStraight();
+      // controller.Turn(90);
+      // controller.Turn(-90);
+      // controller.Acceleration(AccType::STOP);
 
       led.on_back_left();
-      state.mode = State::OUTPUT;
+      // state.mode = State::output;
     }
 
-    else if (state.mode == State::OUTPUT)
+    else if (state.mode == State::output)
     {
       controller.Brake();
-      state.interruption = State::NOT_INTERRUPT;
+      state.interruption = State::not_interrupt;
       irsensors.UpdateSideValue();
 
       if (irsensors.StartInitialize())
@@ -365,16 +374,16 @@ int main(void)
       }
     }
 
-    else if (state.mode == State::SEARCH)
+    else if (state.mode == State::search)
     {
+      controller.StartMove();
       MazeSearch();
       Notification();
 
-      controller.InitializePosition(ir_data);
+      controller.InitializePosition();
       agent.caclRunSequence(false);
 
-      // state.mode = State::SELECT_FUNCTION;
-      // TimeAttack();
+      state.mode = State::select_function;
     }
   } // end while
 

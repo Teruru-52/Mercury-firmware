@@ -1,14 +1,11 @@
-#include "../../Inc/controller/kanayama.h"
+#include "controller/kanayama.h"
 
 namespace undercarriage
 {
-    Kanayama::Kanayama(float Kx, float Ky, float Ktheta)
+    Kanayama::Kanayama(const float Kx, const float Ky, const float Ktheta)
         : Kx(Kx),
           Ky(Ky),
-          Ktheta(Ktheta),
-          ref({0.0, 0.0, 0.0, 0.0}),
-          ref_u({0.0, 0.0}),
-          flag(true) {}
+          Ktheta(Ktheta) {}
 
     void Kanayama::UpdateRef(const std::vector<float> &ref_pos, const std::vector<float> &ref_vel)
     {
@@ -17,11 +14,6 @@ namespace undercarriage
         ref_theta = ref_pos[2];
         ref_v = ref_vel[0];
         ref_w = ref_vel[1];
-    }
-
-    void Kanayama::Reset()
-    {
-        flag = true;
     }
 
     std::vector<float> Kanayama::CalcInput(const std::vector<float> &cur_pos)
@@ -36,8 +28,16 @@ namespace undercarriage
         return ref_u;
     }
 
-    bool Kanayama::GetFlag()
+    void Kanayama::Reset()
     {
-        return flag;
+        ref_x = 0.0;
+        ref_y = 0.0;
+        ref_theta = 0.0;
+        ref_v = 0.0;
+        ref_w = 0.0;
+
+        x_e = 0.0;
+        y_e = 0.0;
+        theta_e = 0.0;
     }
 }

@@ -12,7 +12,8 @@ namespace hardware
     private:
         LED led;
         const int sampling_count = 16;
-        uint32_t threshold;
+        uint32_t ir_start_base;
+        uint32_t ir_wall_base;
 
         uint16_t dma_f[3];
         uint16_t dma_b[2];
@@ -27,12 +28,11 @@ namespace hardware
         uint32_t ir_sl;
         uint32_t ir_sr;
         std::vector<uint32_t> ir_data{0, 0, 0, 0};
-        bool flag;
 
         float bat_vol;
 
     public:
-        IRsensor(uint32_t threshold);
+        IRsensor(uint32_t ir_start_base, uint32_t ir_wall_base);
 
         void on_front_led();
         void on_side_led();
@@ -52,7 +52,6 @@ namespace hardware
         float GetBatteryVoltage();
         void BatteryCheck();
         bool StartInitialize();
-        bool GetFrontWallFlag();
     };
 }
 #endif //  HARDWARE_IR_SENSOR_HPP_

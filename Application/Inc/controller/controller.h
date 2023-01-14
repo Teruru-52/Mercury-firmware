@@ -2,13 +2,14 @@
 #define CONTROLLER_H_
 
 #include "main.h"
-// #include "instance.h"
 #include <vector>
 #include "hardware/motor.h"
 #include "odometory.h"
 #include "controller/pid_controller.h"
 #include "controller/kanayama.h"
+#include "dynamic_feedback.h"
 #include "trajectory.h"
+#include "state.h"
 #include "Operation.h"
 #include "Maze.h"
 #include "Agent.h"
@@ -29,53 +30,62 @@ namespace undercarriage
                    PID *pid_angle,
                    PID *pid_rotational_vel,
                    PID *pid_traslational_vel,
-                   PID *pid_ir_sensor_front,
+                   PID *pid_ir_sensor_front_left,
+                   PID *pid_ir_sensor_front_right,
                    PID *pid_ir_sensor_side,
                    undercarriage::Kanayama *kanayama,
+                   undercarriage::Dynamic_Feedback *dynamic_feedback,
                    trajectory::Slalom *slalom,
-                   trajectory::Acceleration *acc);
+                   trajectory::Acceleration *acc,
+                   const std::vector<uint32_t> &ir_parameters);
 
         typedef enum
         {
-            FORWARD,
-            ACC_CURVE,
-            TURN,
-            PIVOT_TURN_RIGHT90,
-            PIVOT_TURN_LEFT90,
-            PIVOT_TURN180,
-            FRONT_WALL_CORRECTION,
-            BACK,
-            STOP
+            forward,
+            acc_curve,
+            turn,
+            pivot_turn_right_90,
+            pivot_turn_left_90,
+            pivot_turn_180,
+            front_wall_correction,
+            back,
+            stop,
+            wait
         } Mode;
 
         void InitializeOdometory();
         void UpdateBatteryVoltage(float bat_vol);
         void UpdateOdometory();
+        bool ErrorFlag();
         void ResetOdometory();
         int16_t GetPulse();
         void UpdateIMU();
-        void SetBase();
+        // void SetBase();
+        void SetIRdata(const std::vector<uint32_t> &ir_value);
         void SetTrajectoryMode(int mode = 1);
 
         void PivotTurn(int angle);
-        void Turn(float angle);
+        void Turn(int angle);
         void Acceleration(const AccType &acc_type);
+        void GoStraight();
         void FrontWallCorrection();
         void Back();
+        void Wait();
 
         void PartyTrick();
-        void SideWallCorrection(const std::vector<uint32_t> &ir_data);
+        void SideWallCorrection();
         void PivotTurnRight90();
         void PivotTurnLeft90();
         void PivotTurn180();
         void Turn();
-        void Acceleration(const std::vector<uint32_t> &ir_data);
-        // void GoStraight(const std::vector<uint32_t> &ir_data);
+        void Acceleration();
+        void GoStraight(float ref_l);
         void Back(int time);
-        void FrontWallCorrection(const std::vector<uint32_t> &ir_data);
+        void Wait(int time);
+        void FrontWallCorrection(const std::vector<uint32_t> &ir_value);
         void BlindAlley();
         void StartMove();
-        void InitializePosition(const std::vector<uint32_t> &ir_data);
+        void InitializePosition();
         void Brake();
         void InputVelocity(float input_v, float input_w);
         bool GetFlag();
@@ -86,14 +96,15 @@ namespace undercarriage
         void OutputLog();
 
         bool wallDataReady();
-        Direction getWallData(const std::vector<uint32_t> &ir_data);
+        Direction getWallData(const std::vector<uint32_t> &ir_value);
         void UpdatePos(const Direction &dir);
         void UpdateDir(const Direction &dir);
         IndexVec getRobotPosition();
-        void robotMove(const std::vector<uint32_t> &ir_data);
-        void robotMove(const Operation &op, const std::vector<uint32_t> &ir_data);
-        void robotMove(const Direction &dir, const std::vector<uint32_t> &ir_data);
-        void robotMove2(const Direction &dir, const std::vector<uint32_t> &ir_data);
+        void robotMove();
+        void robotMove(const Direction &dir);
+        void robotMove2(const Direction &dir);
+        void robotMove(const Operation &op);
+        void robotMove2(const Operation &op);
 
     private:
         undercarriage::Odometory *odom;
@@ -101,20 +112,25 @@ namespace undercarriage
         PID *pid_angle;
         PID *pid_rotational_vel;
         PID *pid_traslational_vel;
-        PID *pid_ir_sensor_front;
+        PID *pid_ir_sensor_front_left;
+        PID *pid_ir_sensor_front_right;
         PID *pid_ir_sensor_side;
         undercarriage::Kanayama *kanayama;
+        undercarriage::Dynamic_Feedback *dynamic_feedback;
         trajectory::Slalom *slalom;
         trajectory::Acceleration *acc;
         trajectory::PivotTurn180 pivot_turn180;
         trajectory::PivotTurn90 pivot_turn90;
         Mode mode;
+        // ctrl::State cur_state;
+        // ctrl::State ref_state;
 
         float v_left;
         float v_right;
         float u_w;
         float u_v;
         int ref_size;
+        std::vector<uint32_t> ir_data = {0, 0, 0, 0};
         std::vector<float> ref_pos{0, 0, 0};
         std::vector<float> ref_vel{0, 0};
         std::vector<float> ref_acc{0, 0};
@@ -122,16 +138,19 @@ namespace undercarriage
         const float Kp_w = 144.2;
         const float Tp1_v = 0.032;
         const float Kp_v = 0.784493;
-        // float ref_v = 0.2132397;
+        float ref_v = 0.186825;
         float ref_w;
-        float ref_l;
-        const float ir_fl_base = 2220;
-        const float ir_fr_base = 2280;
-        const float ir_sl_base = 3400;
-        const float ir_sr_base = 3400;
-        const float ir_wall_base = 2180;
+        uint32_t ir_wall_base;
+        uint32_t ir_fl_base;
+        uint32_t ir_fr_base;
+        uint32_t ir_sl_base;
+        uint32_t ir_sr_base;
+        const int back_time = 400;       // ms
+        const int correction_time = 500; // ms
+        const int wait_time = 200;       // ms
         bool flag_controller;
         bool flag_wall;
+        bool flag_safety;
         int cnt;
         int index_log;
         float l;
@@ -142,24 +161,23 @@ namespace undercarriage
         // float base_theta;
         float error_fl;
         float error_fr;
-        float *log_x;
-        float *log_y;
-        float *log_theta;
-        float *log_l;
-        float *log_v;
-        float *log_a;
-        float *log_ref_l;
-        float *log_ref_v;
-        float *log_ref_a;
-        float *log_omega;
-        float *log_kanayama_v;
-        float *log_kanayama_w;
+        // float *log_x;
+        // float *log_y;
+        // float *log_theta;
+        // float *log_l;
+        // float *log_v;
+        // float *log_a;
+        // float *log_ref_l;
+        // float *log_ref_v;
+        // float *log_ref_a;
+        // float *log_omega;
+        // float *log_kanayama_v;
+        // float *log_kanayama_w;
 
         int prev_wall_cnt = 0;
         int8_t dir_diff;
         IndexVec robot_position;
         Direction robot_dir;
-        // int8_t robot_dir_index = 0;
     };
 } // namespace undercarriage
 
