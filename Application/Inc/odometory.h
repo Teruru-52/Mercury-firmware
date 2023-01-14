@@ -1,11 +1,12 @@
-#ifndef ODOMETORY_HPP_
-#define ODOMETORY_HPP_
+#ifndef ODOMETORY_H_
+#define ODOMETORY_H_
 
 #include "main.h"
 #include <vector>
 #include <cmath>
 #include "hardware/encoder.h"
 #include "hardware/imu.h"
+#include "state.h"
 
 namespace undercarriage
 {
@@ -16,6 +17,9 @@ namespace undercarriage
         hardware::IMU imu;
 
         float sampling_period; // [s]
+        ctrl::State robot_state;
+        ctrl::State local_state;
+        // ctrl::State global_state;
         float v;
         float omega;
         float acc_x;
@@ -38,6 +42,7 @@ namespace undercarriage
         void Reset();
         void ResetTheta();
         int16_t GetPulse();
+        ctrl::State GetState();
         std::vector<float> GetPosition();
         std::vector<float> GetVelocity();
         float GetAccX();
@@ -45,4 +50,4 @@ namespace undercarriage
         void OutputLog();
     };
 } //  namespace undercarriage
-#endif //  ODOMETORY_HPP_
+#endif //  ODOMETORY_H_

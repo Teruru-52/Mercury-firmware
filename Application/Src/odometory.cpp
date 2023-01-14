@@ -1,4 +1,4 @@
-#include "../Inc/odometory.h"
+#include "odometory.h"
 
 namespace undercarriage
 {
@@ -48,6 +48,16 @@ namespace undercarriage
     acc_x = imu.GetAccX();
     theta = imu.GetAngle();
 
+    // robot_state.dq.x = v;
+    // robot_state.dq.th = omega;
+    // robot_state.ddq.x = acc_x;
+    // local_state.dq.x = v * cos(theta);
+    // local_state.dq.y = v * sin(theta);
+    // local_state.dq.th = omega;
+    // local_state.q.x += (v + pre_v) * cos(theta) * sampling_period * 0.5;
+    // local_state.q.y += (v + pre_v) * sin(theta) * sampling_period * 0.5;
+    // local_state.q.th = theta;
+
     // Euler method
     // x_local += v * cos(theta) * sampling_period;
     // y_local += v * sin(theta) * sampling_period;
@@ -65,6 +75,11 @@ namespace undercarriage
   void Odometory::UpdateIMU()
   {
     imu.Update();
+  }
+
+  ctrl::State Odometory::GetState()
+  {
+    return local_state;
   }
 
   std::vector<float> Odometory::GetPosition()
