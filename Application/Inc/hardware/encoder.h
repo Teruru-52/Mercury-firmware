@@ -20,8 +20,9 @@ namespace hardware
 
     private:
         float gear_ratio = 11.0f / 43.0f;
-        float sampling_period;      // [s]
-        float tire_radius = 0.0125; // [m]
+        float sampling_period; // [s]
+        // float tire_radius = 0.0124; // [m]
+        float tire_radius = 0.013; // [m]
         const float ppr = 2048.0;
         int16_t pulse_left;
         int16_t pulse_right;
