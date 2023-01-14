@@ -8,6 +8,7 @@
 #include "accel_designer.h"
 #include <vector>
 #include <array>
+#include <chrono>
 
 namespace trajectory
 {
@@ -50,14 +51,16 @@ namespace trajectory
     public:
         typedef enum
         {
-            START,
-            FORWARD1,
-            FORWARD2,
-            FORWARD3,
-            STOP
+            start,
+            forward_half,
+            forward1,
+            forward2,
+            forward3,
+            stop
         } AccType;
 
         Acceleration(const std::array<float, 8> &parameters_start1,
+                     const std::array<float, 8> &parameters_forward1,
                      const std::array<float, 8> &parameters_stop1);
         void ResetAccCurve(const AccType &acc_type);
         void SetMode(int acc_mode = 1);
@@ -71,9 +74,15 @@ namespace trajectory
 
     private:
         ctrl::AccelDesigner ad;
+        ctrl::AccelDesigner ad1;
+        ctrl::AccelDesigner ad2;
+        ctrl::AccelDesigner ad3;
 
         const std::array<float, 8> parameters_start1;
+        const std::array<float, 8> parameters_forward1;
+        const std::array<float, 8> parameters_forward_half;
         const std::array<float, 8> parameters_stop1;
+        AccType acc_type;
 
         float ref_pos;
         float ref_vel;
