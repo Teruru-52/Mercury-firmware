@@ -37,7 +37,7 @@ namespace undercarriage
                    undercarriage::Dynamic_Feedback *dynamic_feedback,
                    trajectory::Slalom *slalom,
                    trajectory::Acceleration *acc,
-                   const std::vector<uint32_t> &ir_parameters);
+                   const std::vector<float> &ir_parameters);
 
         typedef enum
         {
@@ -140,11 +140,11 @@ namespace undercarriage
         const float Kp_v = 0.784493;
         float ref_v = 0.186825;
         float ref_w;
-        uint32_t ir_wall_base;
-        uint32_t ir_fl_base;
-        uint32_t ir_fr_base;
-        uint32_t ir_sl_base;
-        uint32_t ir_sr_base;
+        float ir_wall_base;
+        float ir_fl_base;
+        float ir_fr_base;
+        float ir_sl_base;
+        float ir_sr_base;
         const int back_time = 400;       // ms
         const int correction_time = 500; // ms
         const int wait_time = 200;       // ms

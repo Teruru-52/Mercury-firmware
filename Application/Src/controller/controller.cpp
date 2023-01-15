@@ -13,7 +13,7 @@ namespace undercarriage
                            undercarriage::Dynamic_Feedback *dynamic_feedback,
                            trajectory::Slalom *slalom,
                            trajectory::Acceleration *acc,
-                           const std::vector<uint32_t> &ir_parameters)
+                           const std::vector<float> &ir_parameters)
         : odom(odom),
           pid_angle(pid_angle),
           pid_rotational_vel(pid_rotational_vel),
@@ -395,8 +395,8 @@ namespace undercarriage
     {
         if (cnt < correction_time)
         {
-            float error_sl = (float)(ir_sl_base - ir_value[2]);
-            float error_sr = (float)(ir_sr_base - ir_value[3]);
+            float error_sl = ir_sl_base - (float)ir_value[2];
+            float error_sr = ir_sr_base - (float)ir_value[3];
             v_left = pid_ir_sensor_front_left->Update(error_sl);
             v_right = pid_ir_sensor_front_right->Update(error_sr);
             motor.Drive(v_left, v_right);

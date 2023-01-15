@@ -12,8 +12,8 @@ namespace hardware
     private:
         LED led;
         const int sampling_count = 16;
-        uint32_t ir_start_base;
-        uint32_t ir_wall_base;
+        float ir_start_base;
+        float ir_wall_base;
 
         uint16_t dma_f[3];
         uint16_t dma_b[2];
@@ -32,7 +32,7 @@ namespace hardware
         float bat_vol;
 
     public:
-        IRsensor(uint32_t ir_start_base, uint32_t ir_wall_base);
+        IRsensor(float ir_start_base, float ir_wall_base);
 
         void on_front_led();
         void on_side_led();

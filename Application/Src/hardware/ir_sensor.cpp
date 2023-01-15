@@ -2,7 +2,7 @@
 
 namespace hardware
 {
-    IRsensor::IRsensor(uint32_t ir_start_base, uint32_t ir_wall_base)
+    IRsensor::IRsensor(float ir_start_base, float ir_wall_base)
         : ir_start_base(ir_start_base),
           ir_wall_base(ir_wall_base) {}
 
