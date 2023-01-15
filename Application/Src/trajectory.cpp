@@ -201,7 +201,7 @@ namespace trajectory
         // ref_pos = ad.x(t);
 
         t += Ts;
-        if (t + Ts > t_end)
+        if (t > t_end)
         {
             flag_acc = true;
         }
