@@ -19,6 +19,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "cmsis_os.h"
 #include "adc.h"
 #include "dma.h"
 #include "spi.h"
@@ -38,6 +39,7 @@
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
 using AccType = trajectory::Acceleration::AccType;
+extern osSemaphoreId myBinarySem01Handle;
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -57,6 +59,7 @@ using AccType = trajectory::Acceleration::AccType;
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
+void MX_FREERTOS_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -216,46 +219,46 @@ void MazeSearch()
 // }
 // }
 
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-{
-  if (state.interruption == State::interrupt)
-  {
-    if (htim == &htim1) // interruption 16kHz
-    {
-      irsensors.UpdateSideValue();
-      irsensors.UpdateFrontValue();
-    }
+// void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+// {
+//   if (state.interruption == State::interrupt)
+//   {
+//     if (htim == &htim1) // interruption 16kHz
+//     {
+//       irsensors.UpdateSideValue();
+//       irsensors.UpdateFrontValue();
+//     }
 
-    if (htim == &htim7) // interruption 1kHz
-    {
-      cnt1kHz = (cnt1kHz + 1) % 1000;
-      UpdateUndercarriage();
-      controller.robotMove();
+//     if (htim == &htim7) // interruption 1kHz
+//     {
+//       cnt1kHz = (cnt1kHz + 1) % 1000;
+//       UpdateUndercarriage();
+//       controller.robotMove();
 
-      if (controller.ErrorFlag())
-      {
-        controller.Brake();
-        speaker.SpeakerOn();
-        state.mode = State::error;
-        state.interruption = State::not_interrupt;
-      }
+//       if (controller.ErrorFlag())
+//       {
+//         controller.Brake();
+//         speaker.SpeakerOn();
+//         state.mode = State::error;
+//         state.interruption = State::not_interrupt;
+//       }
 
-      if (cnt1kHz == 999)
-      {
-        cnt1Hz++;
-        led.on_back_right();
-      }
-      else
-        led.off_back_right();
+//       if (cnt1kHz == 999)
+//       {
+//         cnt1Hz++;
+//         led.on_back_right();
+//       }
+//       else
+//         led.off_back_right();
 
-      if (state.mode == State::test && cnt1kHz % 200 == 0)
-      {
-        // controller.OutputLog();
-        printf("%lu, %lu,%lu, %lu\n", ir_data[0], ir_data[1], ir_data[2], ir_data[3]);
-      }
-    }
-  }
-}
+//       if (state.mode == State::test && cnt1kHz % 200 == 0)
+//       {
+//         // controller.OutputLog();
+//         printf("%lu, %lu,%lu, %lu\n", ir_data[0], ir_data[1], ir_data[2], ir_data[3]);
+//       }
+//     }
+//   }
+// }
 /* USER CODE END 0 */
 
 /**
@@ -300,6 +303,7 @@ int main(void)
   MX_ADC2_Init();
   MX_TIM1_Init();
   MX_TIM7_Init();
+  MX_TIM13_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Start_IT(&htim1);
   HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
@@ -313,6 +317,7 @@ int main(void)
   HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_1);
   HAL_TIM_PWM_Start(&htim10, TIM_CHANNEL_1);
   HAL_TIM_PWM_Start(&htim11, TIM_CHANNEL_1);
+  HAL_TIM_Base_Start_IT(&htim13);
 
   setbuf(stdout, NULL);
   speaker.Beep();
@@ -321,6 +326,12 @@ int main(void)
   irsensors.on_all_led();
   /* USER CODE END 2 */
 
+  /* Call init function for freertos objects (in freertos.c) */
+  MX_FREERTOS_Init();
+  /* Start scheduler */
+  osKernelStart();
+
+  /* We should never get here as control is now taken by the scheduler */
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
@@ -357,8 +368,8 @@ int main(void)
       // controller.Turn(-90);
       // controller.Acceleration(AccType::STOP);
 
-      led.on_back_left();
-      // state.mode = State::output;
+      // led.on_back_left();
+      state.mode = State::output;
     }
 
     else if (state.mode == State::output)
@@ -367,10 +378,10 @@ int main(void)
       state.interruption = State::not_interrupt;
       irsensors.UpdateSideValue();
 
-      if (irsensors.StartInitialize())
-      // if (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_2) == 0)
+      if (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_2) == 1)
       {
-        controller.OutputLog();
+        // controller.OutputLog();
+        printf("button OK!\n");
       }
     }
 
@@ -436,6 +447,31 @@ void SystemClock_Config(void)
 /* USER CODE BEGIN 4 */
 
 /* USER CODE END 4 */
+
+/**
+ * @brief  Period elapsed callback in non blocking mode
+ * @note   This function is called  when TIM6 interrupt took place, inside
+ * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
+ * a global variable "uwTick" used as application time base.
+ * @param  htim : TIM handle
+ * @retval None
+ */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+  /* USER CODE BEGIN Callback 0 */
+
+  /* USER CODE END Callback 0 */
+  if (htim->Instance == TIM6)
+  {
+    HAL_IncTick();
+  }
+  /* USER CODE BEGIN Callback 1 */
+  if (htim == &htim13)
+  {
+    osSemaphoreRelease(myBinarySem01Handle);
+  }
+  /* USER CODE END Callback 1 */
+}
 
 /**
  * @brief  This function is executed in case of error occurrence.
