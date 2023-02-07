@@ -7,6 +7,7 @@
 #include "controller/m_identification.h"
 #include "controller/step_identification.h"
 #include "machine_state.h"
+#include "flash.h"
 
 #include "MazeSolver_conf.h"
 #include "Maze.h"
