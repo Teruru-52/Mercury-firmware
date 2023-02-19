@@ -16,7 +16,7 @@ static uint8_t work_ram[BACKUP_MAZE_SIZE] __attribute__((aligned(4)));
 // 配置と定義はリンカスクリプトで行う
 extern char _backup_flash_start;
 
-// Flashのsectoe1を消去
+// Flashのsector1を消去
 bool Flash_clear()
 {
     HAL_FLASH_Unlock();
@@ -35,6 +35,11 @@ bool Flash_clear()
     HAL_FLASH_Lock();
 
     return result == HAL_OK && error_sector == 0xFFFFFFFF;
+}
+
+uint8_t *GetWorkRamPointer()
+{
+    return work_ram;
 }
 
 // Flashのsector1の内容を全てwork_ramに読み出す

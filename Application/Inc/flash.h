@@ -17,6 +17,7 @@
 #define BACKUP_MAZE_SIZE (MAZE_SIZE * MAZE_SIZE)
 
 bool Flash_clear();
+uint8_t *GetWorkRamPointer();
 uint8_t *Flash_load();
 bool Flash_store();
 

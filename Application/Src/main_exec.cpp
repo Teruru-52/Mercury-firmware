@@ -231,3 +231,31 @@ void StateProcess()
         state.mode = State::select_function;
     }
 }
+
+void FlashMaze()
+{
+    Flash_clear();
+    uint32_t *flash_data = (uint32_t *)GetWorkRamPointer();
+
+    for (int y = 0; y < MAZE_SIZE; y++)
+    {
+        for (int x = 0; x < MAZE_SIZE; x++)
+        {
+            flash_data[MAZE_SIZE * y + x] = maze.wall[y][x].byte;
+        }
+    }
+    Flash_store();
+}
+
+void LoadMaze()
+{
+    uint32_t *flash_data = (uint32_t *)Flash_load();
+
+    for (int y = 0; y < MAZE_SIZE; y++)
+    {
+        for (int x = 0; x < MAZE_SIZE; x++)
+        {
+            maze.wall[y][x].byte = flash_data[MAZE_SIZE * y + x];
+        }
+    }
+}

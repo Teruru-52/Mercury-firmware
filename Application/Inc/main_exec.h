@@ -22,6 +22,8 @@ extern "C"
     void MazeSearch();
     // void TimeAttack();
     void StateProcess();
+    void FlashMaze();
+    void LoadMaze();
 
 #ifdef __cplusplus
 };
