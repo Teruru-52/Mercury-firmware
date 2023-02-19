@@ -2,11 +2,18 @@
 #define HARDWARE_IR_SENSOR_HPP_
 
 #include "main.h"
-#include <vector>
 #include "led.h"
 
 namespace hardware
 {
+    struct IR_Value
+    {
+        uint32_t fl;
+        uint32_t fr;
+        uint32_t sl;
+        uint32_t sr;
+    };
+
     class IRsensor
     {
     private:
@@ -23,12 +30,7 @@ namespace hardware
         uint32_t sl[16];
         uint32_t sr[16];
 
-        uint32_t ir_fl;
-        uint32_t ir_fr;
-        uint32_t ir_sl;
-        uint32_t ir_sr;
-        std::vector<uint32_t> ir_data{0, 0, 0, 0};
-
+        IR_Value ir_value;
         float bat_vol;
 
     public:
@@ -48,7 +50,7 @@ namespace hardware
         void UpdateSideValue();
         void UpdateFrontValue();
         void Update();
-        std::vector<uint32_t> GetIRSensorData();
+        IR_Value GetIRSensorData();
         float GetBatteryVoltage();
         void BatteryCheck();
         bool StartInitialize();

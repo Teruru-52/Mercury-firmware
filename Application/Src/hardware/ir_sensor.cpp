@@ -40,22 +40,22 @@ namespace hardware
 
     void IRsensor::UI_led_onoff()
     {
-        if (ir_fl > ir_wall_base)
+        if (ir_value.fl > ir_wall_base)
             led.on_front_left();
         else
             led.off_front_left();
 
-        if (ir_fr > ir_wall_base)
+        if (ir_value.fr > ir_wall_base)
             led.on_front_right();
         else
             led.off_front_right();
 
-        if (ir_sl > ir_wall_base)
+        if (ir_value.sl > ir_wall_base)
             led.on_side_left();
         else
             led.off_side_left();
 
-        if (ir_sr > ir_wall_base)
+        if (ir_value.sr > ir_wall_base)
             led.on_side_right();
         else
             led.off_side_right();
@@ -84,9 +84,6 @@ namespace hardware
         }
         sl[0] = dma_b[0];
         sr[0] = dma_b[1];
-
-        ir_sl = dma_b[0];
-        ir_sr = dma_b[1];
     }
 
     void IRsensor::UpdateFrontValue()
@@ -98,9 +95,6 @@ namespace hardware
         }
         fl[0] = dma_f[0];
         fr[0] = dma_f[1];
-
-        ir_fl = dma_f[0];
-        ir_fr = dma_f[1];
     }
 
     void IRsensor::Update()
@@ -122,21 +116,17 @@ namespace hardware
                 max_sr = sr[i];
         }
 
-        ir_fl = max_fl;
-        ir_fr = max_fr;
-        ir_sl = max_sl;
-        ir_sr = max_sr;
+        ir_value.fl = max_fl;
+        ir_value.fr = max_fr;
+        ir_value.sl = max_sl;
+        ir_value.sr = max_sr;
 
         UI_led_onoff();
     }
 
-    std::vector<uint32_t> IRsensor::GetIRSensorData()
+    IR_Value IRsensor::GetIRSensorData()
     {
-        ir_data[0] = ir_fl;
-        ir_data[1] = ir_fr;
-        ir_data[2] = ir_sl;
-        ir_data[3] = ir_sr;
-        return ir_data;
+        return ir_value;
     }
 
     float IRsensor::GetBatteryVoltage()
@@ -170,7 +160,7 @@ namespace hardware
 
     bool IRsensor::StartInitialize()
     {
-        if (ir_sl > ir_start_base && ir_sr > ir_start_base)
+        if (ir_value.sl > ir_start_base && ir_value.sr > ir_start_base)
             return true;
         else
             return false;
