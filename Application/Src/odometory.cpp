@@ -15,11 +15,10 @@ namespace undercarriage
 
   void Odometory::Reset()
   {
-    cur_pos.x = 0.0;
-    cur_pos.y = 0.0;
+    cur_pos.clear();
     l = 0;
     encoder.Reset();
-    // Resetcur_pos.th();
+    ResetTheta();
   }
 
   void Odometory::ResetTheta()
