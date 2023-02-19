@@ -64,7 +64,8 @@
         "chrono": "cpp",
         "ctime": "cpp",
         "ratio": "cpp",
-        "iomanip": "cpp"
+        "iomanip": "cpp",
+        "freertos.h": "c"
     },
     "C_Cpp.errorSquiggles": "EnabledIfIncludesResolve"
 }
