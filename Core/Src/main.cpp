@@ -29,16 +29,13 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include <list>
-#include <vector>
 #include <unistd.h>
-#include <cmath>
 #include "my_header.h"
+#include "main_exec.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-using AccType = trajectory::Acceleration::AccType;
 extern osSemaphoreId myBinarySem01Handle;
 /* USER CODE END PTD */
 
@@ -54,171 +51,23 @@ extern osSemaphoreId myBinarySem01Handle;
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 void MX_FREERTOS_Init(void);
 /* USER CODE BEGIN PFP */
-
+#ifdef __cplusplus
+}
+#endif
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-Direction wallData;
-Direction nextDir;
-IndexVec robotPos;
-Agent::State prevState = Agent::State::IDLE;
-OperationList runSequence;
-
-int cnt1kHz = 0;
-int cnt1Hz = 0;
-
-float bat_vol;
-std::vector<uint32_t> ir_data{0, 0, 0, 0};
-int16_t pulse;
-
-void SelectFunc(int16_t pulse)
-{
-  if (pulse < 8192)
-  {
-    led.off_back_right();
-    led.off_back_left();
-    state.func = State::func1;
-  }
-  else if (pulse < 16384)
-  {
-    led.on_back_right();
-    led.off_back_left();
-    state.func = State::func2;
-  }
-  else if (pulse < 24576)
-  {
-    led.off_back_right();
-    led.on_back_left();
-    state.func = State::func3;
-  }
-  else
-  {
-    led.on_back_right();
-    led.on_back_left();
-    state.func = State::func4;
-  }
-}
-
-void Initialize()
-{
-  led.off_all();
-  speaker.Beep();
-  controller.InitializeOdometory();
-  speaker.Beep();
-  controller.ResetOdometory();
-
-  switch (state.func)
-  {
-  case State::func1:
-    state.mode = State::test;
-    break;
-
-  case State::func2:
-    controller.SetTrajectoryMode(1);
-
-    // wallData = 0x0E;
-    wallData = Direction(14);
-    // robotPos = IndexVec(0, 0);
-    robotPos = controller.getRobotPosition();
-    agent.update(robotPos, wallData);
-    // nextDir = NORTH;
-    nextDir = Direction(1);
-
-    state.mode = State::search;
-    break;
-
-  default:
-    break;
-  }
-  state.interruption = State::interrupt;
-}
-
-void UpdateUndercarriage()
-{
-  bat_vol = irsensors.GetBatteryVoltage();
-  controller.UpdateBatteryVoltage(bat_vol);
-  irsensors.Update();
-  ir_data = irsensors.GetIRSensorData();
-  controller.SetIRdata(ir_data);
-  controller.UpdateIMU();
-  controller.UpdateOdometory();
-}
-
-void Notification()
-{
-  state.interruption = State::not_interrupt;
-  speaker.SpeakerOn();
-  led.Flashing();
-  speaker.SpeakerOff();
-  state.interruption = State::interrupt;
-}
-
-void MazeSearch()
-{
-  while (1)
-  {
-    // while (1)
-    // {
-    //   if (controller.wallDataReady())
-    //   {
-    //     controller.ResetWallFlag();
-    //     break;
-    //   }
-    // }
-    controller.UpdateDir(nextDir);
-    controller.UpdatePos(nextDir);
-    wallData = controller.getWallData(ir_data);
-    robotPos = controller.getRobotPosition();
-    agent.update(robotPos, wallData);
-    led.on_back_left();
-    if (agent.getState() == Agent::FINISHED)
-      break;
-    if (prevState == Agent::SEARCHING_NOT_GOAL && agent.getState() == Agent::SEARCHING_REACHED_GOAL)
-    {
-      maze_backup = maze;
-      // Notification();
-    }
-    prevState = agent.getState();
-    // if (cnt1Hz > 210 && agent.getState() == Agent::SEARCHING_REACHED_GOAL)
-    // {
-    //   agent.forceGotoStart();
-    // }
-    nextDir = agent.getNextDirection();
-    controller.robotMove2(nextDir);
-    led.off_back_left();
-    // controller.Wait();
-  }
-}
-
-// void TimeAttack()
-// {
-/**********************************
- * 計測走行
- *********************************/
-// コマンドリストみたいなやつを取り出す
-// runSequence = agent.getRunSequence();
-// HAL_Delay(2500);
-
-// // Operationを先頭から順番に実行していく
-// for (size_t i = 0; i < runSequence.size(); i++)
-// {
-//   // Operationの実行が終わるまで待つ(nマス進んだ,右に曲がった)
-//   while (!operationFinished())
-//     ;
-
-//   // i番目のを実行
-//   controller.robotMove(runSequence[i]); // robotMode関数はOperation型を受け取ってそれを実行する関数
-// }
-// }
-
 // void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 // {
 //   if (state.interruption == State::interrupt)
@@ -262,9 +111,9 @@ void MazeSearch()
 /* USER CODE END 0 */
 
 /**
- * @brief  The application entry point.
- * @retval int
- */
+  * @brief  The application entry point.
+  * @retval int
+  */
 int main(void)
 {
   /* USER CODE BEGIN 1 */
@@ -317,13 +166,10 @@ int main(void)
   HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_1);
   HAL_TIM_PWM_Start(&htim10, TIM_CHANNEL_1);
   HAL_TIM_PWM_Start(&htim11, TIM_CHANNEL_1);
-  HAL_TIM_Base_Start_IT(&htim13);
+  // HAL_TIM_Base_Start_IT(&htim13);
 
   setbuf(stdout, NULL);
-  speaker.Beep();
-  irsensors.StartDMA();
-  irsensors.BatteryCheck();
-  irsensors.on_all_led();
+  StartupProcess();
   /* USER CODE END 2 */
 
   /* Call init function for freertos objects (in freertos.c) */
@@ -339,84 +185,28 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    if (state.mode == State::select_function)
-    {
-      irsensors.UpdateSideValue();
-      pulse = controller.GetPulse();
-      SelectFunc(pulse);
-
-      if (irsensors.StartInitialize())
-      {
-        Initialize();
-      }
-    }
-
-    else if (state.mode == State::test)
-    {
-      // for (int i = 0; i < 12; i++)
-      // {
-      //   controller.PivotTurn(90);
-      // }
-      // Notification();
-
-      // controller.StartMove();
-      // controller.Acceleration(AccType::forward1);
-      // controller.Acceleration(AccType::forward1);
-      // controller.GoStraight();
-      // controller.GoStraight();
-      // controller.Turn(90);
-      // controller.Turn(-90);
-      // controller.Acceleration(AccType::STOP);
-
-      // led.on_back_left();
-      state.mode = State::output;
-    }
-
-    else if (state.mode == State::output)
-    {
-      controller.Brake();
-      state.interruption = State::not_interrupt;
-      irsensors.UpdateSideValue();
-
-      if (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_2) == 1)
-      {
-        // controller.OutputLog();
-        printf("button OK!\n");
-      }
-    }
-
-    else if (state.mode == State::search)
-    {
-      controller.StartMove();
-      MazeSearch();
-      Notification();
-
-      controller.InitializePosition();
-      agent.caclRunSequence(false);
-
-      state.mode = State::select_function;
-    }
+    StateProcess();
   } // end while
 
   /* USER CODE END 3 */
 }
 
 /**
- * @brief System Clock Configuration
- * @retval None
- */
+  * @brief System Clock Configuration
+  * @retval None
+  */
 void SystemClock_Config(void)
 {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 
   /** Configure the main internal regulator output voltage
-   */
+  */
   __HAL_RCC_PWR_CLK_ENABLE();
   __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
   /** Initializes the RCC Oscillators according to the specified parameters
-   * in the RCC_OscInitTypeDef structure.
-   */
+  * in the RCC_OscInitTypeDef structure.
+  */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
@@ -431,8 +221,9 @@ void SystemClock_Config(void)
     Error_Handler();
   }
   /** Initializes the CPU, AHB and APB buses clocks
-   */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
+  */
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
+                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV2;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
@@ -448,35 +239,35 @@ void SystemClock_Config(void)
 
 /* USER CODE END 4 */
 
-/**
- * @brief  Period elapsed callback in non blocking mode
- * @note   This function is called  when TIM6 interrupt took place, inside
- * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
- * a global variable "uwTick" used as application time base.
- * @param  htim : TIM handle
- * @retval None
- */
+ /**
+  * @brief  Period elapsed callback in non blocking mode
+  * @note   This function is called  when TIM6 interrupt took place, inside
+  * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
+  * a global variable "uwTick" used as application time base.
+  * @param  htim : TIM handle
+  * @retval None
+  */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
   /* USER CODE BEGIN Callback 0 */
 
   /* USER CODE END Callback 0 */
-  if (htim->Instance == TIM6)
-  {
+  if (htim->Instance == TIM6) {
     HAL_IncTick();
   }
   /* USER CODE BEGIN Callback 1 */
-  if (htim == &htim13)
+  if (htim == &htim7)
   {
     osSemaphoreRelease(myBinarySem01Handle);
   }
+  Write_GPIO(BACK_LEFT_LED, GPIO_PIN_RESET);
   /* USER CODE END Callback 1 */
 }
 
 /**
- * @brief  This function is executed in case of error occurrence.
- * @retval None
- */
+  * @brief  This function is executed in case of error occurrence.
+  * @retval None
+  */
 void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
@@ -488,14 +279,14 @@ void Error_Handler(void)
   /* USER CODE END Error_Handler_Debug */
 }
 
-#ifdef USE_FULL_ASSERT
+#ifdef  USE_FULL_ASSERT
 /**
- * @brief  Reports the name of the source file and the source line number
- *         where the assert_param error has occurred.
- * @param  file: pointer to the source file name
- * @param  line: assert_param error line source number
- * @retval None
- */
+  * @brief  Reports the name of the source file and the source line number
+  *         where the assert_param error has occurred.
+  * @param  file: pointer to the source file name
+  * @param  line: assert_param error line source number
+  * @retval None
+  */
 void assert_failed(uint8_t *file, uint32_t line)
 {
   /* USER CODE BEGIN 6 */
