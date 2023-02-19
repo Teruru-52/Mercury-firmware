@@ -14,6 +14,15 @@ namespace hardware
         uint32_t sr;
     };
 
+    struct IR_Base
+    {
+        float is_wall;
+        float fl;
+        float fr;
+        float sl;
+        float sr;
+    };
+
     class IRsensor
     {
     private:

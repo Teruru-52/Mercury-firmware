@@ -14,7 +14,7 @@ const float ir_fl_base = 2220;
 const float ir_fr_base = 2280;
 const float ir_sl_base = 3670;
 const float ir_sr_base = 3540;
-const float ir_parameters[5] = {ir_wall_base, ir_fl_base, ir_fr_base, ir_sl_base, ir_sr_base};
+hardware::IR_Base ir_base = {ir_wall_base, ir_fl_base, ir_fr_base, ir_sl_base, ir_sr_base};
 hardware::IRsensor irsensors(ir_start_base, ir_wall_base);
 
 const float control_period = 0.001;
@@ -58,4 +58,4 @@ undercarriage::Controller controller(&odom,
                                      &dynamic_feedback,
                                      &slalom,
                                      &acc,
-                                     ir_parameters);
+                                     &ir_base);

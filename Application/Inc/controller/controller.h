@@ -37,7 +37,7 @@ namespace undercarriage
                    undercarriage::Dynamic_Feedback *dynamic_feedback,
                    trajectory::Slalom *slalom,
                    trajectory::Acceleration *acc,
-                   const float *ir_parameters);
+                   hardware::IR_Base *ir_base);
 
         typedef enum
         {
@@ -122,6 +122,7 @@ namespace undercarriage
         trajectory::PivotTurn180 pivot_turn180;
         trajectory::PivotTurn90 pivot_turn90;
         Mode mode;
+        hardware::IR_Base *ir_base;
 
         float v_left;
         float v_right;
@@ -138,11 +139,6 @@ namespace undercarriage
         const float Kp_v = 0.784493;
         float ref_v = 0.186825;
         float ref_w;
-        float ir_wall_base;
-        float ir_fl_base;
-        float ir_fr_base;
-        float ir_sl_base;
-        float ir_sr_base;
         const int back_time = 400;       // ms
         const int correction_time = 500; // ms
         const int wait_time = 200;       // ms
@@ -153,7 +149,6 @@ namespace undercarriage
         int index_log;
         float l;
         ctrl::Pose cur_pos{0, 0, 0};
-        ctrl::Pose def_pos{0, 0, 0};
         ctrl::Pose cur_vel{0, 0, 0};
         float acc_x;
         // float base_theta;

@@ -13,7 +13,7 @@ namespace undercarriage
                            undercarriage::Dynamic_Feedback *dynamic_feedback,
                            trajectory::Slalom *slalom,
                            trajectory::Acceleration *acc,
-                           const float *ir_parameters)
+                           hardware::IR_Base *ir_base)
         : odom(odom),
           pid_angle(pid_angle),
           pid_rotational_vel(pid_rotational_vel),
@@ -26,11 +26,7 @@ namespace undercarriage
           slalom(slalom),
           acc(acc),
           mode(stop),
-          ir_wall_base(ir_parameters[0]),
-          ir_fl_base(ir_parameters[1]),
-          ir_fr_base(ir_parameters[2]),
-          ir_sl_base(ir_parameters[3]),
-          ir_sr_base(ir_parameters[4]),
+          ir_base(ir_base),
           flag_controller(false),
           flag_wall(true),
           flag_safety(false),
@@ -103,7 +99,7 @@ namespace undercarriage
 
     // void Controller::SetBase()
     // {
-    // base_theta = cur_pos[2];
+    // base_theta = cur_pos.th;
     // }
 
     void Controller::SetIRdata(const IR_Value &ir_value)
@@ -231,18 +227,18 @@ namespace undercarriage
 
     void Controller::SideWallCorrection()
     {
-        if (ir_value.fl > ir_wall_base)
+        if (ir_value.fl > ir_base->is_wall)
         {
-            error_fl = ir_fl_base - ir_value.fl;
+            error_fl = ir_base->fl - static_cast<float>(ir_value.fl);
         }
         else
         {
             error_fl = 0;
         }
 
-        if (ir_value.fr > ir_wall_base)
+        if (ir_value.fr > ir_base->is_wall)
         {
-            error_fr = ir_fr_base - ir_value.fr;
+            error_fr = ir_base->fr - static_cast<float>(ir_value.fr);
         }
         else
         {
@@ -395,8 +391,8 @@ namespace undercarriage
     {
         if (cnt < correction_time)
         {
-            float error_sl = ir_sl_base - (float)ir_value.sl;
-            float error_sr = ir_sr_base - (float)ir_value.sr;
+            float error_sl = ir_base->sl - static_cast<float>(ir_value.sl);
+            float error_sr = ir_base->sr - static_cast<float>(ir_value.sr);
             v_left = pid_ir_sensor_front_left->Update(error_sl);
             v_right = pid_ir_sensor_front_right->Update(error_sr);
             motor.Drive(v_left, v_right);
@@ -542,17 +538,17 @@ namespace undercarriage
             robot_dir_index++;
         }
 
-        if (ir_value.sl > ir_wall_base || ir_value.sr > ir_wall_base)
+        if (ir_value.sl > ir_base->is_wall || ir_value.sr > ir_base->is_wall)
         {
             wall.byte |= NORTH << robot_dir_index;
         }
 
-        if (ir_value.fl > ir_wall_base)
+        if (ir_value.fl > ir_base->is_wall)
         {
             wall.byte |= NORTH << (robot_dir_index + 3) % 4;
         }
 
-        if (ir_value.fr > ir_wall_base)
+        if (ir_value.fr > ir_base->is_wall)
         {
             wall.byte |= NORTH << (robot_dir_index + 1) % 4;
         }
@@ -711,7 +707,7 @@ namespace undercarriage
         else if (dir_diff == 1 || dir_diff == -3)
         {
             Acceleration(AccType::forward_half);
-            if (ir_value.sl > ir_wall_base && ir_value.sr > ir_wall_base)
+            if (ir_value.sl > ir_base->is_wall && ir_value.sr > ir_base->is_wall)
                 FrontWallCorrection();
             PivotTurn(-90);
             Acceleration(AccType::forward_half);
@@ -720,7 +716,7 @@ namespace undercarriage
         else if (dir_diff == -1 || dir_diff == 3)
         {
             Acceleration(AccType::forward_half);
-            if (ir_value.sl > ir_wall_base && ir_value.sr > ir_wall_base)
+            if (ir_value.sl > ir_base->is_wall && ir_value.sr > ir_base->is_wall)
                 FrontWallCorrection();
             PivotTurn(90);
             Acceleration(AccType::forward_half);
@@ -777,14 +773,14 @@ namespace undercarriage
             break;
 
         case Operation::TURN_LEFT90:
-            if (ir_value.sl > ir_wall_base && ir_value.sr > ir_wall_base)
+            if (ir_value.sl > ir_base->is_wall && ir_value.sr > ir_base->is_wall)
                 FrontWallCorrection();
             PivotTurn(90);
             Acceleration(AccType::forward1);
             break;
 
         case Operation::TURN_RIGHT90:
-            if (ir_value.sl > ir_wall_base && ir_value.sr > ir_wall_base)
+            if (ir_value.sl > ir_base->is_wall && ir_value.sr > ir_base->is_wall)
                 FrontWallCorrection();
             PivotTurn(-90);
             Acceleration(AccType::forward1);
