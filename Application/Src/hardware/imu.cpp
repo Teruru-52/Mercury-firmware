@@ -17,9 +17,9 @@ namespace hardware
         tx_data[0] = reg | 0x80;
         tx_data[1] = 0x00; // dummy
 
-        HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);
+        Write_GPIO(SPI_CS, GPIO_PIN_RESET);
         HAL_SPI_TransmitReceive(&hspi1, tx_data, rx_data, 2, 10);
-        HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET);
+        Write_GPIO(SPI_CS, GPIO_PIN_SET);
 
         return rx_data[1];
     }
@@ -33,15 +33,15 @@ namespace hardware
         //   tx_data[0] = reg | 0x00;
         tx_data[1] = data; // write data
 
-        HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET); // CSピン立ち下げ
+        Write_GPIO(SPI_CS, GPIO_PIN_RESET);
         HAL_SPI_TransmitReceive(&hspi1, tx_data, rx_data, 2, 10);
-        HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET); // CSピン立ち上げ
+        Write_GPIO(SPI_CS, GPIO_PIN_SET);
     }
 
     void IMU::Initialize()
     {
         uint8_t who_am_i;
-        HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET);
+        Write_GPIO(SPI_CS, GPIO_PIN_SET);
         __HAL_SPI_ENABLE(&hspi1); // clockが動かないように、あらかじめEnableにしておく
 
         HAL_Delay(100);                          // wait start up
@@ -72,8 +72,7 @@ namespace hardware
     {
         int16_t gz_raw;
         float gz_sum = 0;
-        // turn on led (back left)
-        HAL_GPIO_WritePin(GPIOC, GPIO_PIN_9, GPIO_PIN_SET);
+        Write_GPIO(BACK_LEFT_LED, GPIO_PIN_SET);
         for (int i = 0; i < 500; i++)
         {
             // H:8bit shift, Link h and l
@@ -87,8 +86,7 @@ namespace hardware
 
         int16_t ax_raw;
         float ax_sum = 0;
-        // turn on led (back right)
-        HAL_GPIO_WritePin(GPIOC, GPIO_PIN_8, GPIO_PIN_SET);
+        Write_GPIO(BACK_RIGHT_LED, GPIO_PIN_SET);
         for (int i = 0; i < 500; i++)
         {
             // H:8bit shift, Link h and l
@@ -99,8 +97,9 @@ namespace hardware
             HAL_Delay(1);
         }
         // turn off led
-        HAL_GPIO_WritePin(GPIOC, GPIO_PIN_8, GPIO_PIN_RESET);
-        HAL_GPIO_WritePin(GPIOC, GPIO_PIN_9, GPIO_PIN_RESET);
+        Write_GPIO(BACK_LEFT_LED, GPIO_PIN_RESET);
+        Write_GPIO(BACK_RIGHT_LED, GPIO_PIN_RESET);
+
         offset_ax = ax_sum / 500.0f;
     }
 
