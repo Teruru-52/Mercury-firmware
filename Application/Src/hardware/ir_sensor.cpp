@@ -131,14 +131,14 @@ namespace hardware
 
     float IRsensor::GetBatteryVoltage()
     {
-        bat_vol = (float)dma_f[2] * 3.3 / 4096.0 * 3.0;
+        bat_vol = static_cast<float>(dma_f[2]) * 3.3 / 4096.0 * 3.0;
         return bat_vol;
     }
 
     void IRsensor::BatteryCheck()
     {
         UpdateFrontValue();
-        bat_vol = (float)dma_f[2] * 3.3 / 4096.0 * 3.0;
+        bat_vol = static_cast<float>(dma_f[2]) * 3.3 / 4096.0 * 3.0;
         if (bat_vol > 7.0)
         {
             led.on_side_right();
