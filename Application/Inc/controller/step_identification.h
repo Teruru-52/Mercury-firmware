@@ -2,8 +2,8 @@
 #define STEP_INDENTIFICATION_HPP_
 
 #include "main.h"
-#include <vector>
-#include "../hardware/motor.h"
+#include "hardware/motor.h"
+#include "pose.h"
 
 namespace undercarriage
 {
@@ -12,7 +12,7 @@ namespace undercarriage
     public:
         Step_Identification();
         void UpdateBatteryVoltage(float bat_vol);
-        void IdenTrans(const std::vector<float> &cur_vel);
+        void IdenTrans(const ctrl::Pose &cur_vel);
         void InputVelocity(float input_v, float input_w);
         bool GetFlag();
         void OutputLog();

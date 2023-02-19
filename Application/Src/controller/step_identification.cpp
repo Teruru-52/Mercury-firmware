@@ -1,4 +1,4 @@
-#include "../../Inc/controller/step_identification.h"
+#include "controller/step_identification.h"
 
 namespace undercarriage
 {
@@ -15,12 +15,12 @@ namespace undercarriage
         motor.UpdateBatteryVoltage(bat_vol);
     }
 
-    void Step_Identification::IdenTrans(const std::vector<float> &cur_vel)
+    void Step_Identification::IdenTrans(const ctrl::Pose &cur_vel)
     {
         if (index < ref_time)
         {
             u_v = 1.5;
-            output[index] = cur_vel[0];
+            output[index] = cur_vel.x;
             InputVelocity(u_v, 0);
             index++;
         }

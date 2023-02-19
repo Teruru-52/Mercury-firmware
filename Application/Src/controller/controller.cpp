@@ -13,7 +13,7 @@ namespace undercarriage
                            undercarriage::Dynamic_Feedback *dynamic_feedback,
                            trajectory::Slalom *slalom,
                            trajectory::Acceleration *acc,
-                           const std::vector<float> &ir_parameters)
+                           const float *ir_parameters)
         : odom(odom),
           pid_angle(pid_angle),
           pid_rotational_vel(pid_rotational_vel),
@@ -80,7 +80,7 @@ namespace undercarriage
 
     bool Controller::ErrorFlag()
     {
-        if (acc_x < -30.0 || fabs(cur_vel[1]) > 20.0)
+        if (acc_x < -30.0 || fabs(cur_vel.x) > 20.0)
             flag_safety = true;
         return flag_safety;
     }
@@ -106,9 +106,9 @@ namespace undercarriage
     // base_theta = cur_pos[2];
     // }
 
-    void Controller::SetIRdata(const std::vector<uint32_t> &ir_value)
+    void Controller::SetIRdata(const IR_Value &ir_value)
     {
-        ir_data = ir_value;
+        this->ir_value = ir_value;
     }
 
     void Controller::SetTrajectoryMode(int mode)
@@ -225,24 +225,24 @@ namespace undercarriage
     {
         // u_v = pid_traslational_vel->Update(-cur_vel[0]);
         u_v = 0.0;
-        u_w = pid_angle->Update(-cur_pos[2]) + pid_rotational_vel->Update(-cur_vel[1]);
+        u_w = pid_angle->Update(-cur_pos.th) + pid_rotational_vel->Update(-cur_vel.th);
         InputVelocity(u_v, u_w);
     }
 
     void Controller::SideWallCorrection()
     {
-        if (ir_data[0] > ir_wall_base)
+        if (ir_value.fl > ir_wall_base)
         {
-            error_fl = ir_fl_base - (float)ir_data[0];
+            error_fl = ir_fl_base - ir_value.fl;
         }
         else
         {
             error_fl = 0;
         }
 
-        if (ir_data[1] > ir_wall_base)
+        if (ir_value.fr > ir_wall_base)
         {
-            error_fr = ir_fr_base - (float)ir_data[1];
+            error_fr = ir_fr_base - ir_value.fr;
         }
         else
         {
@@ -256,7 +256,7 @@ namespace undercarriage
         ref_w = -pivot_turn90.GetRefVelocity();
         // u_v = pid_traslational_vel->Update(-cur_vel[0]);
         u_v = 0.0;
-        u_w = pid_rotational_vel->Update(ref_w - cur_vel[1]) + ref_w / Kp_w;
+        u_w = pid_rotational_vel->Update(ref_w - cur_vel.th) + ref_w / Kp_w;
         InputVelocity(u_v, u_w);
         // Logger();
         if (pivot_turn90.Finished())
@@ -273,7 +273,7 @@ namespace undercarriage
         ref_w = pivot_turn90.GetRefVelocity();
         // u_v = pid_traslational_vel->Update(-cur_vel[0]);
         u_v = 0.0;
-        u_w = pid_rotational_vel->Update(ref_w - cur_vel[1]) + ref_w / Kp_w;
+        u_w = pid_rotational_vel->Update(ref_w - cur_vel.th) + ref_w / Kp_w;
         InputVelocity(u_v, u_w);
         // Logger();
 
@@ -290,7 +290,7 @@ namespace undercarriage
         ref_w = pivot_turn180.GetRefVelocity();
         // u_v = pid_traslational_vel->Update(-cur_vel[0]);
         u_v = 0.0;
-        u_w = pid_rotational_vel->Update(ref_w - cur_vel[1]) + ref_w / Kp_w;
+        u_w = pid_rotational_vel->Update(ref_w - cur_vel.th) + ref_w / Kp_w;
         InputVelocity(u_v, u_w);
         // Logger();
         if (pivot_turn180.Finished())
@@ -309,13 +309,13 @@ namespace undercarriage
 
         kanayama->UpdateRef(ref_pos, ref_vel);
         ref_vel = kanayama->CalcInput(cur_pos);
-        u_v = pid_traslational_vel->Update(ref_vel[0] - cur_vel[0]) + ref_vel[0] / Kp_v;
-        u_w = pid_rotational_vel->Update(ref_vel[1] - cur_vel[1]) + ref_vel[1] / Kp_w;
+        u_v = pid_traslational_vel->Update(ref_vel.x - cur_vel.x) + ref_vel.x / Kp_v;
+        u_w = pid_rotational_vel->Update(ref_vel.th - cur_vel.th) + ref_vel.th / Kp_w;
 
         // dynamic_feedback->UpdateRef(ref_pos, ref_vel, ref_acc);
         // ref_vel = dynamic_feedback->CalcInput(cur_pos, cur_vel);
-        // u_v = pid_traslational_vel->Update(ref_vel[0] - cur_vel[0]) + ref_vel[0] / Kp_v;
-        // u_w = pid_rotational_vel->Update(ref_vel[1] - cur_vel[1]) + ref_vel[1] / Kp_w;
+        // u_v = pid_traslational_vel->Update(ref_vel.x - cur_vel.x) + ref_vel.x / Kp_v;
+        // u_w = pid_rotational_vel->Update(ref_vel.th - cur_vel.th) + ref_vel.th / Kp_w;
 
         InputVelocity(u_v, u_w);
         // Logger();
@@ -329,19 +329,19 @@ namespace undercarriage
     {
         SideWallCorrection();
         acc->UpdateRef();
-        ref_pos[0] = acc->GetRefPosition();
-        ref_pos[1] = 0.0;
-        ref_pos[2] = 0.0;
-        ref_vel[0] = acc->GetRefVelocity();
-        ref_vel[1] = 0.0;
-        ref_acc[0] = acc->GetRefAcceleration();
-        ref_acc[1] = 0.0;
+        ref_pos.x = acc->GetRefPosition();
+        ref_pos.y = 0.0;
+        ref_pos.th = 0.0;
+        ref_vel.x = acc->GetRefVelocity();
+        ref_vel.y = 0.0;
+        ref_acc.x = acc->GetRefAcceleration();
+        ref_acc.y = 0.0;
         // kanayama->UpdateRef(ref_pos, ref_vel);
         // ref_vel = kanayama->CalcInput(cur_pos);
         // Logger();
-        u_v = pid_traslational_vel->Update(ref_vel[0] - cur_vel[0]) + (Tp1_v * ref_acc[0] + ref_vel[0]) / Kp_v;
-        // u_w = pid_rotational_vel->Update(-cur_vel[1]);
-        u_w = pid_ir_sensor_side->Update(error_fl - error_fr) + pid_angle->Update(-cur_pos[2]);
+        u_v = pid_traslational_vel->Update(ref_vel.x - cur_vel.x) + (Tp1_v * ref_acc.x + ref_vel.x) / Kp_v;
+        // u_w = pid_rotational_vel->Update(-cur_vel.th);
+        u_w = pid_ir_sensor_side->Update(error_fl - error_fr) + pid_angle->Update(-cur_pos.th);
         InputVelocity(u_v, u_w);
         if (acc->Finished())
         {
@@ -354,9 +354,9 @@ namespace undercarriage
         if (l < ref_l)
         {
             SideWallCorrection();
-            u_v = pid_traslational_vel->Update(ref_v - cur_vel[0]) + ref_v / Kp_v;
-            u_w = pid_ir_sensor_side->Update(error_fl - error_fr) + pid_angle->Update(-cur_pos[2]);
-            // u_w = pid_angle->Update(-cur_pos[2]);
+            u_v = pid_traslational_vel->Update(ref_v - cur_vel.x) + ref_v / Kp_v;
+            u_w = pid_ir_sensor_side->Update(error_fl - error_fr) + pid_angle->Update(-cur_pos.th);
+            // u_w = pid_angle->Update(-cur_pos.th);
             InputVelocity(u_v, u_w);
         }
         else
@@ -391,12 +391,12 @@ namespace undercarriage
             flag_controller = true;
     }
 
-    void Controller::FrontWallCorrection(const std::vector<uint32_t> &ir_value)
+    void Controller::FrontWallCorrection(const IR_Value &ir_value)
     {
         if (cnt < correction_time)
         {
-            float error_sl = ir_sl_base - (float)ir_value[2];
-            float error_sr = ir_sr_base - (float)ir_value[3];
+            float error_sl = ir_sl_base - (float)ir_value.sl;
+            float error_sr = ir_sr_base - (float)ir_value.sr;
             v_left = pid_ir_sensor_front_left->Update(error_sl);
             v_right = pid_ir_sensor_front_right->Update(error_sr);
             motor.Drive(v_left, v_right);
@@ -530,7 +530,7 @@ namespace undercarriage
         return flag_wall;
     }
 
-    Direction Controller::getWallData(const std::vector<uint32_t> &ir_value)
+    Direction Controller::getWallData(const IR_Value &ir_value)
     {
         Direction wall;
 
@@ -542,17 +542,17 @@ namespace undercarriage
             robot_dir_index++;
         }
 
-        if (ir_value[2] > ir_wall_base || ir_value[3] > ir_wall_base)
+        if (ir_value.sl > ir_wall_base || ir_value.sr > ir_wall_base)
         {
             wall.byte |= NORTH << robot_dir_index;
         }
 
-        if (ir_value[0] > ir_wall_base)
+        if (ir_value.fl > ir_wall_base)
         {
             wall.byte |= NORTH << (robot_dir_index + 3) % 4;
         }
 
-        if (ir_value[1] > ir_wall_base)
+        if (ir_value.fr > ir_wall_base)
         {
             wall.byte |= NORTH << (robot_dir_index + 1) % 4;
         }
@@ -616,7 +616,7 @@ namespace undercarriage
             PivotTurn180();
             break;
         case front_wall_correction:
-            FrontWallCorrection(ir_data);
+            FrontWallCorrection(ir_value);
             break;
         case back:
             Back(back_time);
@@ -654,7 +654,7 @@ namespace undercarriage
         // 直進
         if (dir_diff == 0)
         {
-            // GoStraight(ir_data);
+            // GoStraight(ir_value);
             Acceleration(AccType::forward1);
         }
         // 右
@@ -711,7 +711,7 @@ namespace undercarriage
         else if (dir_diff == 1 || dir_diff == -3)
         {
             Acceleration(AccType::forward_half);
-            if (ir_data[2] > ir_wall_base && ir_data[3] > ir_wall_base)
+            if (ir_value.sl > ir_wall_base && ir_value.sr > ir_wall_base)
                 FrontWallCorrection();
             PivotTurn(-90);
             Acceleration(AccType::forward_half);
@@ -720,7 +720,7 @@ namespace undercarriage
         else if (dir_diff == -1 || dir_diff == 3)
         {
             Acceleration(AccType::forward_half);
-            if (ir_data[2] > ir_wall_base && ir_data[3] > ir_wall_base)
+            if (ir_value.sl > ir_wall_base && ir_value.sr > ir_wall_base)
                 FrontWallCorrection();
             PivotTurn(90);
             Acceleration(AccType::forward_half);
@@ -777,14 +777,14 @@ namespace undercarriage
             break;
 
         case Operation::TURN_LEFT90:
-            if (ir_data[2] > ir_wall_base && ir_data[3] > ir_wall_base)
+            if (ir_value.sl > ir_wall_base && ir_value.sr > ir_wall_base)
                 FrontWallCorrection();
             PivotTurn(90);
             Acceleration(AccType::forward1);
             break;
 
         case Operation::TURN_RIGHT90:
-            if (ir_data[2] > ir_wall_base && ir_data[3] > ir_wall_base)
+            if (ir_value.sl > ir_wall_base && ir_value.sr > ir_wall_base)
                 FrontWallCorrection();
             PivotTurn(-90);
             Acceleration(AccType::forward1);

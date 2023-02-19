@@ -1,4 +1,4 @@
-#include "../../Inc/controller/m_identification.h"
+#include "controller/m_identification.h"
 
 namespace undercarriage
 {
@@ -24,7 +24,7 @@ namespace undercarriage
         u_w = m_sequence.GetRef();
     }
 
-    void Identification::IdenRotate(const std::vector<float> &cur_vel)
+    void Identification::IdenRotate(const ctrl::Pose &cur_vel)
     {
         if (m_sequence.GetFlag())
         {
@@ -35,7 +35,7 @@ namespace undercarriage
             if (index % 20 == 0)
             {
                 input[index_log] = u_w;
-                output[index_log] = cur_vel[1];
+                output[index_log] = cur_vel.th;
                 index_log++;
             }
             InputVelocity(0, u_w);

@@ -60,17 +60,15 @@ namespace trajectory
     void Slalom::UpdateRef()
     {
         st.update(state, t, Ts, 0);
-        ref_pos[0] = state.q.x * 1e-3;
-        ref_pos[1] = state.q.y * 1e-3;
-        ref_pos[2] = state.q.th;
-        ref_vel[0] = v * 1e-3;
-        ref_vel[1] = state.dq.th;
-        // ref_acc[0] = (state.ddq.x * cos(ref_pos[2]) + state.ddq.y * sin(ref_pos[2])) * 1e-3;
-        ref_acc[0] = 0.0;
-        ref_acc[1] = state.ddq.th;
-
-        // ref_acc[0] = state.ddq.x * 1e-3;
-        // ref_acc[1] = state.ddq.y * 1e-3;
+        ref_pos.x = state.q.x * 1e-3;
+        ref_pos.y = state.q.y * 1e-3;
+        ref_pos.th = state.q.th;
+        ref_vel.x = v * 1e-3;
+        ref_vel.y = 0.0;
+        ref_vel.th = state.dq.th;
+        ref_acc.x = (state.ddq.x * cos(ref_pos.th) + state.ddq.y * sin(ref_pos.th)) * 1e-3;
+        ref_acc.y = 0.0;
+        ref_acc.th = state.ddq.th;
 
         t += Ts;
         if (t + Ts > t_end)
@@ -79,17 +77,17 @@ namespace trajectory
         }
     }
 
-    std::vector<float> Slalom::GetRefPosition()
+    ctrl::Pose Slalom::GetRefPosition()
     {
         return ref_pos;
     }
 
-    std::vector<float> Slalom::GetRefVelocity()
+    ctrl::Pose Slalom::GetRefVelocity()
     {
         return ref_vel;
     }
 
-    std::vector<float> Slalom::GetRefAcceleration()
+    ctrl::Pose Slalom::GetRefAcceleration()
     {
         return ref_acc;
     }
@@ -106,9 +104,9 @@ namespace trajectory
     }
 
     // Acceleration
-    Acceleration::Acceleration(const std::array<float, 8> &parameters_start1,
-                               const std::array<float, 8> &parameters_forward1,
-                               const std::array<float, 8> &parameters_stop1)
+    Acceleration::Acceleration(const float *parameters_start1,
+                               const float *parameters_forward1,
+                               const float *parameters_stop1)
         : parameters_start1(parameters_start1),
           parameters_forward1(parameters_forward1),
           parameters_forward_half(parameters_stop1),
@@ -196,10 +194,6 @@ namespace trajectory
             break;
         }
 
-        // ref_acc = ad.a(t);
-        // ref_vel = ad.v(t);
-        // ref_pos = ad.x(t);
-
         t += Ts;
         if (t > t_end)
         {
@@ -256,7 +250,7 @@ namespace trajectory
 
     int PivotTurn90::GetRefSize()
     {
-        return ref_w.size();
+        return sizeof(ref_w) / sizeof(float);
     }
 
     bool PivotTurn90::Finished()
@@ -298,7 +292,7 @@ namespace trajectory
 
     int PivotTurn180::GetRefSize()
     {
-        return ref_w.size();
+        return sizeof(ref_w) / sizeof(float);
     }
 
     bool PivotTurn180::Finished()
@@ -332,7 +326,7 @@ namespace trajectory
 
     int M_sequence::GetRefSize()
     {
-        return ref_u_w.size();
+        return sizeof(ref_u_w) / sizeof(float);
     }
 
     void M_sequence::UpdateRef()

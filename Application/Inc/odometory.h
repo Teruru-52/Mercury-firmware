@@ -2,11 +2,10 @@
 #define ODOMETORY_H_
 
 #include "main.h"
-#include <vector>
 #include <cmath>
 #include "hardware/encoder.h"
 #include "hardware/imu.h"
-#include "state.h"
+#include "pose.h"
 
 namespace undercarriage
 {
@@ -16,22 +15,13 @@ namespace undercarriage
         hardware::Encoder encoder;
         hardware::IMU imu;
 
-        float sampling_period; // [s]
-        ctrl::State robot_state;
-        ctrl::State local_state;
-        // ctrl::State global_state;
+        float sampling_period;       // [s]
+        ctrl::Pose cur_pos{0, 0, 0}; // absolute coordinates
+        ctrl::Pose cur_vel{0, 0, 0}; // robot coordinates
         float v;
-        float omega;
+        float pre_v{0.0};
         float acc_x;
-        float x_global;
-        float y_global;
-        float x_local;
-        float y_local;
-        float theta;
-        float l;
-        float pre_v;
-        std::vector<float> cur_pos{0, 0, 0};
-        std::vector<float> cur_vel{0, 0};
+        float l{0.0};
 
     public:
         Odometory(float sampling_period);
@@ -42,9 +32,8 @@ namespace undercarriage
         void Reset();
         void ResetTheta();
         int16_t GetPulse();
-        ctrl::State GetState();
-        std::vector<float> GetPosition();
-        std::vector<float> GetVelocity();
+        ctrl::Pose GetPosition();
+        ctrl::Pose GetVelocity();
         float GetAccX();
         float GetLength();
         void OutputLog();

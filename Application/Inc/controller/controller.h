@@ -2,7 +2,6 @@
 #define CONTROLLER_H_
 
 #include "main.h"
-#include <vector>
 #include "hardware/motor.h"
 #include "odometory.h"
 #include "controller/pid_controller.h"
@@ -20,6 +19,7 @@
 #define FORWARD_LENGTH4 0.54
 
 using AccType = trajectory::Acceleration::AccType;
+using namespace hardware;
 
 namespace undercarriage
 {
@@ -37,7 +37,7 @@ namespace undercarriage
                    undercarriage::Dynamic_Feedback *dynamic_feedback,
                    trajectory::Slalom *slalom,
                    trajectory::Acceleration *acc,
-                   const std::vector<float> &ir_parameters);
+                   const float *ir_parameters);
 
         typedef enum
         {
@@ -61,7 +61,7 @@ namespace undercarriage
         int16_t GetPulse();
         void UpdateIMU();
         // void SetBase();
-        void SetIRdata(const std::vector<uint32_t> &ir_value);
+        void SetIRdata(const IR_Value &ir_value);
         void SetTrajectoryMode(int mode = 1);
 
         void PivotTurn(int angle);
@@ -82,7 +82,7 @@ namespace undercarriage
         void GoStraight(float ref_l);
         void Back(int time);
         void Wait(int time);
-        void FrontWallCorrection(const std::vector<uint32_t> &ir_value);
+        void FrontWallCorrection(const IR_Value &ir_value);
         void BlindAlley();
         void StartMove();
         void InitializePosition();
@@ -96,7 +96,7 @@ namespace undercarriage
         void OutputLog();
 
         bool wallDataReady();
-        Direction getWallData(const std::vector<uint32_t> &ir_value);
+        Direction getWallData(const IR_Value &ir_value);
         void UpdatePos(const Direction &dir);
         void UpdateDir(const Direction &dir);
         IndexVec getRobotPosition();
@@ -122,18 +122,16 @@ namespace undercarriage
         trajectory::PivotTurn180 pivot_turn180;
         trajectory::PivotTurn90 pivot_turn90;
         Mode mode;
-        // ctrl::State cur_state;
-        // ctrl::State ref_state;
 
         float v_left;
         float v_right;
         float u_w;
         float u_v;
         int ref_size;
-        std::vector<uint32_t> ir_data = {0, 0, 0, 0};
-        std::vector<float> ref_pos{0, 0, 0};
-        std::vector<float> ref_vel{0, 0};
-        std::vector<float> ref_acc{0, 0};
+        IR_Value ir_value;
+        ctrl::Pose ref_pos{0, 0, 0}; // absolute coordinates
+        ctrl::Pose ref_vel{0, 0, 0}; // robot coordinates
+        ctrl::Pose ref_acc{0, 0, 0}; // robot coordinates
         const float Tp1_w = 31.83;
         const float Kp_w = 144.2;
         const float Tp1_v = 0.032;
@@ -154,9 +152,9 @@ namespace undercarriage
         int cnt;
         int index_log;
         float l;
-        std::vector<float> cur_pos{0, 0, 0};
-        std::vector<float> def_pos{0, 0, 0};
-        std::vector<float> cur_vel{0, 0};
+        ctrl::Pose cur_pos{0, 0, 0};
+        ctrl::Pose def_pos{0, 0, 0};
+        ctrl::Pose cur_vel{0, 0, 0};
         float acc_x;
         // float base_theta;
         float error_fl;

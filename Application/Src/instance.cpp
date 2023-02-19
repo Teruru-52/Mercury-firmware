@@ -14,7 +14,7 @@ const float ir_fl_base = 2220;
 const float ir_fr_base = 2280;
 const float ir_sl_base = 3670;
 const float ir_sr_base = 3540;
-const std::vector<float> ir_parameters = {ir_wall_base, ir_fl_base, ir_fr_base, ir_sl_base, ir_sr_base};
+const float ir_parameters[5] = {ir_wall_base, ir_fl_base, ir_fr_base, ir_sl_base, ir_sr_base};
 hardware::IRsensor irsensors(ir_start_base, ir_wall_base);
 
 const float control_period = 0.001;
@@ -33,14 +33,14 @@ undercarriage::Dynamic_Feedback dynamic_feedback(1.0, 0.05, 1.0, 0.05, control_p
 
 ctrl::slalom::Shape ss_turn90_1(ctrl::Pose(90, 90, M_PI / 2), 80, 0, 500 * M_PI, 5 * M_PI, M_PI);
 
-const std::array<float, 8> parameters_stop1 = {10, 1.5, 0.5, 0, 0, 0.09, 0, 0};
-const std::array<float, 8> parameters_start1 = {10, 1.5, 0.5, 0, 0, 0.133, 0, 0};
-const std::array<float, 8> parameters_forward1 = {10, 1.5, 0.5, 0, 0, 0.18, 0, 0};
+const float parameters_stop1[8] = {10, 1.5, 0.5, 0, 0, 0.09, 0, 0};
+const float parameters_start1[8] = {10, 1.5, 0.5, 0, 0, 0.133, 0, 0};
+const float parameters_forward1[8] = {10, 1.5, 0.5, 0, 0, 0.18, 0, 0};
 
 const float v1 = 0.186825;
-// const std::array<float, 8> parameters_stop1 = {10, 1.5, 0.5, v1, 0, 0.09, 0, 0};
-// const std::array<float, 8> parameters_start1 = {10, 1.5, 0.5, 0, v1, 0.138, 0, 0};
-// const std::array<float, 8> parameters_forward1 = {10, 1.5, 0.5, v1, v1, 0.18, 0, 0};
+// const float* parameters_stop1[8] = {10, 1.5, 0.5, v1, 0, 0.09, 0, 0};
+// const float* parameters_start1[8] = {10, 1.5, 0.5, 0, v1, 0.138, 0, 0};
+// const float* parameters_forward1[8] = {10, 1.5, 0.5, v1, v1, 0.18, 0, 0};
 
 trajectory::Slalom slalom(&ss_turn90_1);
 trajectory::Acceleration acc(parameters_start1,

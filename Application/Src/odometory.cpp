@@ -5,13 +5,7 @@ namespace undercarriage
   Odometory::Odometory(float sampling_period)
       : encoder(sampling_period),
         imu(sampling_period),
-        sampling_period(sampling_period),
-        x_global(0),
-        y_global(0),
-        x_local(0),
-        y_local(0),
-        l(0),
-        pre_v(0) {}
+        sampling_period(sampling_period) {}
 
   void Odometory::Initialize()
   {
@@ -21,11 +15,11 @@ namespace undercarriage
 
   void Odometory::Reset()
   {
-    x_local = 0;
-    y_local = 0;
+    cur_pos.x = 0.0;
+    cur_pos.y = 0.0;
     l = 0;
     encoder.Reset();
-    // ResetTheta();
+    // Resetcur_pos.th();
   }
 
   void Odometory::ResetTheta()
@@ -44,30 +38,21 @@ namespace undercarriage
     encoder.Update();
 
     v = encoder.GetVelocity();
-    omega = imu.GetAngularVelocity();
     acc_x = imu.GetAccX();
-    theta = imu.GetAngle();
+    cur_pos.th = imu.GetAngle();
+    cur_vel.th = imu.GetAngularVelocity();
 
-    // robot_state.dq.x = v;
-    // robot_state.dq.th = omega;
-    // robot_state.ddq.x = acc_x;
-    // local_state.dq.x = v * cos(theta);
-    // local_state.dq.y = v * sin(theta);
-    // local_state.dq.th = omega;
-    // local_state.q.x += (v + pre_v) * cos(theta) * sampling_period * 0.5;
-    // local_state.q.y += (v + pre_v) * sin(theta) * sampling_period * 0.5;
-    // local_state.q.th = theta;
+    cur_vel.x = v;
+    cur_vel.y = 0.0;
 
     // Euler method
-    // x_local += v * cos(theta) * sampling_period;
-    // y_local += v * sin(theta) * sampling_period;
-    // x_gloabl += x_local;
-    // y_global += y_local;
+    // cur_pos.x += v * cos(cur_pos.th) * sampling_period;
+    // cur_pos.y += v * sin(cur_pos.th) * sampling_period;
     // l += v * sampling_period;
 
     // Bilinear transform
-    x_local += (v + pre_v) * cos(theta) * sampling_period * 0.5;
-    y_local += (v + pre_v) * sin(theta) * sampling_period * 0.5;
+    cur_pos.x += (v + pre_v) * cos(cur_pos.th) * sampling_period * 0.5;
+    cur_pos.y += (v + pre_v) * sin(cur_pos.th) * sampling_period * 0.5;
     l += (v + pre_v) * sampling_period * 0.5;
     pre_v = v;
   }
@@ -77,23 +62,13 @@ namespace undercarriage
     imu.Update();
   }
 
-  ctrl::State Odometory::GetState()
+  ctrl::Pose Odometory::GetPosition()
   {
-    return local_state;
-  }
-
-  std::vector<float> Odometory::GetPosition()
-  {
-    cur_pos[0] = x_local;
-    cur_pos[1] = y_local;
-    cur_pos[2] = theta;
     return cur_pos;
   }
 
-  std::vector<float> Odometory::GetVelocity()
+  ctrl::Pose Odometory::GetVelocity()
   {
-    cur_vel[0] = v;
-    cur_vel[1] = omega;
     return cur_vel;
   }
 
@@ -109,7 +84,7 @@ namespace undercarriage
 
   void Odometory::OutputLog()
   {
-    // printf("%f, %f\n", theta, omega);
-    // printf("%f, %f\n", x, y);
+    // printf("%f, %f\n", cur_pos.th, cur_vel.th);
+    // printf("%f, %f\n", cur_pos.x, cur_pos.y);
   }
 } //  namespace undercarriage
