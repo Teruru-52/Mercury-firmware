@@ -160,7 +160,7 @@ namespace hardware
 
     bool IRsensor::StartInitialize()
     {
-        if (ir_value.sl > ir_start_base && ir_value.sr > ir_start_base)
+        if (sl[0] > ir_start_base && sr[0] > ir_start_base)
             return true;
         else
             return false;
