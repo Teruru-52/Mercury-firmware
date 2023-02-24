@@ -13,6 +13,7 @@ extern "C"
 {
 #endif
 #include "main.h"
+#include "hardware/ir_sensor.h"
 
     void StartupProcess();
     void SelectFunc(int16_t pulse);
@@ -24,6 +25,8 @@ extern "C"
     void StateProcess();
     void FlashMaze();
     void LoadMaze();
+
+    extern hardware::IR_Value ir_value;
 
 #ifdef __cplusplus
 };

@@ -16,9 +16,6 @@ IndexVec robotPos;
 Agent::State prevState = Agent::State::IDLE;
 OperationList runSequence;
 
-int cnt1kHz = 0;
-int cnt1Hz = 0;
-
 float bat_vol;
 hardware::IR_Value ir_value;
 int16_t pulse;
@@ -189,18 +186,18 @@ void StateProcess()
     {
         // for (int i = 0; i < 12; i++)
         // {
-        //   controller.PivotTurn(90);
+        //     controller.PivotTurn(90);
         // }
         // Notification();
 
         // controller.StartMove();
         // controller.Acceleration(AccType::forward1);
-        // controller.Acceleration(AccType::forward1);
+        controller.Acceleration(AccType::start);
         // controller.GoStraight();
         // controller.GoStraight();
-        // controller.Turn(90);
+        controller.Turn(90);
         // controller.Turn(-90);
-        // controller.Acceleration(AccType::STOP);
+        controller.Acceleration(AccType::stop);
 
         // led.on_back_left();
         state.mode = State::output;
@@ -212,10 +209,9 @@ void StateProcess()
         state.interruption = State::not_interrupt;
         irsensors.UpdateSideValue();
 
-        if (Read_GPIO(USER_SW) == 1)
+        if (Read_GPIO(USER_SW) == 0)
         {
-            // controller.OutputLog();
-            printf("button OK!\n");
+            controller.OutputLog();
         }
     }
 
