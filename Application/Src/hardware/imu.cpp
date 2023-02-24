@@ -56,7 +56,7 @@ namespace hardware
         }
 
         HAL_Delay(50);
-        write_byte(0x68, 0x00); // set pwr_might (20MHz)
+        write_byte(0x6B, 0x00); // set pwr_might (20MHz)
         HAL_Delay(50);
         write_byte(0x1A, 0x00); // set config (FSYNCはNC)
         HAL_Delay(50);
