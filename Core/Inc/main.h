@@ -38,6 +38,7 @@ extern "C" {
 #include <string.h>
 #include <math.h>
 
+#include "cmsis_os.h"
 #include "adc.h"
 #include "dma.h"
 #include "spi.h"

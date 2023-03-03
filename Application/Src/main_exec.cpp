@@ -90,7 +90,12 @@ void Initialize()
     default:
         break;
     }
-    state.interruption = State::interrupt;
+}
+
+void UpdateIRsensor()
+{
+    irsensors.UpdateSideValue();
+    irsensors.UpdateFrontValue();
 }
 
 void UpdateUndercarriage()
@@ -106,11 +111,10 @@ void UpdateUndercarriage()
 
 void Notification()
 {
-    state.interruption = State::not_interrupt;
     speaker.SpeakerOn();
-    led.Flashing();
+    // led.Flashing();
+    HAL_Delay(100);
     speaker.SpeakerOff();
-    state.interruption = State::interrupt;
 }
 
 void MazeSearch()
@@ -202,20 +206,16 @@ void StateProcess()
         // controller.Turn(-90);
         // controller.Acceleration(AccType::STOP);
 
-        // led.on_back_left();
+        led.on_back_left();
         state.mode = State::output;
     }
 
     else if (state.mode == State::output)
     {
         controller.Brake();
-        state.interruption = State::not_interrupt;
-        irsensors.UpdateSideValue();
-
         if (Read_GPIO(USER_SW) == 1)
         {
             // controller.OutputLog();
-            printf("button OK!\n");
         }
     }
 

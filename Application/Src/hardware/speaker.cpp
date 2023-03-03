@@ -1,12 +1,12 @@
-#include "../../Inc/hardware/speaker.h"
+#include "hardware/speaker.h"
 
 namespace hardware
 {
     void Speaker::Beep()
     {
-        __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, 10);
+        SpeakerOn();
         HAL_Delay(30);
-        __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, 0);
+        SpeakerOff();
     }
 
     void Speaker::SpeakerOn()

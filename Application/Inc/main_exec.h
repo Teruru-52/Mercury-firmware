@@ -17,6 +17,7 @@ extern "C"
     void StartupProcess();
     void SelectFunc(int16_t pulse);
     void Initialize();
+    void UpdateIRsensor();
     void UpdateUndercarriage();
     void Notification();
     void MazeSearch();
