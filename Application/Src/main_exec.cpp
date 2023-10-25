@@ -184,20 +184,20 @@ void StateProcess()
 
     else if (state.mode == State::test)
     {
-        // for (int i = 0; i < 12; i++)
-        // {
-        //     controller.PivotTurn(90);
-        // }
+        for (int i = 0; i < 12; i++)
+        {
+            controller.PivotTurn(90);
+        }
         // Notification();
 
         // controller.StartMove();
         // controller.Acceleration(AccType::forward1);
-        controller.Acceleration(AccType::start);
+        // controller.Acceleration(AccType::start);
         // controller.GoStraight();
         // controller.GoStraight();
-        controller.Turn(90);
+        // controller.Turn(90);
         // controller.Turn(-90);
-        controller.Acceleration(AccType::stop);
+        // controller.Acceleration(AccType::stop);
 
         // led.on_back_left();
         state.mode = State::output;

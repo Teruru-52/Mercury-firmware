@@ -1,4 +1,16 @@
-#include "../../Inc/hardware/imu.h"
+#include "hardware/imu.h"
+
+#define SPI_WHO_AM_I 0x75
+#define SPI_CONFIG 0x1A
+#define SPI_GYRO_CONFIG 0x1B
+#define SPI_ACCEL_CONFIG 0x1C
+#define SPI_POWER_MANAGEMENT_1 0x6B
+
+#define SPI_ACCEL_YOUT_H 0x3D
+#define SPI_ACCEL_YOUT_L 0x3E
+
+#define SPI_GYRO_ZOUT_H 0x47
+#define SPI_GYRO_ZOUT_L 0x48
 
 namespace hardware
 {
@@ -45,24 +57,24 @@ namespace hardware
         __HAL_SPI_ENABLE(&hspi1); // clockが動かないように、あらかじめEnableにしておく
 
         HAL_Delay(100);                          // wait start up
-        who_am_i = read_byte(0x75);              // read who am i
+        who_am_i = read_byte(SPI_WHO_AM_I);      // read who am i
         printf("who_am_i = 0x%x\r\n", who_am_i); // check who am i value
         HAL_Delay(10);
         while (who_am_i != 0x70)
         {
-            who_am_i = read_byte(0x75);
+            who_am_i = read_byte(SPI_WHO_AM_I);
             printf("who_am_i = 0x%x\r\n", who_am_i);
             HAL_Delay(20);
         }
 
         HAL_Delay(50);
-        write_byte(0x6B, 0x00); // set pwr_might (20MHz)
+        write_byte(SPI_POWER_MANAGEMENT_1, 0x00); // set pwr_might (20MHz)
         HAL_Delay(50);
-        write_byte(0x1A, 0x00); // set config (FSYNCはNC)
+        write_byte(SPI_CONFIG, 0x00); // set config (FSYNCはNC)
         HAL_Delay(50);
-        write_byte(0x1B, 0x18); // set gyro config (2000dps)
+        write_byte(SPI_GYRO_CONFIG, 0x18); // set gyro config (2000dps)
         HAL_Delay(50);
-        write_byte(0x1C, 0x08); // set acc config (4g)
+        write_byte(SPI_ACCEL_CONFIG, 0x08); // set acc config (4g)
         HAL_Delay(50);
         // write_byte(0x1D, 0x00); // LPF (Accelerometer, Bandwidth460 Hz)
         // HAL_Delay(50);
@@ -76,7 +88,7 @@ namespace hardware
         for (int i = 0; i < 500; i++)
         {
             // H:8bit shift, Link h and l
-            gz_raw = (int16_t)((int16_t)(read_byte(0x47) << 8) | read_byte(0x48));
+            gz_raw = (int16_t)((int16_t)(read_byte(SPI_GYRO_ZOUT_H) << 8) | read_byte(SPI_GYRO_ZOUT_L));
             gyro_z = (float)(gz_raw) / gyro_factor * M_PI / 180.0f; // dps to rad/sec
 
             gz_sum += gyro_z;
@@ -90,7 +102,7 @@ namespace hardware
         for (int i = 0; i < 500; i++)
         {
             // H:8bit shift, Link h and l
-            ax_raw = (int16_t)((int16_t)(read_byte(0x3D) << 8) | read_byte(0x3E));
+            ax_raw = (int16_t)((int16_t)(read_byte(SPI_ACCEL_YOUT_H) << 8) | read_byte(SPI_ACCEL_YOUT_L));
             acc_x = (float)(ax_raw) / acc_factor;
 
             ax_sum += acc_x;

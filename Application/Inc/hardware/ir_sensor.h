@@ -27,17 +27,17 @@ namespace hardware
     {
     private:
         LED led;
-        const int sampling_count = 16;
+        const int sampling_count = 84;
         float ir_start_base;
         float ir_wall_base;
 
         uint16_t dma_f[3];
         uint16_t dma_b[2];
 
-        uint32_t fl[16];
-        uint32_t fr[16];
-        uint32_t sl[16];
-        uint32_t sr[16];
+        uint32_t fl[84];
+        uint32_t fr[84];
+        uint32_t sl[84];
+        uint32_t sr[84];
 
         IR_Value ir_value;
         float bat_vol;
