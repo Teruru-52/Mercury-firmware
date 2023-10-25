@@ -1,5 +1,5 @@
-#ifndef HARDWARE_MOTOR_HPP_
-#define HARDWARE_MOTOR_HPP_
+#ifndef HARDWARE_MOTOR_H_
+#define HARDWARE_MOTOR_H_
 
 #include "main.h"
 #include "ir_sensor.h"
