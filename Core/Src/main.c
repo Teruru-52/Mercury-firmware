@@ -29,8 +29,6 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include <unistd.h>
-#include "my_header.h"
 #include "main_exec.h"
 /* USER CODE END Includes */
 
@@ -50,22 +48,15 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-  extern osSemaphoreId ControlSemaphoreHandle;
-  extern osSemaphoreId SpeakerSemaphoreHandle;
-  extern osSemaphoreId IRsensorSemaphoreHandle;
-  /* USER CODE END PV */
+extern osSemaphoreId ControlSemaphoreHandle;
+extern osSemaphoreId SpeakerSemaphoreHandle;
+extern osSemaphoreId IRsensorSemaphoreHandle;
+/* USER CODE END PV */
 
-  /* Private function prototypes -----------------------------------------------*/
-  void SystemClock_Config(void);
-  void MX_FREERTOS_Init(void);
+/* Private function prototypes -----------------------------------------------*/
+void SystemClock_Config(void);
+void MX_FREERTOS_Init(void);
 /* USER CODE BEGIN PFP */
-#ifdef __cplusplus
-}
-#endif
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
