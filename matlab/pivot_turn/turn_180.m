@@ -117,9 +117,7 @@ plot(theta, 'LineWidth', 3);
 xlabel('Time [ms]','Interpreter','latex','FontSize',20);
 ylabel('$\theta$ [rad]','Interpreter','latex','FontSize',20);
 legend('$\theta_{ref}$','$\theta$','Interpreter','latex','Location','southeast','FontSize',20)
-h_axes = gca;
-h_axes.XAxis.FontSize = 20;
-h_axes.YAxis.FontSize = 20;
+set(gca, "FontName", "Times New Roman", "FontSize", 20);
 
 figure(2);
 plot(omega_tar, 'LineWidth', 3);
@@ -129,6 +127,4 @@ plot(omega, 'LineWidth', 3);
 xlabel('Time [ms]','Interpreter','latex','FontSize',20);
 ylabel('$\omega$ [rad/s]','Interpreter','latex','FontSize',20);
 legend('$\omega_{ref}$','$\omega$','Interpreter','latex','Location','southeast','FontSize',20)
-h_axes = gca;
-h_axes.XAxis.FontSize = 20;
-h_axes.YAxis.FontSize = 20;
+set(gca, "FontName", "Times New Roman", "FontSize", 20);

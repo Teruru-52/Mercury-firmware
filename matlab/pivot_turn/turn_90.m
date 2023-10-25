@@ -34,36 +34,43 @@ while 1
         theta_tar(n) = 1/6 * jm * t^3;
         omega_tar(n) = 0.5 * jm * t^2;
         a_tar(n) = jm * t;
+        j_tar(n) = jm;
 
     elseif t <= t2
         theta_tar(n) = x1 + v1 * (t - t1) + 0.5 * am * (t - t1)^2;
         omega_tar(n) = v1 + am * (t - t1);
         a_tar(n) = am;
+         j_tar(n) = 0;
 
     elseif t <= t3
         theta_tar(n) = x3 + v3 * (t - t3) - 1/6 * jm * (t - t3)^3;
         omega_tar(n) = v3 - 0.5 * jm * (t - t3)^2;
         a_tar(n) = am - jm * (t - t2);
+         j_tar(n) = -jm;
 
     elseif t <= t4
         theta_tar(n) = x3 + v3 * (t - t3);
         omega_tar(n) = v3;
         a_tar(n) = 0;
+         j_tar(n) = 0;
 
     elseif t <= t5
         theta_tar(n) = x4 + v3 * (t - t4) - 1/6 * jm * (t - t4)^3;
         omega_tar(n) = v3 - 0.5 * jm * (t - t4)^2;
         a_tar(n) = -jm * (t - t4);
+         j_tar(n) = -jm;
 
     elseif t <= t6
         theta_tar(n) = x5 + v2 * (t - t5) - 0.5 * am * (t - t5)^2;
         omega_tar(n) = v2 - am * (t - t5);
         a_tar(n) = -am;
+         j_tar(n) = 0;
 
     elseif t <= t7
         theta_tar(n) = x6 + v1 * (t - t6) - 1/6 * jm * (t - t6)^3; 
         omega_tar(n) = 0.5 * jm * (t - t7)^2;
         a_tar(n) = - am + jm * (t - t6);
+         j_tar(n) = jm;
     else
         break;
     end
@@ -72,31 +79,32 @@ while 1
 end
 
 figure(1);
-plot(theta_tar, 'LineWidth', 2);
+plot(theta_tar, 'LineWidth', 3);
 grid on;
 xlabel('Time [ms]','Interpreter','latex','FontSize',20);
 ylabel('$\theta_{ref}$ [rad/s]','Interpreter','latex','FontSize',20);
-h_axes = gca;
-h_axes.XAxis.FontSize = 20;
-h_axes.YAxis.FontSize = 20;
+set(gca, "Fontname", "Times New Roman", "Fontsize", 20);
 
 figure(2);
-plot(omega_tar, 'LineWidth', 2);
+plot(omega_tar, 'LineWidth', 3);
 grid on;
 xlabel('Time [ms]','Interpreter','latex','FontSize',20);
 ylabel('$\omega_{ref}$ [rad/s]','Interpreter','latex','FontSize',20);
-h_axes = gca;
-h_axes.XAxis.FontSize = 20;
-h_axes.YAxis.FontSize = 20;
+set(gca, "FontName", "Times New Roman", "FontSize", 20);
 
-% figure(3);
-% plot(a_tar, 'LineWidth', 2);
-% grid on;
-% xlabel('Time [ms]','Interpreter','latex','FontSize',20);
-% ylabel('$a_{ref}$ [rad/s$^2$]','Interpreter','latex','FontSize',20);
-% h_axes = gca;
-% h_axes.XAxis.FontSize = 20;
-% h_axes.YAxis.FontSize = 20;
+figure(3);
+plot(a_tar, 'LineWidth', 3);
+grid on;
+xlabel('Time [ms]','Interpreter','latex','FontSize',20);
+ylabel('$a_{ref}$ [rad/s$^2$]','Interpreter','latex','FontSize',20);
+set(gca, "FontName", "Times New Roman", "FontSize", 20);
+
+figure(4);
+plot(j_tar, 'LineWidth', 3);
+grid on;
+xlabel('Time [ms]','Interpreter','latex','FontSize',20);
+ylabel('$j_{ref}$ [rad/s$^3$]','Interpreter','latex','FontSize',20);
+set(gca, "FontName", "Times New Roman", "FontSize", 20);
 
 theta_tar(313)
 omega_tar(313)
@@ -117,9 +125,7 @@ plot(theta, 'LineWidth', 3);
 xlabel('Time [ms]','Interpreter','latex','FontSize',20);
 ylabel('$\theta$ [rad/s]','Interpreter','latex','FontSize',20);
 legend('$\theta_{ref}$','$\theta$','Interpreter','latex','Location','southeast','FontSize',20)
-h_axes = gca;
-h_axes.XAxis.FontSize = 20;
-h_axes.YAxis.FontSize = 20;
+set(gca, "Fontname", "Times New Roman", "Fontsize", 20);
 
 figure(2);
 plot(omega_tar, 'LineWidth', 3);
@@ -129,6 +135,4 @@ plot(omega, 'LineWidth', 3);
 xlabel('Time [ms]','Interpreter','latex','FontSize',20);
 ylabel('$\omega$ [rad/s]','Interpreter','latex','FontSize',20);
 legend('$\omega_{ref}$','$\omega$','Interpreter','latex','Location','southeast','FontSize',20)
-h_axes = gca;
-h_axes.XAxis.FontSize = 20;
-h_axes.YAxis.FontSize = 20;
+set(gca, "Fontname", "Times New Roman", "Fontsize", 20);

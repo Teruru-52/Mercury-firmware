@@ -14,6 +14,7 @@ ylabel('$u_\omega$ [V]','Interpreter','latex','FontSize',20);
 h_axes = gca;
 h_axes.XAxis.FontSize = 20;
 h_axes.YAxis.FontSize = 20;
+
 %% 検証用入力の結合
 input = input(1:127,1);
 % 半周期だけずらして結合する
@@ -27,5 +28,6 @@ stairs(0:2*N-1,input2,'LineWidth',3)
 grid on
 xlim([0 2*N-1])
 ylim([-1.7 1.7])
-xlabel('Time n','Interpreter','latex','FontSize',20);
-ylabel('$u_\omega$ [V]','Interpreter','latex','FontSize',20);
+xlabel('Time n','Interpreter','latex','FontSize',25);
+ylabel('$u_\omega$ [V]','Interpreter','latex','FontSize',25);
+set(gca, "FontName", "Times New Roman", "FontSize", 25);
