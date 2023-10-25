@@ -67,5 +67,12 @@
         "iomanip": "cpp",
         "freertos.h": "c"
     },
-    "C_Cpp.errorSquiggles": "EnabledIfIncludesResolve"
+    "C_Cpp.errorSquiggles": "EnabledIfIncludesResolve",
+    "makefile.launchConfigurations": [
+        {
+            "cwd": "/home/reiji/Documents/Cheese/Quatro_cpp/build",
+            "binaryPath": "/home/reiji/Documents/Cheese/Quatro_cpp/build/Quatro_cpp.elf",
+            "binaryArgs": []
+        }
+    ],
 }

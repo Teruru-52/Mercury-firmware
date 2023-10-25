@@ -8,6 +8,8 @@
             "request": "launch",
             "preLaunchTask": "Quatro Cpp Build",
             "type": "cortex-debug",
+            "showDevDebugOutput": "raw",
+            "armToolchainPath": "/opt/gcc-arm-none-eabi/bin",
             "servertype": "openocd",
             "configFiles": [
                 "interface/stlink-v2-1.cfg",
