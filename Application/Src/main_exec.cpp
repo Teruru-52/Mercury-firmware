@@ -17,42 +17,166 @@ Agent::State prevState = Agent::State::IDLE;
 OperationList runSequence;
 
 float bat_vol;
-hardware::IR_Value ir_value;
-int16_t pulse;
+int16_t pulse_l;
+int16_t pulse_r;
+
+int cnt1kHz = 0;
+int cnt1Hz = 0;
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+    if (state.interruption == State::interrupt)
+    {
+        if (htim == &htim1) // interruption 84kHz
+        {
+            irsensors.UpdateSideValue();
+            irsensors.UpdateFrontValue();
+        }
+
+        if (htim == &htim7) // interruption 1kHz
+        {
+            cnt1kHz = (cnt1kHz + 1) % 1000;
+            UpdateUndercarriage();
+            controller.robotMove();
+
+            if (controller.ErrorFlag())
+            {
+                controller.Brake();
+                speaker.SpeakerOn();
+                state.mode = State::error;
+                state.interruption = State::not_interrupt;
+            }
+
+            if (cnt1kHz == 0)
+            {
+                cnt1Hz++;
+                Toggle_GPIO(BACK_RIGHT_LED);
+            }
+
+            // if (state.mode == State::test && cnt1kHz % 200 == 0)
+            if (cnt1kHz % 200 == 0)
+            {
+                // controller.OutputLog();
+                printf("%lu, %lu,%lu, %lu\n", ir_value.fl, ir_value.fr, ir_value.sl, ir_value.sr);
+            }
+        }
+    }
+}
 
 void StartupProcess()
 {
     speaker.Beep();
     irsensors.StartDMA();
     irsensors.BatteryCheck();
+    HAL_Delay(500);
     irsensors.on_all_led();
 }
 
-void SelectFunc(int16_t pulse)
+void SelectFunc(int16_t pulse_l, int16_t pulse_r)
 {
-    if (pulse < 8192)
+    // select function
+    int16_t pulse_diff = 2048;
+    if (pulse_r < pulse_diff)
     {
-        led.off_back_right();
-        led.off_back_left();
+        led.Func0();
+        state.func = State::func0;
+    }
+    else if (pulse_r < pulse_diff * 2)
+    {
+        led.Func1();
         state.func = State::func1;
     }
-    else if (pulse < 16384)
+    else if (pulse_r < pulse_diff * 3)
     {
-        led.on_back_right();
-        led.off_back_left();
+        led.Func2();
         state.func = State::func2;
     }
-    else if (pulse < 24576)
+    else if (pulse_r < pulse_diff * 4)
+    {
+        led.Func3();
+        state.func = State::func3;
+    }
+    else if (pulse_r < pulse_diff * 5)
+    {
+        led.Func4();
+        state.func = State::func4;
+    }
+    else if (pulse_r < pulse_diff * 6)
+    {
+        led.Func5();
+        state.func = State::func5;
+    }
+    else if (pulse_r < pulse_diff * 7)
+    {
+        led.Func6();
+        state.func = State::func6;
+    }
+    else if (pulse_r < pulse_diff * 8)
+    {
+        led.Func7();
+        state.func = State::func7;
+    }
+    else if (pulse_r < pulse_diff * 9)
+    {
+        led.Func8();
+        state.func = State::func8;
+    }
+    else if (pulse_r < pulse_diff * 10)
+    {
+        led.Func9();
+        state.func = State::func9;
+    }
+    else if (pulse_r < pulse_diff * 11)
+    {
+        led.Func10();
+        state.func = State::func10;
+    }
+    else if (pulse_r < pulse_diff * 12)
+    {
+        led.Func11();
+        state.func = State::func11;
+    }
+    else if (pulse_r < pulse_diff * 13)
+    {
+        led.Func12();
+        state.func = State::func12;
+    }
+    else if (pulse_r < pulse_diff * 14)
+    {
+        led.Func13();
+        state.func = State::func13;
+    }
+    else if (pulse_r < pulse_diff * 13)
+    {
+        led.Func12();
+        state.func = State::func12;
+    }
+    else if (pulse_r < pulse_diff * 14)
+    {
+        led.Func13();
+        state.func = State::func13;
+    }
+    else if (pulse_r < pulse_diff * 15)
+    {
+        led.Func14();
+        state.func = State::func14;
+    }
+    else
+    {
+        led.Func15();
+        state.func = State::func15;
+    }
+
+    // select to load maze
+    if (pulse_l < 16384)
     {
         led.off_back_right();
-        led.on_back_left();
-        state.func = State::func3;
+        state.mazeload = State::not_load;
     }
     else
     {
         led.on_back_right();
-        led.on_back_left();
-        state.func = State::func4;
+        state.mazeload = State::load;
     }
 }
 
@@ -64,27 +188,65 @@ void Initialize()
     speaker.Beep();
     controller.ResetOdometory();
 
+    wallData = 0x0E;
+    robotPos = IndexVec(0, 0);
+    agent.update(robotPos, wallData);
+    nextDir = NORTH;
+
     switch (state.func)
     {
-    case State::func1:
+    case State::func0:
+        // __HAL_TIM_SET_COMPARE(&htim8, TIM_CHANNEL_1, 2000);
+        controller.SetTrajectoryMode(1);
         state.mode = State::test;
         break;
 
-    case State::func2:
+    case State::func1: // run slow speed (SEARCHING_NOT_GOAL)
+        // __HAL_TIM_SET_COMPARE(&htim8, TIM_CHANNEL_1, 2000);
         controller.SetTrajectoryMode(1);
-
-        // wallData = 0x0E;
-        wallData = Direction(14);
-        // robotPos = IndexVec(0, 0);
-        robotPos = controller.getRobotPosition();
-        agent.update(robotPos, wallData);
-        // nextDir = NORTH;
-        nextDir = Direction(1);
-
         state.mode = State::search;
         break;
 
+    case State::func2: // run fast speed (SEARCHING_NOT_GOAL)
+        controller.SetTrajectoryMode(2);
+        state.mode = State::search;
+        break;
+
+    case State::func3: // run slow speed (load maze, SEARCHING_NOT_GOAL)
+        LoadMaze();
+        controller.SetTrajectoryMode(1);
+        state.mode = State::search;
+        break;
+
+    case State::func4: // run fast speed (load maze, SEARCHING_NOT_GOAL)
+        LoadMaze();
+        controller.SetTrajectoryMode(2);
+        state.mode = State::search;
+        break;
+
+    case State::func5: // run slow speed (load maze, Time Attack)
+        LoadMaze();
+        controller.SetTrajectoryMode(1);
+        state.mode = State::run_sequence;
+        break;
+
+    case State::func6: // run fast speed (load maze, Time Attack)
+        LoadMaze();
+        controller.SetTrajectoryMode(2);
+        state.mode = State::run_sequence;
+        break;
+
     default:
+        break;
+    }
+
+    switch (state.mazeload)
+    {
+    case State::load:
+        LoadMaze();
+        break;
+
+    case State::not_load:
         break;
     }
     state.interruption = State::interrupt;
@@ -114,93 +276,105 @@ void MazeSearch()
 {
     while (1)
     {
-        // while (1)
-        // {
-        //   if (controller.wallDataReady())
-        //   {
-        //     controller.ResetWallFlag();
-        //     break;
-        //   }
-        // }
+        while (1)
+        {
+            if (controller.wallDataReady())
+            {
+                controller.ResetWallFlag();
+                break;
+            }
+        }
         controller.UpdateDir(nextDir);
         controller.UpdatePos(nextDir);
         wallData = controller.getWallData(ir_value);
         robotPos = controller.getRobotPosition();
         agent.update(robotPos, wallData);
-        led.on_back_left();
         if (agent.getState() == Agent::FINISHED)
-            break;
-        if (prevState == Agent::SEARCHING_NOT_GOAL && agent.getState() == Agent::SEARCHING_REACHED_GOAL)
         {
-            maze_backup = maze;
-            // Notification();
+            controller.Acceleration(AccType::stop);
+            break;
         }
-        prevState = agent.getState();
-        // if (cnt1Hz > 210 && agent.getState() == Agent::SEARCHING_REACHED_GOAL)
+        // if (prevState == Agent::SEARCHING_NOT_GOAL && agent.getState() == Agent::SEARCHING_REACHED_GOAL)
         // {
-        //   agent.forceGotoStart();
+        // maze_backup = maze;
         // }
+        prevState = agent.getState();
+        if (cnt1Hz > 210 && agent.getState() == Agent::SEARCHING_REACHED_GOAL)
+        {
+            agent.forceGotoStart();
+        }
         nextDir = agent.getNextDirection();
-        controller.robotMove2(nextDir);
-        led.off_back_left();
+        controller.robotMove2(nextDir); // using slalom
+        if (controller.GetMazeLoadFlag())
+        {
+            FlashMaze();
+            controller.ResetMazeLoadFlag();
+        }
         // controller.Wait();
     }
 }
 
-// void TimeAttack()
-// {
-/**********************************
- * 計測走行
- *********************************/
-// コマンドリストみたいなやつを取り出す
-// runSequence = agent.getRunSequence();
-// HAL_Delay(2500);
+void TimeAttack()
+{
+    /**********************************
+     * 計測走行
+     *********************************/
+    // コマンドリストみたいなやつを取り出す
+    runSequence = agent.getRunSequence();
+    HAL_Delay(2500);
 
-// // Operationを先頭から順番に実行していく
-// for (size_t i = 0; i < runSequence.size(); i++)
-// {
-//   // Operationの実行が終わるまで待つ(nマス進んだ,右に曲がった)
-//   while (!operationFinished())
-//     ;
+    // // Operationを先頭から順番に実行していく
+    controller.Acceleration(AccType::start);
+    for (size_t i = 1; i < runSequence.size() - 1; i++)
+    {
+        // Operationの実行が終わるまで待つ(nマス進んだ,右に曲がった)
+        // while (!operationFinished())
+        //     ;
 
-//   // i番目のを実行
-//   controller.robotMove(runSequence[i]); // robotMode関数はOperation型を受け取ってそれを実行する関数
-// }
-// }
+        //   // i番目のを実行
+        controller.robotMove2(runSequence[i]); // robotMode関数はOperation型を受け取ってそれを実行する関数
+    }
+    controller.Acceleration(AccType::stop);
+    // state.mode = State::select_function;
+    state.mode = State::output;
+}
 
 void StateProcess()
 {
     if (state.mode == State::select_function)
     {
         irsensors.UpdateSideValue();
-        pulse = controller.GetPulse();
-        SelectFunc(pulse);
+        pulse_l = controller.GetPulseL();
+        pulse_r = controller.GetPulseR();
+        SelectFunc(pulse_l, pulse_r);
 
         if (irsensors.StartInitialize())
-        {
             Initialize();
-        }
     }
 
     else if (state.mode == State::test)
     {
-        for (int i = 0; i < 12; i++)
-        {
-            controller.PivotTurn(90);
-        }
-        // Notification();
+        // for (int i = 0; i < 12; i++)
+        //     controller.PivotTurn(90);
 
         // controller.StartMove();
-        // controller.Acceleration(AccType::forward1);
         // controller.Acceleration(AccType::start);
-        // controller.GoStraight();
         // controller.GoStraight();
         // controller.Turn(90);
         // controller.Turn(-90);
+        // controller.Turn(-90);
+        // controller.Turn(-90);
+        // for (int i = 0; i < 7; i++)
+        // {
+        //     wallData = controller.getWallData(ir_value);
+        //     controller.robotMove2(WEST); // slalom
+        // controller.Turn(90);
+        // controller.GoStraight();
+        // Toggle_GPIO(BACK_LEFT_LED);
+        // }
         // controller.Acceleration(AccType::stop);
 
-        // led.on_back_left();
-        state.mode = State::output;
+        // state.mode = State::output;
     }
 
     else if (state.mode == State::output)
@@ -209,9 +383,11 @@ void StateProcess()
         state.interruption = State::not_interrupt;
         irsensors.UpdateSideValue();
 
-        if (Read_GPIO(USER_SW) == 0)
+        // if (Read_GPIO(USER_SW) == 0)
+        if (irsensors.StartInitialize())
         {
-            controller.OutputLog();
+            // controller.OutputLog();
+            controller.OutputSlalomLog();
         }
     }
 
@@ -219,12 +395,23 @@ void StateProcess()
     {
         controller.StartMove();
         MazeSearch();
-        Notification();
 
         controller.InitializePosition();
+        Notification();
+        // FlashMaze();
         agent.caclRunSequence(false);
 
-        state.mode = State::select_function;
+        // state.mode = State::select_function;
+        state.mode = State::run_sequence;
+    }
+
+    else if (state.mode == State::run_sequence)
+    {
+        TimeAttack();
+    }
+    else if (state.mode == State::error)
+    {
+        state.interruption = State::not_interrupt;
     }
 }
 

@@ -9,7 +9,7 @@ data_v = data(:,4);
 data_omega = data(:,5);
 data_kanayama_v = data(:,6);
 data_kanayama_w = data(:,7);
-%% 目標値を格納'LineWidth',3
+%% 目標値を格納
 ref = csvread("ref.csv");
 ref_x = ref(:,1);
 ref_y = ref(:,2);

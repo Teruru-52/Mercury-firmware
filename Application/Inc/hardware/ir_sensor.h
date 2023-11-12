@@ -16,11 +16,12 @@ namespace hardware
 
     struct IR_Base
     {
-        float is_wall;
         float fl;
         float fr;
         float sl;
         float sr;
+        float sl_slalom;
+        float sr_slalom;
     };
 
     class IRsensor
@@ -29,21 +30,21 @@ namespace hardware
         LED led;
         const int sampling_count = 84;
         float ir_start_base;
-        float ir_wall_base;
 
         uint16_t dma_f[3];
         uint16_t dma_b[2];
 
-        uint32_t fl[84];
-        uint32_t fr[84];
-        uint32_t sl[84];
-        uint32_t sr[84];
+        uint32_t max_fl = 0;
+        uint32_t max_fr = 0;
+        uint32_t max_sl = 0;
+        uint32_t max_sr = 0;
 
         IR_Value ir_value;
+        IR_Base *ir_is_wall;
         float bat_vol;
 
     public:
-        IRsensor(float ir_start_base, float ir_wall_base);
+        IRsensor(float ir_start_base, IR_Base *ir_is_wall);
 
         void on_front_led();
         void on_side_led();

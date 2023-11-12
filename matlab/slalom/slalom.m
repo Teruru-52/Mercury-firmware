@@ -56,8 +56,8 @@ end
 % dt = dx / v
 dx = 0.22;
 % 角速度と角加速度を設定
-omega_dot = 10 * pi;
-omega_max =  1.0 * pi;
+omega_dot = 30.0 * pi;
+omega_max =  5.0 * pi;
 
 % pattern2
 % dx = 0.51;
@@ -217,10 +217,10 @@ pos(:,2) = pos(:,2)*0.001;
 % omega_ref = omega3(1:284); 
 
 % pattern1
-omega_ref = omega3(1:638); 
+% omega_ref = omega3(1:638); 
 
-ref = [pos omega_ref'];
-dlmwrite('ref.csv', ref, 'precision', '%.10f');
+% ref = [pos omega_ref'];
+% dlmwrite('ref.csv', ref, 'precision', '%.10f');
 % dlmwrite('disp_ref.csv', pos_disp', 'precision', '%.10f');
 length
 velocity

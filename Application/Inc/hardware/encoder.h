@@ -14,7 +14,8 @@ namespace hardware
         void Reset();
         void Update_L();
         void Update_R();
-        int16_t GetPulse();
+        int16_t GetPulseL();
+        int16_t GetPulseR();
         float GetAngularVelocity(int16_t pulse);
         float GetVelocity();
 
@@ -22,7 +23,8 @@ namespace hardware
         float gear_ratio = 11.0f / 43.0f;
         float sampling_period; // [s]
         // float tire_radius = 0.0124; // [m]
-        float tire_radius = 0.0129; // [m]
+        // float tire_radius = 0.0129; // [m]
+        float tire_radius = 0.0131; // [m]
         const float ppr = 2048.0;
         int16_t pulse_left;
         int16_t pulse_right;

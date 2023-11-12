@@ -14,6 +14,7 @@
 extern hardware::LED led;
 extern hardware::Speaker speaker;
 extern hardware::IRsensor irsensors;
+extern hardware::IR_Value ir_value;
 extern Maze maze;
 extern Maze maze_backup;
 extern Agent agent;

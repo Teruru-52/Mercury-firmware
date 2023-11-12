@@ -7,10 +7,17 @@ namespace undercarriage
           Ky(Ky),
           Ktheta(Ktheta) {}
 
-    void Kanayama::UpdateRef(const ctrl::Pose &ref_pos, const ctrl::Pose &ref_vel)
+    void Kanayama::UpdateRef(const ctrl::Pose &ref_p, const ctrl::Pose &ref_v)
     {
-        this->ref_pos = ref_pos;
-        this->ref_vel = ref_vel;
+        // ref_pos.x = ref_p.x;
+        // ref_pos.y = ref_p.y;
+        // ref_pos.th = ref_p.th;
+        // ref_vel.x = ref_v.x;
+        // ref_vel.y = ref_v.y;
+        // ref_vel.th = ref_v.th;
+
+        ref_pos = ref_p;
+        ref_vel = ref_v;
     }
 
     ctrl::Pose Kanayama::CalcInput(const ctrl::Pose &cur_pos)

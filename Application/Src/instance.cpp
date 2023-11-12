@@ -9,13 +9,36 @@ hardware::LED led;
 hardware::Speaker speaker;
 
 const float ir_start_base = 2500;
-const float ir_wall_base = 2150;
-const float ir_fl_base = 2220;
-const float ir_fr_base = 2280;
-const float ir_sl_base = 3670;
-const float ir_sr_base = 3540;
-hardware::IR_Base ir_base = {ir_wall_base, ir_fl_base, ir_fr_base, ir_sl_base, ir_sr_base};
-hardware::IRsensor irsensors(ir_start_base, ir_wall_base);
+// Tokyo Tech
+// const float ir_fl_wall = 2180;
+// const float ir_fr_wall = 2200;
+// const float ir_sl_wall = 2200;
+// const float ir_sr_wall = 2200;
+// const float ir_fl_base = 2180;
+// const float ir_fr_base = 2180;
+// const float ir_sl_base = 3820;
+// const float ir_sr_base = 3720;
+// const float ir_sl_slalom = 2380;
+// const float ir_sr_slalom = 2470;
+
+// Kogei dai
+const float ir_fl_wall = 2180;
+const float ir_fr_wall = 2220;
+const float ir_sl_wall = 2160;
+const float ir_sr_wall = 2160;
+const float ir_fl_base = 2250;
+const float ir_fr_base = 2250;
+const float ir_sl_base = 3330;
+const float ir_sr_base = 3400;
+const float ir_sl_slalom = 2430;
+const float ir_sr_slalom = 2400;
+
+hardware::IR_Value ir_value;
+// for wall judge
+hardware::IR_Base ir_is_wall = {ir_fl_wall, ir_fr_wall, ir_sl_wall, ir_sr_wall};
+// for front/side wall correction
+hardware::IR_Base ir_base = {ir_fl_base, ir_fr_base, ir_sl_base, ir_sr_base, ir_sl_slalom, ir_sr_slalom};
+hardware::IRsensor irsensors(ir_start_base, &ir_is_wall);
 
 const float control_period = 0.001;
 const float sampling_period = 0.001;
@@ -25,27 +48,24 @@ undercarriage::Odometory odom(sampling_period);
 PID pid_angle(4.0, 0.0, 0.0, 0.0, control_period);
 PID pid_rotational_vel(1.1976, 85.1838, -0.00099, 0.0039227, control_period);
 PID pid_traslational_vel(6.8176, 82.0249, -0.033349, 0.023191, control_period);
-PID pid_ir_sensor_front_left(0.000005, 0.000005, 0.0, 0.0, control_period);
-PID pid_ir_sensor_front_right(0.000005, 0.000005, 0.0, 0.0, control_period);
-PID pid_ir_sensor_side(0.001, 0.001, 0.0, 0.0, control_period);
-undercarriage::Kanayama kanayama(3.0, 3.0, 10.0);
+// PID pid_traslational_vel(20.0, 100.0, -0.033349, 0.023191, control_period);
+PID pid_ir_sensor_front_left(0.0005, 0.000005, 0.0, 0.0, control_period);
+PID pid_ir_sensor_front_right(0.0005, 0.000005, 0.0, 0.0, control_period);
+// PID pid_ir_sensor_side(0.001, 0.0, 0.00005, 0.001, control_period);
+PID pid_ir_sensor_side(0.003, 0.000, 0.0, 0.0, control_period);
+undercarriage::Kanayama kanayama(3.0, 3.0, 1.0);
 undercarriage::Dynamic_Feedback dynamic_feedback(1.0, 0.05, 1.0, 0.05, control_period);
 
-ctrl::slalom::Shape ss_turn90_1(ctrl::Pose(90, 90, M_PI / 2), 80, 0, 500 * M_PI, 5 * M_PI, M_PI);
+// const float v1 = 0.186825;
+// const float v1 = 0.2594938;
+// const float v1 = 0.469949951;
+// const float v1 = 0.544497925;
+// const float v1 = 0.643138489;
+trajectory::Velocity velocity = {.v1 = 0.186825, .v2 = 0.469949951};
+// trajectory::Velocity velocity = {.v1 = 0.2594938, .v2 = 0.469949951};
 
-const float parameters_stop1[8] = {10, 1.5, 0.5, 0, 0, 0.09, 0, 0};
-const float parameters_start1[8] = {10, 1.5, 0.5, 0, 0, 0.133, 0, 0};
-const float parameters_forward1[8] = {10, 1.5, 0.5, 0, 0, 0.18, 0, 0};
-
-const float v1 = 0.186825;
-// const float* parameters_stop1[8] = {10, 1.5, 0.5, v1, 0, 0.09, 0, 0};
-// const float* parameters_start1[8] = {10, 1.5, 0.5, 0, v1, 0.138, 0, 0};
-// const float* parameters_forward1[8] = {10, 1.5, 0.5, v1, v1, 0.18, 0, 0};
-
-trajectory::Slalom slalom(&ss_turn90_1);
-trajectory::Acceleration acc(parameters_start1,
-                             parameters_forward1,
-                             parameters_stop1);
+trajectory::Slalom slalom;
+trajectory::Acceleration acc(&velocity);
 
 undercarriage::Controller controller(&odom,
                                      &pid_angle,
@@ -58,4 +78,6 @@ undercarriage::Controller controller(&odom,
                                      &dynamic_feedback,
                                      &slalom,
                                      &acc,
-                                     &ir_base);
+                                     &ir_base,
+                                     &ir_is_wall,
+                                     &velocity);

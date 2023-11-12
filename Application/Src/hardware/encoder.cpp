@@ -51,13 +51,24 @@ namespace hardware
         }
     }
 
-    int16_t Encoder::GetPulse()
+    int16_t Encoder::GetPulseL()
+    {
+        int16_t enc_buff = TIM3->CNT;
+        pulse_left = (int16_t)enc_buff;
+        if (pulse_left < 0)
+        {
+            pulse_left += 32767;
+        }
+        return pulse_left;
+    }
+
+    int16_t Encoder::GetPulseR()
     {
         int16_t enc_buff = TIM4->CNT;
         pulse_right = (int16_t)enc_buff * -1;
         if (pulse_right < 0)
         {
-            pulse_right *= -1;
+            pulse_right += 32767;
         }
         return pulse_right;
     }

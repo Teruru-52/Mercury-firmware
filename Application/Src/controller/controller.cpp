@@ -13,7 +13,9 @@ namespace undercarriage
                            undercarriage::Dynamic_Feedback *dynamic_feedback,
                            trajectory::Slalom *slalom,
                            trajectory::Acceleration *acc,
-                           hardware::IR_Base *ir_base)
+                           hardware::IR_Base *ir_base,
+                           hardware::IR_Base *ir_is_wall,
+                           trajectory::Velocity *velocity)
         : odom(odom),
           pid_angle(pid_angle),
           pid_rotational_vel(pid_rotational_vel),
@@ -27,10 +29,11 @@ namespace undercarriage
           acc(acc),
           mode(stop),
           ir_base(ir_base),
+          ir_is_wall(ir_is_wall),
+          velocity(velocity),
           flag_controller(false),
           flag_wall(true),
           flag_safety(false),
-          cnt(0),
           index_log(0),
           dir_diff(0),
           robot_position(0, 0),
@@ -40,19 +43,20 @@ namespace undercarriage
         // ref_size = acc->GetRefSize();
         // ref_size = pivot_turn180.GetRefSize();
         // ref_size = pivot_turn90.GetRefSize();
+        ref_size = 1000;
 
-        // log_x = new float[ref_size];
-        // log_y = new float[ref_size];
-        // log_theta = new float[ref_size];
-        // log_l = new float[ref_size];
-        // log_v = new float[ref_size];
-        // log_a = new float[ref_size];
-        // log_ref_l = new float[ref_size];
-        // log_ref_v = new float[ref_size];
-        // log_ref_a = new float[ref_size];
-        // log_omega = new float[ref_size];
-        // log_kanayama_v = new float[ref_size];
-        // log_kanayama_w = new float[ref_size];
+        log_x = new float[ref_size];
+        log_y = new float[ref_size];
+        log_theta = new float[ref_size];
+        log_l = new float[ref_size];
+        log_v = new float[ref_size];
+        log_a = new float[ref_size];
+        log_ref_l = new float[ref_size];
+        log_ref_v = new float[ref_size];
+        log_ref_a = new float[ref_size];
+        log_omega = new float[ref_size];
+        log_kanayama_v = new float[ref_size];
+        log_kanayama_w = new float[ref_size];
     }
 
     void Controller::InitializeOdometory()
@@ -68,9 +72,10 @@ namespace undercarriage
     void Controller::UpdateOdometory()
     {
         odom->Update();
-        l = odom->GetLength();
         cur_pos = odom->GetPosition();
         cur_vel = odom->GetVelocity();
+        length = odom->GetLength();
+        // length = cur_pos.x;
         acc_x = odom->GetAccX();
     }
 
@@ -86,9 +91,15 @@ namespace undercarriage
         odom->Reset();
     }
 
-    int16_t Controller::GetPulse()
+    int16_t Controller::GetPulseL()
     {
-        int16_t pulse = odom->GetPulse();
+        int16_t pulse = odom->GetPulseL();
+        return pulse;
+    }
+
+    int16_t Controller::GetPulseR()
+    {
+        int16_t pulse = odom->GetPulseR();
         return pulse;
     }
 
@@ -99,7 +110,7 @@ namespace undercarriage
 
     // void Controller::SetBase()
     // {
-    // base_theta = cur_pos.th;
+    // theta_base = cur_pos.th;
     // }
 
     void Controller::SetIRdata(const IR_Value &ir_value)
@@ -109,28 +120,44 @@ namespace undercarriage
 
     void Controller::SetTrajectoryMode(int mode)
     {
+        vel_mode = mode;
         slalom->SetMode(mode);
         acc->SetMode(mode);
+
+        switch (mode)
+        {
+        case 1:
+            ref_v = velocity->v1;
+            break;
+        case 2:
+            ref_v = velocity->v2;
+            break;
+        case 3:
+            ref_v = velocity->v2;
+            break;
+        default:
+            break;
+        }
     }
 
     void Controller::PivotTurn(int angle)
     {
         if (angle == 90)
-        {
             mode = pivot_turn_left_90;
-        }
         else if (angle == -90)
-        {
             mode = pivot_turn_right_90;
-        }
         else if (angle == 180)
-        {
             mode = pivot_turn_180;
-        }
         while (1)
         {
             if (flag_controller)
             {
+                if (angle == 90)
+                    theta_base += M_PI / 2;
+                else if (angle == -90)
+                    theta_base -= M_PI / 2;
+                else if (angle == 180)
+                    theta_base += M_PI;
                 Reset();
                 break;
             }
@@ -140,11 +167,16 @@ namespace undercarriage
     void Controller::Turn(int angle)
     {
         slalom->ResetTrajectory(angle);
+        slalom->SetInitialTime(flag_front_wall);
         mode = turn;
         while (1)
         {
             if (flag_controller)
             {
+                if (angle == 90)
+                    theta_base += M_PI / 2;
+                else if (angle == -90)
+                    theta_base -= M_PI / 2;
                 Reset();
                 break;
             }
@@ -159,6 +191,7 @@ namespace undercarriage
         {
             if (flag_controller)
             {
+                theta_base = cur_pos.th;
                 Reset();
                 break;
             }
@@ -172,6 +205,7 @@ namespace undercarriage
         {
             if (flag_controller)
             {
+                theta_base = cur_pos.th;
                 Reset();
                 break;
             }
@@ -198,6 +232,8 @@ namespace undercarriage
         {
             if (flag_controller)
             {
+                odom->ResetTheta();
+                theta_base = 0.0;
                 Reset();
                 break;
             }
@@ -227,23 +263,29 @@ namespace undercarriage
 
     void Controller::SideWallCorrection()
     {
-        if (ir_value.fl > ir_base->is_wall)
+        if (flag_side_wall_left)
         {
-            error_fl = ir_base->fl - static_cast<float>(ir_value.fl);
+            if (ir_value.fl > ir_is_wall->fl)
+                error_fl = ir_base->fl - static_cast<float>(ir_value.fl);
+            else
+                error_fl = 0.0;
+            if (ir_value.fr < ir_is_wall->fr)
+                error_fl *= 2.0;
         }
         else
-        {
             error_fl = 0;
-        }
 
-        if (ir_value.fr > ir_base->is_wall)
+        if (flag_side_wall_right)
         {
-            error_fr = ir_base->fr - static_cast<float>(ir_value.fr);
+            if (ir_value.fr > ir_is_wall->fr)
+                error_fr = ir_base->fr - static_cast<float>(ir_value.fr);
+            else
+                error_fr = 0.0;
+            if (ir_value.fl < ir_is_wall->fl)
+                error_fr *= 2.0;
         }
         else
-        {
             error_fr = 0;
-        }
     }
 
     void Controller::PivotTurnRight90()
@@ -296,29 +338,57 @@ namespace undercarriage
         }
     }
 
-    void Controller::Turn()
+    void Controller::CalcSlalomInput()
     {
         slalom->UpdateRef();
         ref_pos = slalom->GetRefPosition();
+        // ref_pos.th += theta_base;
         ref_vel = slalom->GetRefVelocity();
         ref_acc = slalom->GetRefAcceleration();
+        Logger();
 
         kanayama->UpdateRef(ref_pos, ref_vel);
+        cur_pos.th -= theta_base;
         ref_vel = kanayama->CalcInput(cur_pos);
-        u_v = pid_traslational_vel->Update(ref_vel.x - cur_vel.x) + ref_vel.x / Kp_v;
+        u_v = pid_traslational_vel->Update(ref_vel.x - cur_vel.x);
+        // u_v = pid_traslational_vel->Update(ref_vel.x - cur_vel.x) + ref_vel.x / Kp_v;
         u_w = pid_rotational_vel->Update(ref_vel.th - cur_vel.th) + ref_vel.th / Kp_w;
 
         // dynamic_feedback->UpdateRef(ref_pos, ref_vel, ref_acc);
         // ref_vel = dynamic_feedback->CalcInput(cur_pos, cur_vel);
         // u_v = pid_traslational_vel->Update(ref_vel.x - cur_vel.x) + ref_vel.x / Kp_v;
         // u_w = pid_rotational_vel->Update(ref_vel.th - cur_vel.th) + ref_vel.th / Kp_w;
+    }
+
+    void Controller::Turn()
+    {
+        if (flag_front_wall)
+        {
+            if (!flag_slalom)
+            {
+                if (ir_value.sl > ir_base->sl_slalom || ir_value.sr > ir_base->sr_slalom)
+                {
+                    flag_slalom = true;
+                    cur_pos.x = 0.01;
+                    cur_pos.y = 0.0;
+                }
+                else
+                {
+                    SideWallCorrection();
+                    u_v = pid_traslational_vel->Update(ref_v - cur_vel.x) + ref_v / Kp_v;
+                    u_w = pid_ir_sensor_side->Update(error_fl - error_fr) + pid_angle->Update(theta_base - cur_pos.th);
+                }
+            }
+            else
+                CalcSlalomInput();
+        }
+        else
+            CalcSlalomInput();
 
         InputVelocity(u_v, u_w);
         // Logger();
         if (slalom->Finished())
-        {
             flag_controller = true;
-        }
     }
 
     void Controller::Acceleration()
@@ -327,7 +397,7 @@ namespace undercarriage
         acc->UpdateRef();
         ref_pos.x = acc->GetRefPosition();
         ref_pos.y = 0.0;
-        ref_pos.th = 0.0;
+        ref_pos.th = theta_base;
         ref_vel.x = acc->GetRefVelocity();
         ref_vel.y = 0.0;
         ref_acc.x = acc->GetRefAcceleration();
@@ -336,52 +406,51 @@ namespace undercarriage
         // ref_vel = kanayama->CalcInput(cur_pos);
         // Logger();
         u_v = pid_traslational_vel->Update(ref_vel.x - cur_vel.x) + (Tp1_v * ref_acc.x + ref_vel.x) / Kp_v;
+        // u_v = pid_traslational_vel->Update(ref_vel.x - cur_vel.x);
         // u_w = pid_rotational_vel->Update(-cur_vel.th);
-        u_w = pid_ir_sensor_side->Update(error_fl - error_fr) + pid_angle->Update(-cur_pos.th);
+        if (flag_side_correct)
+            u_w = pid_ir_sensor_side->Update(error_fl - error_fr) + pid_angle->Update(theta_base - cur_pos.th);
+        else
+            u_w = pid_angle->Update(theta_base - cur_pos.th);
         InputVelocity(u_v, u_w);
         if (acc->Finished())
-        {
             flag_controller = true;
-        }
     }
 
     void Controller::GoStraight(float ref_l)
     {
-        if (l < ref_l)
+        if (length < ref_l)
         {
             SideWallCorrection();
             u_v = pid_traslational_vel->Update(ref_v - cur_vel.x) + ref_v / Kp_v;
-            u_w = pid_ir_sensor_side->Update(error_fl - error_fr) + pid_angle->Update(-cur_pos.th);
-            // u_w = pid_angle->Update(-cur_pos.th);
+            u_w = pid_ir_sensor_side->Update(error_fl - error_fr) + pid_angle->Update(theta_base - cur_pos.th);
+            // u_w = pid_angle->Update(theta_base-cur_pos.th);
             InputVelocity(u_v, u_w);
         }
         else
-        {
             flag_controller = true;
-        }
     }
 
     void Controller::Back(int time)
     {
-        if (cnt < time)
+        if (cnt_time < time)
         {
             InputVelocity(-0.5, 0.0);
-            cnt++;
+            cnt_time++;
         }
         else
         {
+            Brake();
             flag_controller = true;
-            odom->ResetTheta();
-            // base_theta = 0;
         }
     }
 
     void Controller::Wait(int time)
     {
-        if (cnt < time)
+        if (cnt_time < time)
         {
             motor.Brake();
-            cnt++;
+            cnt_time++;
         }
         else
             flag_controller = true;
@@ -389,14 +458,14 @@ namespace undercarriage
 
     void Controller::FrontWallCorrection(const IR_Value &ir_value)
     {
-        if (cnt < correction_time)
+        if (cnt_time < correction_time)
         {
             float error_sl = ir_base->sl - static_cast<float>(ir_value.sl);
             float error_sr = ir_base->sr - static_cast<float>(ir_value.sr);
             v_left = pid_ir_sensor_front_left->Update(error_sl);
             v_right = pid_ir_sensor_front_right->Update(error_sr);
             motor.Drive(v_left, v_right);
-            cnt++;
+            cnt_time++;
         }
         else
         {
@@ -406,13 +475,22 @@ namespace undercarriage
 
     void Controller::BlindAlley()
     {
+        flag_side_correct = false;
         Acceleration(AccType::stop);
         FrontWallCorrection();
+
+        // if (cnt_blind_alley % 1 == 0)
+        // {
+        //     flag_maze_load = true;
+        // }
+        // else
+        // {
         PivotTurn(-90);
         FrontWallCorrection();
         PivotTurn(-90);
         Back();
         Acceleration(AccType::start);
+        // }
     }
 
     void Controller::StartMove()
@@ -426,9 +504,9 @@ namespace undercarriage
 
     void Controller::InitializePosition()
     {
-        Acceleration(AccType::stop);
+        PivotTurn(90);
         FrontWallCorrection();
-        PivotTurn(180);
+        PivotTurn(90);
         Back();
     }
 
@@ -445,9 +523,14 @@ namespace undercarriage
         motor.Drive(v_left, v_right);
     }
 
-    bool Controller::GetFlag()
+    bool Controller::GetCtrlFlag()
     {
         return flag_controller;
+    }
+
+    bool Controller::GetMazeLoadFlag()
+    {
+        return flag_maze_load;
     }
 
     void Controller::Reset()
@@ -468,11 +551,14 @@ namespace undercarriage
 
         odom->Reset();
         odom->ResetTheta();
+        theta_base = 0.0;
         mode = stop;
 
-        flag_controller = false;
+        flag_slalom = false;
+        flag_side_correct = true;
         index_log = 0;
-        cnt = 0;
+        cnt_time = 0;
+        flag_controller = false;
     }
 
     void Controller::ResetWallFlag()
@@ -480,45 +566,56 @@ namespace undercarriage
         flag_wall = false;
     }
 
+    void Controller::ResetMazeLoadFlag()
+    {
+        flag_maze_load = false;
+    }
+
     void Controller::MotorTest(float v_left, float v_right)
     {
         motor.Drive(v_left, v_right); // voltage [V]
     }
 
-    // void Controller::Logger()
-    // {
-    //     log_x[index_log] = cur_pos[0];
-    //     log_y[index_log] = cur_pos[1];
-    //     log_theta[index_log] = cur_pos[2];
-    //     // x[index_log] = ref_pos[0];
-    //     // y[index_log] = ref_pos[1];
-    //     // theta[index_log] = ref_pos[2];
-    //     log_l[index_log] = l;
-    //     log_v[index_log] = cur_vel[0];
-    //     log_a[index_log] = acc_x;
-    //     log_ref_l[index_log] = ref_pos[0];
-    //     log_ref_v[index_log] = ref_vel[0];
-    //     log_ref_a[index_log] = ref_acc[0];
-    //     log_omega[index_log] = cur_vel[1];
-    //     log_kanayama_v[index_log] = ref_vel[0];
-    //     log_kanayama_w[index_log] = ref_vel[1];
-    //     index_log++;
-    // }
+    void Controller::Logger()
+    {
+        log_x[index_log] = cur_pos.x;
+        log_y[index_log] = cur_pos.y;
+        log_theta[index_log] = cur_pos.th;
+        log_l[index_log] = length;
+        log_v[index_log] = cur_vel.x;
+        log_a[index_log] = acc_x;
+        log_ref_l[index_log] = ref_pos.x;
+        log_ref_v[index_log] = ref_vel.x;
+        log_ref_a[index_log] = ref_acc.x * cos(cur_pos.th);
+        log_omega[index_log] = cur_vel.th;
+        log_kanayama_v[index_log] = ref_vel.x;
+        log_kanayama_w[index_log] = ref_vel.th;
+
+        log_x[index_log] = ref_pos.x;
+        log_y[index_log] = ref_pos.y;
+        log_theta[index_log] = ref_pos.th;
+        log_omega[index_log] = ref_vel.th;
+        index_log++;
+    }
 
     void Controller::OutputLog()
     {
-        // printf("%f, %f, %f, %f\n", cur_pos[0], cur_pos[1], cur_pos[2], l);
+        // printf("%f, %f, %f, %f\n", cur_pos.x, cur_pos.y, cur_pos.th, length);
         // printf("%f, %f\n", cur_pos[2], cur_vel[1]);
         // printf("%f\n", l);
         // printf("%f, %f\n", u_v, u_w);
-        printf("%f\n", acc_x);
-        // for (int i = 0; i < ref_size; i++)
-        // {
-        // printf("%f, %f, %f, %f, %f\n", log_x[i], log_y[i], log_theta[i], log_kanayama_v[i], log_kanayama_w[i]);
-        // printf("%f, %f, %f, %f, %f, %f, %f\n", log_x[i], log_y[i], log_theta[i], log_v[i], log_omega[i], log_kanayama_v[i], log_kanayama_w[i]);
-        // printf("%f, %f\n", log_theta[i], log_omega[i]);
-        // printf("%f, %f, %f, %f, %f, %f\n", log_l[i], log_v[i], log_a[i], log_ref_l[i], log_ref_v[i], log_ref_a[i]);
-        // }
+        // printf("%f\n", acc_x);
+    }
+
+    void Controller::OutputSlalomLog()
+    {
+        for (int i = 0; i < ref_size; i++)
+        {
+            // printf("%f, %f, %f, %f, %f\n", log_x[i], log_y[i], log_theta[i], log_kanayama_v[i], log_kanayama_w[i]);
+            // printf("%f, %f, %f, %f, %f, %f, %f\n", log_x[i], log_y[i], log_theta[i], log_v[i], log_omega[i], log_kanayama_v[i], log_kanayama_w[i]);
+            printf("%f, %f, %f, %f\n", log_x[i], log_y[i], log_theta[i], log_omega[i]);
+            // printf("%f, %f, %f, %f, %f, %f\n", log_l[i], log_v[i], log_a[i], log_ref_l[i], log_ref_v[i], log_ref_a[i]);
+        }
     }
 
     bool Controller::wallDataReady()
@@ -528,6 +625,7 @@ namespace undercarriage
 
     Direction Controller::getWallData(const IR_Value &ir_value)
     {
+        Toggle_GPIO(BACK_LEFT_LED);
         Direction wall;
 
         int8_t robot_dir_index = 0;
@@ -538,20 +636,31 @@ namespace undercarriage
             robot_dir_index++;
         }
 
-        if (ir_value.sl > ir_base->is_wall || ir_value.sr > ir_base->is_wall)
+        if (ir_value.sl > ir_is_wall->sl || ir_value.sr > ir_is_wall->sr)
         {
             wall.byte |= NORTH << robot_dir_index;
+            flag_front_wall = true;
+        }
+        else
+        {
+            flag_front_wall = false;
         }
 
-        if (ir_value.fl > ir_base->is_wall)
+        if (ir_value.fl > ir_is_wall->fl)
         {
             wall.byte |= NORTH << (robot_dir_index + 3) % 4;
+            flag_side_wall_left = true;
         }
+        else
+            flag_side_wall_left = false;
 
-        if (ir_value.fr > ir_base->is_wall)
+        if (ir_value.fr > ir_is_wall->fr)
         {
             wall.byte |= NORTH << (robot_dir_index + 1) % 4;
+            flag_side_wall_right = true;
         }
+        else
+            flag_side_wall_right = false;
 
         prev_wall_cnt = wall.nWall();
 
@@ -567,21 +676,13 @@ namespace undercarriage
     void Controller::UpdatePos(const Direction &dir)
     {
         if (NORTH == dir.byte)
-        {
             robot_position += IndexVec::vecNorth;
-        }
         else if (SOUTH == dir.byte)
-        {
             robot_position += IndexVec::vecSouth;
-        }
         else if (EAST == dir.byte)
-        {
             robot_position += IndexVec::vecEast;
-        }
         else if (WEST == dir.byte)
-        {
             robot_position += IndexVec::vecWest;
-        }
     }
 
     void Controller::UpdateDir(const Direction &dir)
@@ -649,19 +750,24 @@ namespace undercarriage
         dir_diff = next_dir_index - robot_dir_index;
         // 直進
         if (dir_diff == 0)
-        {
-            // GoStraight(ir_value);
-            Acceleration(AccType::forward1);
-        }
+            Acceleration(AccType::forward0);
         // 右
         else if (dir_diff == 1 || dir_diff == -3)
         {
-            Turn(-90);
+            Acceleration(AccType::forward_half);
+            if (ir_value.sl > ir_is_wall->sl && ir_value.sr > ir_is_wall->sr)
+                FrontWallCorrection();
+            PivotTurn(-90);
+            Acceleration(AccType::forward_half);
         }
         // 左
         else if (dir_diff == -1 || dir_diff == 3)
         {
-            Turn(90);
+            Acceleration(AccType::forward_half);
+            if (ir_value.sl > ir_is_wall->sl && ir_value.sr > ir_is_wall->sr)
+                FrontWallCorrection();
+            PivotTurn(90);
+            Acceleration(AccType::forward_half);
         }
         // 180度ターン
         else
@@ -669,11 +775,14 @@ namespace undercarriage
             // 袋小路
             if (prev_wall_cnt == 3)
             {
+                cnt_blind_alley++;
                 BlindAlley();
             }
             else
             {
+                Acceleration(AccType::stop);
                 PivotTurn180();
+                Acceleration(AccType::stop);
             }
         }
         flag_wall = true;
@@ -701,40 +810,23 @@ namespace undercarriage
         // 直進
         if (dir_diff == 0)
         {
-            Acceleration(AccType::forward1);
+            GoStraight();
+            // Acceleration(AccType::forward1);
         }
         // 右
         else if (dir_diff == 1 || dir_diff == -3)
-        {
-            Acceleration(AccType::forward_half);
-            if (ir_value.sl > ir_base->is_wall && ir_value.sr > ir_base->is_wall)
-                FrontWallCorrection();
-            PivotTurn(-90);
-            Acceleration(AccType::forward_half);
-        }
+            Turn(-90);
         // 左
         else if (dir_diff == -1 || dir_diff == 3)
-        {
-            Acceleration(AccType::forward_half);
-            if (ir_value.sl > ir_base->is_wall && ir_value.sr > ir_base->is_wall)
-                FrontWallCorrection();
-            PivotTurn(90);
-            Acceleration(AccType::forward_half);
-        }
+            Turn(90);
         // 180度ターン
         else
         {
             // 袋小路
             if (prev_wall_cnt == 3)
-            {
                 BlindAlley();
-            }
             else
-            {
-                Acceleration(AccType::stop);
                 PivotTurn180();
-                Acceleration(AccType::stop);
-            }
         }
         flag_wall = true;
     }
@@ -744,16 +836,21 @@ namespace undercarriage
         switch (op.op)
         {
         case Operation::FORWARD:
-            // Acceleration(AccType::forward1);
-            GoStraight();
+            Acceleration(AccType::forward0);
             break;
 
         case Operation::TURN_LEFT90:
-            Turn(90);
+            if (ir_value.sl > ir_is_wall->sl && ir_value.sr > ir_is_wall->sr)
+                FrontWallCorrection();
+            PivotTurn(90);
+            Acceleration(AccType::forward0);
             break;
 
         case Operation::TURN_RIGHT90:
-            Turn(-90);
+            if (ir_value.sl > ir_is_wall->sl && ir_value.sr > ir_is_wall->sr)
+                FrontWallCorrection();
+            PivotTurn(-90);
+            Acceleration(AccType::forward0);
             break;
 
         case Operation::STOP:
@@ -769,25 +866,19 @@ namespace undercarriage
         switch (op.op)
         {
         case Operation::FORWARD:
-            Acceleration(AccType::forward1);
+            GoStraight();
             break;
 
         case Operation::TURN_LEFT90:
-            if (ir_value.sl > ir_base->is_wall && ir_value.sr > ir_base->is_wall)
-                FrontWallCorrection();
-            PivotTurn(90);
-            Acceleration(AccType::forward1);
+            Turn(90);
             break;
 
         case Operation::TURN_RIGHT90:
-            if (ir_value.sl > ir_base->is_wall && ir_value.sr > ir_base->is_wall)
-                FrontWallCorrection();
-            PivotTurn(-90);
-            Acceleration(AccType::forward1);
+            Turn(-90);
             break;
 
         case Operation::STOP:
-            Brake();
+            Acceleration(AccType::stop);
             break;
         default:
             break;

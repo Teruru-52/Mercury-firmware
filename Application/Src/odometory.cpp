@@ -15,20 +15,28 @@ namespace undercarriage
 
   void Odometory::Reset()
   {
-    cur_pos.clear();
+    cur_pos.x = 0;
+    cur_pos.y = 0;
     l = 0;
     encoder.Reset();
-    ResetTheta();
+    // ResetTheta();
   }
 
   void Odometory::ResetTheta()
   {
+    cur_pos.th = 0.0;
     imu.ResetTheta();
   }
 
-  int16_t Odometory::GetPulse()
+  int16_t Odometory::GetPulseL()
   {
-    int16_t pulse = encoder.GetPulse();
+    int16_t pulse = encoder.GetPulseL();
+    return pulse;
+  }
+
+  int16_t Odometory::GetPulseR()
+  {
+    int16_t pulse = encoder.GetPulseR();
     return pulse;
   }
 

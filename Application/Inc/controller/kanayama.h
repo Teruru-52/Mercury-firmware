@@ -11,7 +11,7 @@ namespace undercarriage
     public:
         Kanayama(const float Kx, const float Ky, const float Ktheta);
 
-        void UpdateRef(const ctrl::Pose &ref_pos, const ctrl::Pose &ref_vel);
+        void UpdateRef(const ctrl::Pose &ref_p, const ctrl::Pose &ref_v);
         ctrl::Pose CalcInput(const ctrl::Pose &cur_pos);
         void Reset();
 

@@ -78,6 +78,128 @@ namespace hardware
         off_front_right();
     }
 
+    void LED::Func0()
+    {
+        off_all();
+    }
+
+    void LED::Func1()
+    {
+        on_side_right();
+        off_front_right();
+        off_front_left();
+        off_side_left();
+    }
+
+    void LED::Func2()
+    {
+        off_side_right();
+        on_front_right();
+        off_front_left();
+        off_side_left();
+    }
+
+    void LED::Func3()
+    {
+        on_side_right();
+        on_front_right();
+        off_front_left();
+        off_side_left();
+    }
+
+    void LED::Func4()
+    {
+        off_side_right();
+        off_front_right();
+        on_front_left();
+        off_side_left();
+    }
+
+    void LED::Func5()
+    {
+        on_side_right();
+        off_front_right();
+        on_front_left();
+        off_side_left();
+    }
+
+    void LED::Func6()
+    {
+        off_side_right();
+        on_front_right();
+        on_front_left();
+        off_side_left();
+    }
+
+    void LED::Func7()
+    {
+        on_side_right();
+        on_front_right();
+        on_front_left();
+        off_side_left();
+    }
+
+    void LED::Func8()
+    {
+        off_side_right();
+        off_front_right();
+        off_front_left();
+        on_side_left();
+    }
+
+    void LED::Func9()
+    {
+        on_side_right();
+        off_front_right();
+        off_front_left();
+        on_side_left();
+    }
+
+    void LED::Func10()
+    {
+        off_side_right();
+        on_front_right();
+        off_front_left();
+        on_side_left();
+    }
+
+    void LED::Func11()
+    {
+        on_side_right();
+        on_front_right();
+        off_front_left();
+        on_side_left();
+    }
+
+    void LED::Func12()
+    {
+        off_side_right();
+        off_front_right();
+        on_front_left();
+        on_side_left();
+    }
+
+    void LED::Func13()
+    {
+        on_side_right();
+        off_front_right();
+        on_front_left();
+        on_side_left();
+    }
+
+    void LED::Func14()
+    {
+        off_side_right();
+        on_front_right();
+        on_front_left();
+        on_side_left();
+    }
+
+    void LED::Func15()
+    {
+        on_all();
+    }
+
     void LED::Flashing()
     {
         for (int i = 0; i < 2; i++)

@@ -37,7 +37,9 @@ namespace undercarriage
                    undercarriage::Dynamic_Feedback *dynamic_feedback,
                    trajectory::Slalom *slalom,
                    trajectory::Acceleration *acc,
-                   hardware::IR_Base *ir_base);
+                   hardware::IR_Base *ir_base,
+                   hardware::IR_Base *ir_is_wall,
+                   trajectory::Velocity *velocity);
 
         typedef enum
         {
@@ -58,7 +60,8 @@ namespace undercarriage
         void UpdateOdometory();
         bool ErrorFlag();
         void ResetOdometory();
-        int16_t GetPulse();
+        int16_t GetPulseL();
+        int16_t GetPulseR();
         void UpdateIMU();
         // void SetBase();
         void SetIRdata(const IR_Value &ir_value);
@@ -77,6 +80,7 @@ namespace undercarriage
         void PivotTurnRight90();
         void PivotTurnLeft90();
         void PivotTurn180();
+        void CalcSlalomInput();
         void Turn();
         void Acceleration();
         void GoStraight(float ref_l);
@@ -88,12 +92,16 @@ namespace undercarriage
         void InitializePosition();
         void Brake();
         void InputVelocity(float input_v, float input_w);
-        bool GetFlag();
+        bool GetCtrlFlag();
+        bool GetMazeLoadFlag();
+
         void Reset();
         void ResetWallFlag();
+        void ResetMazeLoadFlag();
         void MotorTest(float v_left, float v_right);
         void Logger();
         void OutputLog();
+        void OutputSlalomLog();
 
         bool wallDataReady();
         Direction getWallData(const IR_Value &ir_value);
@@ -123,6 +131,8 @@ namespace undercarriage
         trajectory::PivotTurn90 pivot_turn90;
         Mode mode;
         hardware::IR_Base *ir_base;
+        hardware::IR_Base *ir_is_wall;
+        trajectory::Velocity *velocity;
 
         float v_left;
         float v_right;
@@ -137,35 +147,44 @@ namespace undercarriage
         const float Kp_w = 144.2;
         const float Tp1_v = 0.032;
         const float Kp_v = 0.784493;
+        int vel_mode = 1;
         float ref_v = 0.186825;
         float ref_w;
         const int back_time = 400;       // ms
         const int correction_time = 500; // ms
         const int wait_time = 200;       // ms
         bool flag_controller;
-        bool flag_wall;
+        bool flag_slalom;
+        bool flag_wall; // flag for sensors reading wall
+        bool flag_side_wall_left = true;
+        bool flag_side_wall_right = true;
+        bool flag_front_wall = false;
         bool flag_safety;
-        int cnt;
+        bool flag_maze_load = false;
+        bool flag_side_correct = true;
+        int cnt_blind_alley = 0;
+        int cnt_time = 0;
         int index_log;
-        float l;
+        float theta_base = 0.0;
+        float length;
         ctrl::Pose cur_pos{0, 0, 0};
         ctrl::Pose cur_vel{0, 0, 0};
         float acc_x;
         // float base_theta;
         float error_fl;
         float error_fr;
-        // float *log_x;
-        // float *log_y;
-        // float *log_theta;
-        // float *log_l;
-        // float *log_v;
-        // float *log_a;
-        // float *log_ref_l;
-        // float *log_ref_v;
-        // float *log_ref_a;
-        // float *log_omega;
-        // float *log_kanayama_v;
-        // float *log_kanayama_w;
+        float *log_x;
+        float *log_y;
+        float *log_theta;
+        float *log_l;
+        float *log_v;
+        float *log_a;
+        float *log_ref_l;
+        float *log_ref_v;
+        float *log_ref_a;
+        float *log_omega;
+        float *log_kanayama_v;
+        float *log_kanayama_w;
 
         int prev_wall_cnt = 0;
         int8_t dir_diff;

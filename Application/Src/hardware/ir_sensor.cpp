@@ -2,9 +2,9 @@
 
 namespace hardware
 {
-    IRsensor::IRsensor(float ir_start_base, float ir_wall_base)
+    IRsensor::IRsensor(float ir_start_base, IR_Base *ir_is_wall)
         : ir_start_base(ir_start_base),
-          ir_wall_base(ir_wall_base) {}
+          ir_is_wall(ir_is_wall) {}
 
     void IRsensor::on_front_led()
     {
@@ -40,22 +40,22 @@ namespace hardware
 
     void IRsensor::UI_led_onoff()
     {
-        if (ir_value.fl > ir_wall_base)
+        if (ir_value.fl > ir_is_wall->fl)
             led.on_front_left();
         else
             led.off_front_left();
 
-        if (ir_value.fr > ir_wall_base)
+        if (ir_value.fr > ir_is_wall->fr)
             led.on_front_right();
         else
             led.off_front_right();
 
-        if (ir_value.sl > ir_wall_base)
+        if (ir_value.sl > ir_is_wall->sl)
             led.on_side_left();
         else
             led.off_side_left();
 
-        if (ir_value.sr > ir_wall_base)
+        if (ir_value.sr > ir_is_wall->sr)
             led.on_side_right();
         else
             led.off_side_right();
@@ -77,51 +77,33 @@ namespace hardware
 
     void IRsensor::UpdateSideValue()
     {
-        for (int i = sampling_count - 1; i > 0; i--)
-        {
-            sl[i] = sl[i - 1];
-            sr[i] = sr[i - 1];
-        }
-        sl[0] = dma_b[0];
-        sr[0] = dma_b[1];
+        if (dma_b[0] > max_sl)
+            max_sl = dma_b[0];
+        if (dma_b[1] > max_sr)
+            max_sr = dma_b[1];
     }
 
     void IRsensor::UpdateFrontValue()
     {
-        for (int i = sampling_count - 1; i > 0; i--)
-        {
-            fl[i] = fl[i - 1];
-            fr[i] = fr[i - 1];
-        }
-        fl[0] = dma_f[0];
-        fr[0] = dma_f[1];
+        if (dma_f[0] > max_fl)
+            max_fl = dma_f[0];
+        if (dma_f[1] > max_fr)
+            max_fr = dma_f[1];
     }
 
     void IRsensor::Update()
     {
-        uint32_t max_fl = 0;
-        uint32_t max_fr = 0;
-        uint32_t max_sl = 0;
-        uint32_t max_sr = 0;
-
-        for (int i = sampling_count - 1; i >= 0; i--)
-        {
-            if (fl[i] > max_fl)
-                max_fl = fl[i];
-            if (fr[i] > max_fr)
-                max_fr = fr[i];
-            if (sl[i] > max_sl)
-                max_sl = sl[i];
-            if (sr[i] > max_sr)
-                max_sr = sr[i];
-        }
-
         ir_value.fl = max_fl;
         ir_value.fr = max_fr;
         ir_value.sl = max_sl;
         ir_value.sr = max_sr;
 
         UI_led_onoff();
+
+        max_fl = 0;
+        max_fr = 0;
+        max_sl = 0;
+        max_sr = 0;
     }
 
     IR_Value IRsensor::GetIRSensorData()
@@ -139,19 +121,19 @@ namespace hardware
     {
         UpdateFrontValue();
         bat_vol = static_cast<float>(dma_f[2]) * 3.3 / 4095.0 * 3.0;
-        if (bat_vol > 8.4)
+        if (bat_vol > 8.0)
         {
             led.on_side_right();
         }
-        if (bat_vol > 8.0)
+        if (bat_vol > 7.75)
         {
             led.on_front_right();
         }
-        if (bat_vol > 7.6)
+        if (bat_vol > 7.5)
         {
             led.on_front_left();
         }
-        if (bat_vol > 7.2)
+        if (bat_vol > 7.25)
         {
             led.on_side_left();
         }
@@ -160,7 +142,7 @@ namespace hardware
 
     bool IRsensor::StartInitialize()
     {
-        if (sl[0] > ir_start_base && sr[0] > ir_start_base)
+        if (dma_b[0] > ir_start_base && dma_b[1] > ir_start_base)
             return true;
         else
             return false;

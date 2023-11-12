@@ -26,8 +26,8 @@ namespace hardware
     private:
         float sampling_period;
         // default
-        const float gyro_factor = 16.4;
-        // const float gyro_factor = 16.6;
+        // const float gyro_factor = 16.4;
+        const float gyro_factor = 16.6;
         const float acc_factor = 8192.0;
         const float g = 9.80;
 

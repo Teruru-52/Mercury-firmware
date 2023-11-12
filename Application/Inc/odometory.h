@@ -31,7 +31,8 @@ namespace undercarriage
         void UpdateIMU();
         void Reset();
         void ResetTheta();
-        int16_t GetPulse();
+        int16_t GetPulseL();
+        int16_t GetPulseR();
         ctrl::Pose GetPosition();
         ctrl::Pose GetVelocity();
         float GetAccX();
