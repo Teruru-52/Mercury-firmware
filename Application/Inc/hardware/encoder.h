@@ -17,7 +17,10 @@ namespace hardware
         int16_t GetPulseL();
         int16_t GetPulseR();
         float GetAngularVelocity(int16_t pulse);
+        float GetAngle(int16_t pulse);
         float GetVelocity();
+        float GetPosition();
+        void ResetPulseSum();
 
     private:
         float gear_ratio = 11.0f / 43.0f;
@@ -28,6 +31,8 @@ namespace hardware
         const float ppr = 2048.0;
         int16_t pulse_left;
         int16_t pulse_right;
+        int32_t pulse_left_sum = 0;
+        int32_t pulse_right_sum = 0;
     };
 } // namespace hardware
 
