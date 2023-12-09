@@ -77,8 +77,15 @@ namespace trajectory
         ref_acc.th = state.ddq.th;
 
         t += Ts;
+        if ((t > t_end * 0.8) && (!flag_time))
+        {
+            flag_read_side_wall = true;
+            flag_time = true;
+        }
         if (t + Ts > t_end)
+        {
             flag_slalom = true;
+        }
     }
 
     ctrl::Pose Slalom::GetRefPosition()
@@ -104,8 +111,14 @@ namespace trajectory
     void Slalom::Reset()
     {
         flag_slalom = false;
+        flag_time = false;
         t = 0;
         state.q.x = state.q.y = 0.0;
+    }
+
+    void Slalom::ResetWallFlag()
+    {
+        flag_read_side_wall = false;
     }
 
     // Acceleration
@@ -205,6 +218,14 @@ namespace trajectory
         ref_pos = ad.x(t);
 
         t += Ts;
+        if (acc_type != stop)
+        {
+            if ((t > t_end * 0.99) && (!flag_time))
+            {
+                flag_read_side_wall = true;
+                flag_time = true;
+            }
+        }
         if (t > t_end)
         {
             flag_acc = true;
@@ -233,8 +254,15 @@ namespace trajectory
 
     void Acceleration::Reset()
     {
+        flag_read_side_wall = false;
+        flag_time = false;
         flag_acc = false;
         t = 0;
+    }
+
+    void Acceleration::ResetWallFlag()
+    {
+        flag_read_side_wall = false;
     }
 
     // PivotTurn90

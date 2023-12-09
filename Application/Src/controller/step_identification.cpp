@@ -4,7 +4,7 @@ namespace undercarriage
 {
     Step_Identification::Step_Identification()
         : u_w(0),
-          flag(true),
+          flag(false),
           index(0)
     {
         output = new float[ref_time];
@@ -27,7 +27,7 @@ namespace undercarriage
         else if (index == ref_time)
         {
             motor.Brake();
-            flag = false;
+            flag = true;
         }
     }
 

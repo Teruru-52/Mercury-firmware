@@ -17,7 +17,7 @@ namespace hardware
     {
         TIM3->CNT = 0;
         TIM4->CNT = 0;
-        ResetPulseSum();
+        position = 0.0;
     }
 
     void Encoder::Update_L()
@@ -30,7 +30,6 @@ namespace hardware
             pulse_left = (int16_t)enc_buff * -1;
         else
             pulse_left = (int16_t)enc_buff;
-        pulse_left_sum += pulse_left;
     }
 
     void Encoder::Update_R()
@@ -43,7 +42,6 @@ namespace hardware
             pulse_right = (int16_t)enc_buff;
         else
             pulse_right = (int16_t)enc_buff * -1;
-        pulse_right_sum += pulse_right;
     }
 
     int16_t Encoder::GetPulseL()
@@ -81,12 +79,7 @@ namespace hardware
 
     float Encoder::GetPosition()
     {
-        return (GetAngle(pulse_left_sum) + GetAngle(pulse_right_sum)) * tire_radius / 2.0;
-    }
-
-    void Encoder::ResetPulseSum()
-    {
-        pulse_left_sum = 0;
-        pulse_right_sum = 0;
+        position += (GetAngle(pulse_left) + GetAngle(pulse_right)) * tire_radius / 2.0;
+        return position;
     }
 } // namespace hardware

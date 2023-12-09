@@ -4,7 +4,7 @@ namespace undercarriage
 {
     Identification::Identification()
         : u_w(0),
-          flag(true),
+          flag(false),
           index(0),
           index_log(0)
     {
@@ -21,7 +21,7 @@ namespace undercarriage
     void Identification::UpdateRef()
     {
         m_sequence.UpdateRef();
-        u_w = m_sequence.GetRef();
+        u_w = m_sequence.GetRef() * 1.2;
     }
 
     void Identification::IdenRotate(const ctrl::Pose &cur_vel)
@@ -45,7 +45,7 @@ namespace undercarriage
         {
             motor.Brake();
             m_sequence.ResetTrajectoryIndex();
-            flag = false;
+            flag = true;
         }
     }
 

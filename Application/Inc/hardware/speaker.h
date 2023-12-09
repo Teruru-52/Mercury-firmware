@@ -7,10 +7,14 @@ namespace hardware
 {
     class Speaker
     {
+    private:
+        bool flag_speaker = false;
+
     public:
         void Beep();
         void SpeakerOn();
         void SpeakerOff();
+        void ToggleSpeaker();
     };
 } // namespace hardware
 

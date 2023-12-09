@@ -20,19 +20,19 @@ namespace hardware
         float GetAngle(int16_t pulse);
         float GetVelocity();
         float GetPosition();
-        void ResetPulseSum();
 
     private:
         float gear_ratio = 11.0f / 43.0f;
         float sampling_period; // [s]
-        // float tire_radius = 0.0124; // [m]
+        // float tire_radius = 0.012; // [m]
+        // float tire_radius = 0.0125; // [m]
         // float tire_radius = 0.0129; // [m]
         float tire_radius = 0.0131; // [m]
+        // float tire_radius = 0.0135; // [m]
         const float ppr = 2048.0;
         int16_t pulse_left;
         int16_t pulse_right;
-        int32_t pulse_left_sum = 0;
-        int32_t pulse_right_sum = 0;
+        float position = 0;
     };
 } // namespace hardware
 

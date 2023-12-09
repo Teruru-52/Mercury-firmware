@@ -5,7 +5,7 @@ namespace hardware
     void Speaker::Beep()
     {
         __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, 100);
-        HAL_Delay(30);
+        HAL_Delay(20);
         __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, 0);
     }
 
@@ -17,6 +17,20 @@ namespace hardware
     void Speaker::SpeakerOff()
     {
         __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, 0);
+    }
+
+    void Speaker::ToggleSpeaker()
+    {
+        if (flag_speaker)
+        {
+            flag_speaker = false;
+            SpeakerOff();
+        }
+        else
+        {
+            flag_speaker = true;
+            SpeakerOn();
+        }
     }
 
 } // namespace hardware

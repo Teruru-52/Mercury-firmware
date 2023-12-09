@@ -52,20 +52,15 @@ namespace undercarriage
     cur_vel.x = v;
     cur_vel.y = 0.0;
 
-    // Euler method
-    // cur_pos.x += v * cos(cur_pos.th) * sampling_period;
-    // cur_pos.y += v * sin(cur_pos.th) * sampling_period;
-    // l += v * sampling_period;
-
     // Bilinear transform
-    // cur_pos.x += (v + pre_v) * cos(cur_pos.th) * sampling_period * 0.5;
-    // cur_pos.y += (v + pre_v) * sin(cur_pos.th) * sampling_period * 0.5;
-    // l += (v + pre_v) * sampling_period * 0.5;
-    // pre_v = v;
+    cur_pos.x += (v + pre_v) * cos(cur_pos.th) * sampling_period * 0.5;
+    cur_pos.y += (v + pre_v) * sin(cur_pos.th) * sampling_period * 0.5;
+    l += (v + pre_v) * sampling_period * 0.5;
+    pre_v = v;
 
-    l = encoder.GetPosition();
-    cur_pos.x = l * cos(cur_pos.th);
-    cur_pos.y = l * sin(cur_pos.th);
+    // l = encoder.GetPosition();
+    // cur_pos.x = l * cos(cur_pos.th);
+    // cur_pos.y = l * sin(cur_pos.th);
   }
 
   void Odometory::UpdateIMU()

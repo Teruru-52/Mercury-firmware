@@ -8,6 +8,7 @@ class State
 public:
     typedef enum
     {
+        not_selected,
         func0,
         func1,
         func2,
@@ -44,16 +45,34 @@ public:
         search,
         run_sequence,
         output,
-        test,
+        test_ir,
+        test_odometory,
+        test_rotation,
+        test_slalom1,
+        test_slalom2,
+        test_slalom3,
+        m_identification,
+        step_identification,
+        party_trick,
         error
     } Mode;
+
+    typedef enum
+    {
+        slalom,
+        m_iden,
+        step_iden,
+        pivot_turn,
+        translation
+    } Log;
 
     Function func;
     MazeLoad mazeload;
     Interruption interruption;
     Mode mode;
+    Log log;
 
-    State(Mode init_mode = select_function) : func(func1), mazeload(not_load), interruption(not_interrupt), mode(init_mode) {}
+    State(Mode init_mode = select_function) : func(not_selected), mazeload(not_load), interruption(not_interrupt), mode(init_mode), log(slalom) {}
 };
 
 #endif /* _STATE_H_ */

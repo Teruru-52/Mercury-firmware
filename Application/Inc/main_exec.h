@@ -18,6 +18,7 @@ extern "C"
     void SelectFunc(int16_t pulse_l, int16_t pulse_r);
     void Initialize();
     void UpdateUndercarriage();
+    void UpdateIRSensor();
     void Notification();
     void MazeSearch();
     // void TimeAttack();

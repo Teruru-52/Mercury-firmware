@@ -2,7 +2,8 @@
 
 namespace undercarriage
 {
-    Controller::Controller(undercarriage::Odometory *odom,
+    Controller::Controller(Speaker *speaker,
+                           undercarriage::Odometory *odom,
                            PID *pid_angle,
                            PID *pid_rotational_vel,
                            PID *pid_traslational_vel,
@@ -16,7 +17,8 @@ namespace undercarriage
                            hardware::IR_Base *ir_base,
                            hardware::IR_Base *ir_is_wall,
                            trajectory::Velocity *velocity)
-        : odom(odom),
+        : speaker(speaker),
+          odom(odom),
           pid_angle(pid_angle),
           pid_rotational_vel(pid_rotational_vel),
           pid_traslational_vel(pid_traslational_vel),
@@ -32,7 +34,7 @@ namespace undercarriage
           ir_is_wall(ir_is_wall),
           velocity(velocity),
           flag_controller(false),
-          flag_wall(true),
+          flag_wall(false),
           flag_safety(false),
           index_log(0),
           dir_diff(0),
@@ -67,6 +69,8 @@ namespace undercarriage
     void Controller::UpdateBatteryVoltage(float bat_vol)
     {
         motor.UpdateBatteryVoltage(bat_vol);
+        iden_m.UpdateBatteryVoltage(bat_vol);
+        iden_step.UpdateBatteryVoltage(bat_vol);
     }
 
     void Controller::UpdateOdometory()
@@ -116,6 +120,15 @@ namespace undercarriage
     void Controller::SetIRdata(const IR_Value &ir_value)
     {
         this->ir_value = ir_value;
+        if (slalom->GetWallFlag() || acc->GetWallFlag() || flag_straight_wall)
+        {
+            updateWallData();
+            slalom->ResetWallFlag();
+            acc->ResetWallFlag();
+            flag_straight_wall = false;
+            flag_wall = true;
+            // speaker->ToggleSpeaker();
+        }
     }
 
     void Controller::SetTrajectoryMode(int mode)
@@ -253,6 +266,61 @@ namespace undercarriage
         }
     }
 
+    void Controller::SetM_Iden()
+    {
+        mode = m_iden;
+        while (1)
+        {
+            if (flag_controller)
+            {
+                Reset();
+                break;
+            }
+        }
+    }
+
+    void Controller::SetStep_Iden()
+    {
+        mode = step_iden;
+        while (1)
+        {
+            if (flag_controller)
+            {
+                Reset();
+                break;
+            }
+        }
+    }
+
+    void Controller::SetPartyTrick()
+    {
+        mode = party_trick;
+        while (1)
+        {
+        }
+    }
+
+    void Controller::M_Iden()
+    {
+        iden_m.IdenRotate(cur_vel);
+
+        if (iden_m.GetFlag())
+        {
+            Brake();
+            flag_controller = true;
+        }
+    }
+
+    void Controller::Step_Iden()
+    {
+        iden_step.IdenTrans(cur_vel);
+        if (iden_step.GetFlag())
+        {
+            Brake();
+            flag_controller = true;
+        }
+    }
+
     void Controller::PartyTrick()
     {
         // u_v = pid_traslational_vel->Update(-cur_vel[0]);
@@ -369,6 +437,7 @@ namespace undercarriage
                 if (ir_value.sl > ir_base->sl_slalom || ir_value.sr > ir_base->sr_slalom)
                 {
                     flag_slalom = true;
+                    // cur_pos.x = 0.01;
                     cur_pos.x = 0.01;
                     cur_pos.y = 0.0;
                 }
@@ -408,10 +477,12 @@ namespace undercarriage
         u_v = pid_traslational_vel->Update(ref_vel.x - cur_vel.x) + (Tp1_v * ref_acc.x + ref_vel.x) / Kp_v;
         // u_v = pid_traslational_vel->Update(ref_vel.x - cur_vel.x);
         // u_w = pid_rotational_vel->Update(-cur_vel.th);
+
         if (flag_side_correct)
             u_w = pid_ir_sensor_side->Update(error_fl - error_fr) + pid_angle->Update(theta_base - cur_pos.th);
         else
             u_w = pid_angle->Update(theta_base - cur_pos.th);
+
         InputVelocity(u_v, u_w);
         if (acc->Finished())
             flag_controller = true;
@@ -419,6 +490,11 @@ namespace undercarriage
 
     void Controller::GoStraight(float ref_l)
     {
+        if ((length > ref_l * 0.8) && (!flag_straight_time))
+        {
+            flag_straight_time = true;
+            flag_straight_wall = true;
+        }
         if (length < ref_l)
         {
             SideWallCorrection();
@@ -428,7 +504,10 @@ namespace undercarriage
             InputVelocity(u_v, u_w);
         }
         else
+        {
             flag_controller = true;
+            flag_straight_time = false;
+        }
     }
 
     void Controller::Back(int time)
@@ -600,8 +679,8 @@ namespace undercarriage
 
     void Controller::OutputLog()
     {
-        // printf("%f, %f, %f, %f\n", cur_pos.x, cur_pos.y, cur_pos.th, length);
-        // printf("%f, %f\n", cur_pos[2], cur_vel[1]);
+        printf("%f, %f, %f, %f\n", cur_pos.x, cur_pos.y, cur_pos.th, length);
+        // printf("%f, %f\n", cur.pos[2], cur.vel[1]);
         // printf("%f\n", l);
         // printf("%f, %f\n", u_v, u_w);
         // printf("%f\n", acc_x);
@@ -614,8 +693,27 @@ namespace undercarriage
             // printf("%f, %f, %f, %f, %f\n", log_x[i], log_y[i], log_theta[i], log_kanayama_v[i], log_kanayama_w[i]);
             // printf("%f, %f, %f, %f, %f, %f, %f\n", log_x[i], log_y[i], log_theta[i], log_v[i], log_omega[i], log_kanayama_v[i], log_kanayama_w[i]);
             printf("%f, %f, %f, %f\n", log_x[i], log_y[i], log_theta[i], log_omega[i]);
-            // printf("%f, %f, %f, %f, %f, %f\n", log_l[i], log_v[i], log_a[i], log_ref_l[i], log_ref_v[i], log_ref_a[i]);
         }
+    }
+
+    void Controller::OutputMIdenLog()
+    {
+    }
+
+    void Controller::OutputStepIdenLog()
+    {
+    }
+
+    void Controller::OutputPivotTurnLog()
+    {
+        for (int i = 0; i < ref_size; i++)
+            printf("%f, %f\n", log_theta[i], log_omega[i]);
+    }
+
+    void Controller::OutputTranslationLog()
+    {
+        for (int i = 0; i < ref_size; i++)
+            printf("%f, %f, %f, %f, %f, %f\n", log_l[i], log_v[i], log_a[i], log_ref_l[i], log_ref_v[i], log_ref_a[i]);
     }
 
     bool Controller::wallDataReady()
@@ -623,7 +721,15 @@ namespace undercarriage
         return flag_wall;
     }
 
-    Direction Controller::getWallData(const IR_Value &ir_value)
+    void Controller::updateWallData()
+    {
+        ir_wall_value.sl = ir_value.sl;
+        ir_wall_value.sr = ir_value.sr;
+        ir_wall_value.fl = ir_value.fl;
+        ir_wall_value.fr = ir_value.fr;
+    }
+
+    Direction Controller::getWallData()
     {
         Toggle_GPIO(BACK_LEFT_LED);
         Direction wall;
@@ -636,7 +742,7 @@ namespace undercarriage
             robot_dir_index++;
         }
 
-        if (ir_value.sl > ir_is_wall->sl || ir_value.sr > ir_is_wall->sr)
+        if (ir_wall_value.sl > ir_is_wall->sl || ir_wall_value.sr > ir_is_wall->sr)
         {
             wall.byte |= NORTH << robot_dir_index;
             flag_front_wall = true;
@@ -646,7 +752,7 @@ namespace undercarriage
             flag_front_wall = false;
         }
 
-        if (ir_value.fl > ir_is_wall->fl)
+        if (ir_wall_value.fl > ir_is_wall->fl)
         {
             wall.byte |= NORTH << (robot_dir_index + 3) % 4;
             flag_side_wall_left = true;
@@ -654,7 +760,7 @@ namespace undercarriage
         else
             flag_side_wall_left = false;
 
-        if (ir_value.fr > ir_is_wall->fr)
+        if (ir_wall_value.fr > ir_is_wall->fr)
         {
             wall.byte |= NORTH << (robot_dir_index + 1) % 4;
             flag_side_wall_right = true;
@@ -717,6 +823,15 @@ namespace undercarriage
             break;
         case back:
             Back(back_time);
+            break;
+        case m_iden:
+            M_Iden();
+            break;
+        case step_iden:
+            Step_Iden();
+            break;
+        case party_trick:
+            PartyTrick();
             break;
         case stop:
             Brake();
@@ -785,7 +900,6 @@ namespace undercarriage
                 Acceleration(AccType::stop);
             }
         }
-        flag_wall = true;
     }
 
     void Controller::robotMove2(const Direction &dir)
@@ -828,7 +942,6 @@ namespace undercarriage
             else
                 PivotTurn180();
         }
-        flag_wall = true;
     }
 
     void Controller::robotMove(const Operation &op)

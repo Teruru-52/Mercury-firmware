@@ -9,29 +9,42 @@ hardware::LED led;
 hardware::Speaker speaker;
 
 const float ir_start_base = 2500;
-// Tokyo Tech
-// const float ir_fl_wall = 2180;
-// const float ir_fr_wall = 2200;
-// const float ir_sl_wall = 2200;
-// const float ir_sr_wall = 2200;
-// const float ir_fl_base = 2180;
-// const float ir_fr_base = 2180;
-// const float ir_sl_base = 3820;
-// const float ir_sr_base = 3720;
-// const float ir_sl_slalom = 2380;
-// const float ir_sr_slalom = 2470;
 
-// Kogei dai
-const float ir_fl_wall = 2180;
-const float ir_fr_wall = 2220;
-const float ir_sl_wall = 2160;
-const float ir_sr_wall = 2160;
-const float ir_fl_base = 2250;
-const float ir_fr_base = 2250;
-const float ir_sl_base = 3330;
-const float ir_sr_base = 3400;
-const float ir_sl_slalom = 2430;
-const float ir_sr_slalom = 2400;
+// Tokyo Tech
+const float ir_fl_wall = 2190;
+const float ir_fr_wall = 2190;
+const float ir_sl_wall = 2150;
+const float ir_sr_wall = 2150;
+const float ir_fl_base = 2180;
+const float ir_fr_base = 2180;
+const float ir_sl_base = 3800;
+const float ir_sr_base = 3700;
+const float ir_sl_slalom = 2380;
+const float ir_sr_slalom = 2470;
+
+// Tokyo Polytechnic University
+// const float ir_fl_wall = 2180;
+// const float ir_fr_wall = 2220;
+// const float ir_sl_wall = 2160;
+// const float ir_sr_wall = 2160;
+// const float ir_fl_base = 2250;
+// const float ir_fr_base = 2260;
+// const float ir_sl_base = 3330;
+// const float ir_sr_base = 3400;
+// const float ir_sl_slalom = 2430;
+// const float ir_sr_slalom = 2400;
+
+// RT
+// const float ir_fl_wall = 2150;
+// const float ir_fr_wall = 2150;
+// const float ir_sl_wall = 2150;
+// const float ir_sr_wall = 2150;
+// const float ir_fl_base = 2250;
+// const float ir_fr_base = 2220;
+// const float ir_sl_base = 3240;
+// const float ir_sr_base = 3380;
+// const float ir_sl_slalom = 2500;
+// const float ir_sr_slalom = 2500;
 
 hardware::IR_Value ir_value;
 // for wall judge
@@ -67,7 +80,8 @@ trajectory::Velocity velocity = {.v1 = 0.186825, .v2 = 0.469949951};
 trajectory::Slalom slalom;
 trajectory::Acceleration acc(&velocity);
 
-undercarriage::Controller controller(&odom,
+undercarriage::Controller controller(&speaker,
+                                     &odom,
                                      &pid_angle,
                                      &pid_rotational_vel,
                                      &pid_traslational_vel,

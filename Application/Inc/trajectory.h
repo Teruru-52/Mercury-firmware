@@ -32,6 +32,8 @@ namespace trajectory
         ctrl::Pose GetRefAcceleration();
         bool Finished();
         void Reset();
+        bool GetWallFlag() { return flag_read_side_wall; };
+        void ResetWallFlag();
 
     private:
         // ctrl::slalom::Shape ss_turn90_1 = ctrl::slalom::Shape(ctrl::Pose(90, 90, M_PI / 2), 80, 0, 500 * M_PI, 5 * M_PI, M_PI);
@@ -53,6 +55,8 @@ namespace trajectory
         float t = 0;
         float t_end;
         int ref_size;
+        bool flag_read_side_wall = false;
+        bool flag_time = false;
     };
 
     class Acceleration
@@ -76,7 +80,10 @@ namespace trajectory
         float GetRefVelocity();
         float GetRefAcceleration();
         bool Finished();
+        bool GetReadSideWallFlag() { return flag_read_side_wall; };
         void Reset();
+        bool GetWallFlag() { return flag_read_side_wall; };
+        void ResetWallFlag();
 
     private:
         ctrl::AccelDesigner ad;
@@ -103,6 +110,8 @@ namespace trajectory
         float t = 0;
         float t_end;
         int ref_size;
+        bool flag_read_side_wall = false;
+        bool flag_time = false;
     };
 
     class PivotTurn90

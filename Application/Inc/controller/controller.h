@@ -3,11 +3,14 @@
 
 #include "main.h"
 #include "hardware/motor.h"
+#include "hardware/speaker.h"
 #include "odometory.h"
 #include "controller/pid_controller.h"
 #include "controller/kanayama.h"
 #include "dynamic_feedback.h"
 #include "trajectory.h"
+#include "m_identification.h"
+#include "step_identification.h"
 #include "state.h"
 #include "Operation.h"
 #include "Maze.h"
@@ -26,7 +29,8 @@ namespace undercarriage
     class Controller
     {
     public:
-        Controller(undercarriage::Odometory *odom,
+        Controller(Speaker *speaker,
+                   undercarriage::Odometory *odom,
                    PID *pid_angle,
                    PID *pid_rotational_vel,
                    PID *pid_traslational_vel,
@@ -51,6 +55,9 @@ namespace undercarriage
             pivot_turn_180,
             front_wall_correction,
             back,
+            m_iden,
+            step_iden,
+            party_trick,
             stop,
             wait
         } Mode;
@@ -75,6 +82,12 @@ namespace undercarriage
         void Back();
         void Wait();
 
+        void SetM_Iden();
+        void SetStep_Iden();
+        void SetPartyTrick();
+
+        void M_Iden();
+        void Step_Iden();
         void PartyTrick();
         void SideWallCorrection();
         void PivotTurnRight90();
@@ -102,9 +115,14 @@ namespace undercarriage
         void Logger();
         void OutputLog();
         void OutputSlalomLog();
+        void OutputMIdenLog();
+        void OutputStepIdenLog();
+        void OutputPivotTurnLog();
+        void OutputTranslationLog();
 
         bool wallDataReady();
-        Direction getWallData(const IR_Value &ir_value);
+        void updateWallData();
+        Direction getWallData();
         void UpdatePos(const Direction &dir);
         void UpdateDir(const Direction &dir);
         IndexVec getRobotPosition();
@@ -115,6 +133,7 @@ namespace undercarriage
         void robotMove2(const Operation &op);
 
     private:
+        Speaker *speaker;
         undercarriage::Odometory *odom;
         hardware::Motor motor;
         PID *pid_angle;
@@ -133,6 +152,8 @@ namespace undercarriage
         hardware::IR_Base *ir_base;
         hardware::IR_Base *ir_is_wall;
         trajectory::Velocity *velocity;
+        undercarriage::Identification iden_m;
+        undercarriage::Step_Identification iden_step;
 
         float v_left;
         float v_right;
@@ -162,6 +183,8 @@ namespace undercarriage
         bool flag_safety;
         bool flag_maze_load = false;
         bool flag_side_correct = true;
+        bool flag_straight_wall = false;
+        bool flag_straight_time = false;
         int cnt_blind_alley = 0;
         int cnt_time = 0;
         int index_log;
@@ -185,11 +208,14 @@ namespace undercarriage
         float *log_omega;
         float *log_kanayama_v;
         float *log_kanayama_w;
+        hardware::IR_Value ir_side_value;
+        hardware::IR_Value ir_wall_value;
 
         int prev_wall_cnt = 0;
         int8_t dir_diff;
         IndexVec robot_position;
         Direction robot_dir;
+        bool flag_read_side_wall = false;
     };
 } // namespace undercarriage
 

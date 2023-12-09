@@ -37,6 +37,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         {
             cnt1kHz = (cnt1kHz + 1) % 1000;
             UpdateUndercarriage();
+            UpdateIRSensor();
             controller.robotMove();
 
             if (controller.ErrorFlag())
@@ -53,11 +54,12 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
                 Toggle_GPIO(BACK_RIGHT_LED);
             }
 
-            // if (state.mode == State::test && cnt1kHz % 200 == 0)
             if (cnt1kHz % 200 == 0)
             {
-                // controller.OutputLog();
-                printf("%lu, %lu,%lu, %lu\n", ir_value.fl, ir_value.fr, ir_value.sl, ir_value.sr);
+                if (state.mode == State::test_ir)
+                    printf("%lu, %lu,%lu, %lu\n", ir_value.fl, ir_value.fr, ir_value.sl, ir_value.sr);
+                else if (state.mode == State::test_odometory)
+                    controller.OutputLog();
             }
         }
     }
@@ -74,8 +76,8 @@ void StartupProcess()
 
 void SelectFunc(int16_t pulse_l, int16_t pulse_r)
 {
-    // select function
-    int16_t pulse_diff = 2048;
+    static State pre_state;
+    const int16_t pulse_diff = 2048;
     if (pulse_r < pulse_diff)
     {
         led.Func0();
@@ -166,6 +168,9 @@ void SelectFunc(int16_t pulse_l, int16_t pulse_r)
         led.Func15();
         state.func = State::func15;
     }
+    if (state.func != pre_state.func)
+        speaker.Beep();
+    pre_state.func = state.func;
 
     // select to load maze
     if (pulse_l < 16384)
@@ -196,9 +201,7 @@ void Initialize()
     switch (state.func)
     {
     case State::func0:
-        // __HAL_TIM_SET_COMPARE(&htim8, TIM_CHANNEL_1, 2000);
-        controller.SetTrajectoryMode(1);
-        state.mode = State::test;
+        state.mode = State::test_ir;
         break;
 
     case State::func1: // run slow speed (SEARCHING_NOT_GOAL)
@@ -225,15 +228,52 @@ void Initialize()
         break;
 
     case State::func5: // run slow speed (load maze, Time Attack)
-        LoadMaze();
-        controller.SetTrajectoryMode(1);
-        state.mode = State::run_sequence;
+        __HAL_TIM_SET_COMPARE(&htim8, TIM_CHANNEL_1, 2000);
+        // LoadMaze();
+        // controller.SetTrajectoryMode(1);
+        // state.mode = State::run_sequence;
+        state.mode = State::output;
         break;
 
     case State::func6: // run fast speed (load maze, Time Attack)
         LoadMaze();
         controller.SetTrajectoryMode(2);
         state.mode = State::run_sequence;
+        break;
+
+    case State::func8:
+        state.mode = State::m_identification;
+        break;
+
+    case State::func9:
+        state.mode = State::step_identification;
+        break;
+
+    case State::func10:
+        state.mode = State::party_trick;
+        break;
+
+    case State::func11:
+        controller.SetTrajectoryMode(2);
+        state.mode = State::test_slalom3;
+        break;
+
+    case State::func12:
+        controller.SetTrajectoryMode(1);
+        state.mode = State::test_slalom2;
+        break;
+
+    case State::func13:
+        controller.SetTrajectoryMode(1);
+        state.mode = State::test_slalom1;
+        break;
+
+    case State::func14:
+        state.mode = State::test_rotation;
+        break;
+
+    case State::func15:
+        state.mode = State::test_odometory;
         break;
 
     default:
@@ -256,11 +296,20 @@ void UpdateUndercarriage()
 {
     bat_vol = irsensors.GetBatteryVoltage();
     controller.UpdateBatteryVoltage(bat_vol);
+    controller.UpdateIMU();
+    controller.UpdateOdometory();
+}
+
+void UpdateIRSensor()
+{
     irsensors.Update();
     ir_value = irsensors.GetIRSensorData();
     controller.SetIRdata(ir_value);
-    controller.UpdateIMU();
-    controller.UpdateOdometory();
+    if (controller.wallDataReady())
+    {
+        wallData = controller.getWallData();
+        controller.ResetWallFlag();
+    }
 }
 
 void Notification()
@@ -276,17 +325,16 @@ void MazeSearch()
 {
     while (1)
     {
-        while (1)
-        {
-            if (controller.wallDataReady())
-            {
-                controller.ResetWallFlag();
-                break;
-            }
-        }
+        // while (1)
+        // {
+        //     if (controller.wallDataReady())
+        //     {
+        //         controller.ResetWallFlag();
+        //         break;
+        //     }
+        // }
         controller.UpdateDir(nextDir);
         controller.UpdatePos(nextDir);
-        wallData = controller.getWallData(ir_value);
         robotPos = controller.getRobotPosition();
         agent.update(robotPos, wallData);
         if (agent.getState() == Agent::FINISHED)
@@ -341,6 +389,9 @@ void TimeAttack()
 
 void StateProcess()
 {
+    if (Read_GPIO(USER_SW) == 0)
+        speaker.Beep();
+
     if (state.mode == State::select_function)
     {
         irsensors.UpdateSideValue();
@@ -352,42 +403,80 @@ void StateProcess()
             Initialize();
     }
 
-    else if (state.mode == State::test)
+    else if (state.mode == State::test_slalom1)
     {
-        // for (int i = 0; i < 12; i++)
-        //     controller.PivotTurn(90);
-
-        // controller.StartMove();
+        controller.StartMove();
         // controller.Acceleration(AccType::start);
         // controller.GoStraight();
-        // controller.Turn(90);
-        // controller.Turn(-90);
-        // controller.Turn(-90);
-        // controller.Turn(-90);
-        // for (int i = 0; i < 7; i++)
-        // {
-        //     wallData = controller.getWallData(ir_value);
-        //     controller.robotMove2(WEST); // slalom
-        // controller.Turn(90);
-        // controller.GoStraight();
-        // Toggle_GPIO(BACK_LEFT_LED);
-        // }
-        // controller.Acceleration(AccType::stop);
-
-        // state.mode = State::output;
+        controller.Turn(-90);
+        controller.Acceleration(AccType::stop);
+        controller.FrontWallCorrection();
+        state.log = State::slalom;
+        state.mode = State::output;
     }
+
+    else if (state.mode == State::test_slalom2)
+    {
+        controller.StartMove();
+        // controller.Acceleration(AccType::start);
+        controller.GoStraight();
+        for (int i = 0; i < 7; i++)
+        {
+            wallData = controller.getWallData();
+            controller.robotMove2(WEST); // slalom
+            controller.Turn(90);
+            controller.GoStraight();
+            Toggle_GPIO(BACK_LEFT_LED);
+        }
+        controller.Acceleration(AccType::stop);
+        state.log = State::slalom;
+        state.mode = State::output;
+    }
+
+    else if (state.mode == State::test_rotation)
+    {
+        for (int i = 0; i < 8; i++)
+            controller.PivotTurn(90);
+        for (int i = 0; i < 4; i++)
+            controller.PivotTurn(180);
+        state.log = State::pivot_turn;
+        state.mode = State::output;
+    }
+
+    else if (state.mode == State::m_identification)
+    {
+        controller.SetM_Iden();
+        state.log = State::m_iden;
+        state.mode = State::output;
+    }
+
+    else if (state.mode == State::step_identification)
+    {
+        controller.SetStep_Iden();
+        state.log = State::step_iden;
+        state.mode = State::output;
+    }
+
+    else if (state.mode == State::party_trick)
+        controller.SetPartyTrick();
 
     else if (state.mode == State::output)
     {
         controller.Brake();
         state.interruption = State::not_interrupt;
-        irsensors.UpdateSideValue();
 
-        // if (Read_GPIO(USER_SW) == 0)
-        if (irsensors.StartInitialize())
+        if (Read_GPIO(USER_SW) == 0)
         {
-            // controller.OutputLog();
-            controller.OutputSlalomLog();
+            if (state.log == State::slalom)
+                controller.OutputSlalomLog();
+            else if (state.log == State::m_iden)
+                controller.OutputMIdenLog();
+            else if (state.log == State::step_iden)
+                controller.OutputStepIdenLog();
+            else if (state.log == State::pivot_turn)
+                controller.OutputPivotTurnLog();
+            else if (state.log == State::translation)
+                controller.OutputTranslationLog();
         }
     }
 
