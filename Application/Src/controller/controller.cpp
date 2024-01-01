@@ -698,10 +698,12 @@ namespace undercarriage
 
     void Controller::OutputMIdenLog()
     {
+        iden_m.OutputLog();
     }
 
     void Controller::OutputStepIdenLog()
     {
+        iden_step.OutputLog();
     }
 
     void Controller::OutputPivotTurnLog()
