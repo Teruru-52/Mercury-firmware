@@ -59,9 +59,9 @@ namespace undercarriage
     length += (vel_x + pre_vel_x) * sampling_period * 0.5;
     pre_vel_x = vel_x;
 
-    // l = encoder.GetPosition();
-    // cur_pos.x = l * cos(cur_pos.th);
-    // cur_pos.y = l * sin(cur_pos.th);
+    // length = encoder.GetPosition();
+    // cur_pos.x = length * cos(cur_pos.th);
+    // cur_pos.y = length * sin(cur_pos.th);
   }
 
   void Odometory::OutputLog()

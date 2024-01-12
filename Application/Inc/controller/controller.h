@@ -62,15 +62,16 @@ namespace undercarriage
             wait
         } Mode;
 
-        void InitializeOdometory();
+        void InitializeOdometory() { odom->Initialize(); };
+        void ResetOdometory() { odom->Reset(); };
+        int16_t GetPulseL() { return odom->GetPulseL(); };
+        int16_t GetPulseR() { return odom->GetPulseR(); };
+
         void UpdateBatteryVoltage(float bat_vol);
         void UpdateOdometory();
         bool ErrorFlag();
-        void ResetOdometory();
-        int16_t GetPulseL();
-        int16_t GetPulseR();
-        // void UpdateIMU();
-        // void SetBase();
+        // void UpdateIMU() { odom->UpdateIMU(); };
+        // void SetBase() { theta_base = cur_pos.th; };
         void SetIRdata(const IR_Value &ir_value);
         void SetTrajectoryMode(int mode = 1);
 
@@ -115,17 +116,17 @@ namespace undercarriage
         void Logger();
         void OutputLog();
         void OutputSlalomLog();
-        void OutputMIdenLog();
-        void OutputStepIdenLog();
+        void OutputMIdenLog() { iden_m.OutputLog(); };
+        void OutputStepIdenLog() { iden_step.OutputLog(); };
         void OutputPivotTurnLog();
         void OutputTranslationLog();
 
-        bool wallDataReady();
+        bool wallDataReady() { return flag_wall; };
         void updateWallData();
         Direction getWallData();
         void UpdatePos(const Direction &dir);
         void UpdateDir(const Direction &dir);
-        IndexVec getRobotPosition();
+        IndexVec getRobotPosition() { return robot_position; };
         void robotMove();
         void DirMove(const Direction &dir);
         void DirMoveSlalom(const Direction &dir);
@@ -171,7 +172,7 @@ namespace undercarriage
         const float Tp1_v = 0.032;
         const float Kp_v = 0.784493;
         int vel_mode = 1;
-        float ref_v = 0.186825;
+        float ref_v;
         float ref_w;
         const int back_time = 400;       // ms
         const int correction_time = 500; // ms

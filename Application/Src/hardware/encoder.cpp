@@ -64,22 +64,22 @@ namespace hardware
 
     float Encoder::GetAngularVelocity(int16_t pulse)
     {
-        return (float)pulse * (2.0 * M_PI / ppr) * gear_ratio / sampling_period / 4.0;
+        return (float)pulse * (2.0 * M_PI / ppr) * gear_ratio / sampling_period * 0.25;
     }
 
     float Encoder::GetAngle(int16_t pulse)
     {
-        return (float)pulse * (2.0 * M_PI / ppr) * gear_ratio / 4.0;
+        return (float)pulse * (2.0 * M_PI / ppr) * gear_ratio / 0.25;
     }
 
     float Encoder::GetVelocity()
     {
-        return (GetAngularVelocity(pulse_left) + GetAngularVelocity(pulse_right)) * tire_radius / 2.0;
+        return (GetAngularVelocity(pulse_left) + GetAngularVelocity(pulse_right)) * tire_radius * 0.5;
     }
 
     float Encoder::GetPosition()
     {
-        position += (GetAngle(pulse_left) + GetAngle(pulse_right)) * tire_radius / 2.0;
+        position += (GetAngle(pulse_left) + GetAngle(pulse_right)) * tire_radius * 0.5;
         return position;
     }
 } // namespace hardware

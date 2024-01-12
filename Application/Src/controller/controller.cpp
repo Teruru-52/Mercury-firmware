@@ -61,11 +61,6 @@ namespace undercarriage
         log_kanayama_w = new float[ref_size];
     }
 
-    void Controller::InitializeOdometory()
-    {
-        odom->Initialize();
-    }
-
     void Controller::UpdateBatteryVoltage(float bat_vol)
     {
         motor.UpdateBatteryVoltage(bat_vol);
@@ -79,7 +74,6 @@ namespace undercarriage
         cur_pos = odom->GetPosition();
         cur_vel = odom->GetVelocity();
         length = odom->GetLength();
-        // length = cur_pos.x;
         acc_x = odom->GetAccX();
     }
 
@@ -89,33 +83,6 @@ namespace undercarriage
             flag_safety = true;
         return flag_safety;
     }
-
-    void Controller::ResetOdometory()
-    {
-        odom->Reset();
-    }
-
-    int16_t Controller::GetPulseL()
-    {
-        int16_t pulse = odom->GetPulseL();
-        return pulse;
-    }
-
-    int16_t Controller::GetPulseR()
-    {
-        int16_t pulse = odom->GetPulseR();
-        return pulse;
-    }
-
-    // void Controller::UpdateIMU()
-    // {
-    //     odom->UpdateIMU();
-    // }
-
-    // void Controller::SetBase()
-    // {
-    // theta_base = cur_pos.th;
-    // }
 
     void Controller::SetIRdata(const IR_Value &ir_value)
     {
@@ -693,16 +660,6 @@ namespace undercarriage
         }
     }
 
-    void Controller::OutputMIdenLog()
-    {
-        iden_m.OutputLog();
-    }
-
-    void Controller::OutputStepIdenLog()
-    {
-        iden_step.OutputLog();
-    }
-
     void Controller::OutputPivotTurnLog()
     {
         for (int i = 0; i < ref_size; i++)
@@ -713,11 +670,6 @@ namespace undercarriage
     {
         for (int i = 0; i < ref_size; i++)
             printf("%f, %f, %f, %f, %f, %f\n", log_l[i], log_v[i], log_a[i], log_ref_l[i], log_ref_v[i], log_ref_a[i]);
-    }
-
-    bool Controller::wallDataReady()
-    {
-        return flag_wall;
     }
 
     void Controller::updateWallData()
@@ -770,12 +722,6 @@ namespace undercarriage
         prev_wall_cnt = wall.nWall();
 
         return wall;
-    }
-
-    IndexVec Controller::getRobotPosition()
-    {
-        // 絶対座標系で返す
-        return robot_position;
     }
 
     void Controller::UpdatePos(const Direction &dir)
