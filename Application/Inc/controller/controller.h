@@ -106,20 +106,20 @@ namespace undercarriage
         void InitializePosition();
         void Brake();
         void InputVelocity(float input_v, float input_w);
-        bool GetCtrlFlag();
-        bool GetMazeLoadFlag();
+        bool GetCtrlFlag() { return flag_controller; };
+        bool GetMazeLoadFlag() { return flag_maze_load; };
 
         void Reset();
-        void ResetWallFlag();
-        void ResetMazeLoadFlag();
+        void ResetWallFlag() { flag_wall = false; };
+        void ResetMazeLoadFlag() { flag_maze_load = false; };
         void MotorTest(float v_left, float v_right);
         void Logger();
         void OutputLog();
         void OutputSlalomLog();
-        void OutputMIdenLog() { iden_m.OutputLog(); };
-        void OutputStepIdenLog() { iden_step.OutputLog(); };
         void OutputPivotTurnLog();
         void OutputTranslationLog();
+        void OutputMIdenLog() { iden_m.OutputLog(); };
+        void OutputStepIdenLog() { iden_step.OutputLog(); };
 
         bool wallDataReady() { return flag_wall; };
         void updateWallData();
@@ -177,20 +177,20 @@ namespace undercarriage
         const int back_time = 400;       // ms
         const int correction_time = 500; // ms
         const int wait_time = 200;       // ms
-        bool flag_controller;
+        bool flag_controller = false;
         bool flag_slalom;
-        bool flag_wall; // flag for sensors reading wall
+        bool flag_wall = false; // flag for sensors reading wall
         bool flag_side_wall_left = true;
         bool flag_side_wall_right = true;
         bool flag_front_wall = false;
-        bool flag_safety;
+        bool flag_safety = false;
         bool flag_maze_load = false;
         bool flag_side_correct = true;
         bool flag_straight_wall = false;
         bool flag_straight_time = false;
         int cnt_blind_alley = 0;
         int cnt_time = 0;
-        int index_log;
+        int index_log = 0;
         float theta_base = 0.0;
         float length;
         ctrl::Pose cur_pos{0, 0, 0};
@@ -215,9 +215,9 @@ namespace undercarriage
         hardware::IR_Value ir_wall_value;
 
         int prev_wall_cnt = 0;
-        int8_t dir_diff;
-        IndexVec robot_position;
-        Direction robot_dir;
+        int8_t dir_diff = 0;
+        IndexVec robot_position = {0, 0};
+        Direction robot_dir = NORTH;
         bool flag_read_side_wall = false;
     };
 } // namespace undercarriage

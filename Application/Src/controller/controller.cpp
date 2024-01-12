@@ -32,14 +32,7 @@ namespace undercarriage
           mode(stop),
           ir_base(ir_base),
           ir_is_wall(ir_is_wall),
-          velocity(velocity),
-          flag_controller(false),
-          flag_wall(false),
-          flag_safety(false),
-          index_log(0),
-          dir_diff(0),
-          robot_position(0, 0),
-          robot_dir(NORTH)
+          velocity(velocity)
     {
         // ref_size = slalom->GetRefSize();
         // ref_size = acc->GetRefSize();
@@ -569,16 +562,6 @@ namespace undercarriage
         motor.Drive(v_left, v_right);
     }
 
-    bool Controller::GetCtrlFlag()
-    {
-        return flag_controller;
-    }
-
-    bool Controller::GetMazeLoadFlag()
-    {
-        return flag_maze_load;
-    }
-
     void Controller::Reset()
     {
         kanayama->Reset();
@@ -605,16 +588,6 @@ namespace undercarriage
         index_log = 0;
         cnt_time = 0;
         flag_controller = false;
-    }
-
-    void Controller::ResetWallFlag()
-    {
-        flag_wall = false;
-    }
-
-    void Controller::ResetMazeLoadFlag()
-    {
-        flag_maze_load = false;
     }
 
     void Controller::MotorTest(float v_left, float v_right)
