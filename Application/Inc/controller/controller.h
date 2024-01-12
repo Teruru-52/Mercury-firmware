@@ -63,7 +63,6 @@ namespace undercarriage
         } Mode;
 
         void InitializeOdometory() { odom->Initialize(); };
-        void ResetOdometory() { odom->Reset(); };
         int16_t GetPulseL() { return odom->GetPulseL(); };
         int16_t GetPulseR() { return odom->GetPulseR(); };
 

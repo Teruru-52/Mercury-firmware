@@ -11,6 +11,7 @@ namespace undercarriage
   {
     imu.Initialize();
     imu.CalcOffset();
+    Reset();
   }
 
   void Odometory::Reset()
@@ -18,6 +19,7 @@ namespace undercarriage
     cur_pos.x = 0;
     cur_pos.y = 0;
     length = 0;
+    pre_vel_x = 0;
     encoder.Reset();
     // ResetTheta();
   }
@@ -26,18 +28,6 @@ namespace undercarriage
   {
     cur_pos.th = 0.0;
     imu.ResetTheta();
-  }
-
-  int16_t Odometory::GetPulseL()
-  {
-    int16_t pulse = encoder.GetPulseL();
-    return pulse;
-  }
-
-  int16_t Odometory::GetPulseR()
-  {
-    int16_t pulse = encoder.GetPulseR();
-    return pulse;
   }
 
   void Odometory::Update()

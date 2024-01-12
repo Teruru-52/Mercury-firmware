@@ -31,8 +31,8 @@ namespace undercarriage
         // void UpdateIMU() { imu.Update(); };
         void Reset();
         void ResetTheta();
-        int16_t GetPulseL();
-        int16_t GetPulseR();
+        int16_t GetPulseL() { return encoder.GetPulseL(); };
+        int16_t GetPulseR() { return encoder.GetPulseR(); };
         void OutputLog();
 
         ctrl::Pose GetPosition() { return cur_pos; };

@@ -191,7 +191,6 @@ void Initialize()
     speaker.Beep();
     controller.InitializeOdometory();
     speaker.Beep();
-    controller.ResetOdometory();
 
     wallData = 0x0E;
     robotPos = IndexVec(0, 0);
