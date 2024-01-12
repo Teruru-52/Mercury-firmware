@@ -403,104 +403,104 @@ void StateProcess()
             Initialize();
     }
 
-    else if (state.mode == State::test_slalom1)
+    else
     {
-        controller.StartMove();
-        // controller.Acceleration(AccType::start);
-        // controller.GoStraight();
-        controller.Turn(-90);
-        controller.Acceleration(AccType::stop);
-        controller.FrontWallCorrection();
-        state.log = State::slalom;
-        state.mode = State::output;
-    }
-
-    else if (state.mode == State::test_slalom2)
-    {
-        controller.StartMove();
-        // controller.Acceleration(AccType::start);
-        controller.GoStraight();
-        for (int i = 0; i < 7; i++)
+        switch (state.mode)
         {
-            wallData = controller.getWallData();
-            controller.robotMove2(WEST); // slalom
-            controller.Turn(90);
+        case State::test_slalom1:
+            controller.StartMove();
+            // controller.Acceleration(AccType::start);
+            // controller.GoStraight();
+            controller.Turn(-90);
+            controller.Acceleration(AccType::stop);
+            controller.FrontWallCorrection();
+            state.log = State::slalom;
+            state.mode = State::output;
+            break;
+
+        case State::test_slalom2:
+            controller.StartMove();
+            // controller.Acceleration(AccType::start);
             controller.GoStraight();
-            Toggle_GPIO(BACK_LEFT_LED);
+            for (int i = 0; i < 7; i++)
+            {
+                wallData = controller.getWallData();
+                controller.robotMove2(WEST); // slalom
+                controller.Turn(90);
+                controller.GoStraight();
+                Toggle_GPIO(BACK_LEFT_LED);
+            }
+            controller.Acceleration(AccType::stop);
+            state.log = State::slalom;
+            state.mode = State::output;
+            break;
+
+        case State::test_rotation:
+            for (int i = 0; i < 8; i++)
+                controller.PivotTurn(90);
+            for (int i = 0; i < 4; i++)
+                controller.PivotTurn(180);
+            state.log = State::pivot_turn;
+            state.mode = State::output;
+            break;
+
+        case State::m_identification:
+            controller.SetM_Iden();
+            state.log = State::m_iden;
+            state.mode = State::output;
+            break;
+
+        case State::step_identification:
+            controller.SetStep_Iden();
+            state.log = State::step_iden;
+            state.mode = State::output;
+            break;
+
+        case State::party_trick:
+            controller.SetPartyTrick();
+            break;
+
+        case State::output:
+            controller.Brake();
+            state.interruption = State::not_interrupt;
+
+            if (Read_GPIO(USER_SW) == 0)
+            {
+                if (state.log == State::slalom)
+                    controller.OutputSlalomLog();
+                else if (state.log == State::m_iden)
+                    controller.OutputMIdenLog();
+                else if (state.log == State::step_iden)
+                    controller.OutputStepIdenLog();
+                else if (state.log == State::pivot_turn)
+                    controller.OutputPivotTurnLog();
+                else if (state.log == State::translation)
+                    controller.OutputTranslationLog();
+            }
+            break;
+
+        case State::search:
+            controller.StartMove();
+            MazeSearch();
+            controller.InitializePosition();
+            Notification();
+            // FlashMaze();
+            agent.caclRunSequence(false);
+            // state.mode = State::select_function;
+            state.mode = State::run_sequence;
+            break;
+
+        case State::error:
+            state.interruption = State::not_interrupt;
+            break;
+
+        case State::State::run_sequence:
+            TimeAttack();
+            break;
+
+        default:
+            break;
         }
-        controller.Acceleration(AccType::stop);
-        state.log = State::slalom;
-        state.mode = State::output;
-    }
-
-    else if (state.mode == State::test_rotation)
-    {
-        for (int i = 0; i < 8; i++)
-            controller.PivotTurn(90);
-        for (int i = 0; i < 4; i++)
-            controller.PivotTurn(180);
-        state.log = State::pivot_turn;
-        state.mode = State::output;
-    }
-
-    else if (state.mode == State::m_identification)
-    {
-        controller.SetM_Iden();
-        state.log = State::m_iden;
-        state.mode = State::output;
-    }
-
-    else if (state.mode == State::step_identification)
-    {
-        controller.SetStep_Iden();
-        state.log = State::step_iden;
-        state.mode = State::output;
-    }
-
-    else if (state.mode == State::party_trick)
-        controller.SetPartyTrick();
-
-    else if (state.mode == State::output)
-    {
-        controller.Brake();
-        state.interruption = State::not_interrupt;
-
-        if (Read_GPIO(USER_SW) == 0)
-        {
-            if (state.log == State::slalom)
-                controller.OutputSlalomLog();
-            else if (state.log == State::m_iden)
-                controller.OutputMIdenLog();
-            else if (state.log == State::step_iden)
-                controller.OutputStepIdenLog();
-            else if (state.log == State::pivot_turn)
-                controller.OutputPivotTurnLog();
-            else if (state.log == State::translation)
-                controller.OutputTranslationLog();
-        }
-    }
-
-    else if (state.mode == State::search)
-    {
-        controller.StartMove();
-        MazeSearch();
-
-        controller.InitializePosition();
-        Notification();
-        // FlashMaze();
-        agent.caclRunSequence(false);
-
-        // state.mode = State::select_function;
-        state.mode = State::run_sequence;
-    }
-
-    else if (state.mode == State::run_sequence)
-    {
-        TimeAttack();
-    }
-    else if (state.mode == State::error)
-    {
-        state.interruption = State::not_interrupt;
     }
 }
 
