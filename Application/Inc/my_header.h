@@ -1,7 +1,6 @@
 #ifndef _MY_HEADER_H_
 #define _MY_HEADER_H_
 
-#include "controller/controller.h"
 #include "instance.h"
 #include "digital_filter.h"
 #include "controller/m_identification.h"
