@@ -846,7 +846,7 @@ namespace undercarriage
         }
     }
 
-    void Controller::robotMove(const Direction &dir)
+    void Controller::DirMove(const Direction &dir)
     {
         int8_t robot_dir_index = 0;
         while (1)
@@ -904,7 +904,7 @@ namespace undercarriage
         }
     }
 
-    void Controller::robotMove2(const Direction &dir)
+    void Controller::DirMoveSlalom(const Direction &dir)
     {
         int8_t robot_dir_index = 0;
         while (1)
@@ -946,7 +946,7 @@ namespace undercarriage
         }
     }
 
-    void Controller::robotMove(const Operation &op)
+    void Controller::OpMove(const Operation &op)
     {
         switch (op.op)
         {
@@ -976,7 +976,7 @@ namespace undercarriage
         }
     }
 
-    void Controller::robotMove2(const Operation &op)
+    void Controller::OpMoveSlalom(const Operation &op)
     {
         switch (op.op)
         {

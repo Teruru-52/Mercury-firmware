@@ -127,10 +127,10 @@ namespace undercarriage
         void UpdateDir(const Direction &dir);
         IndexVec getRobotPosition();
         void robotMove();
-        void robotMove(const Direction &dir);
-        void robotMove2(const Direction &dir);
-        void robotMove(const Operation &op);
-        void robotMove2(const Operation &op);
+        void DirMove(const Direction &dir);
+        void DirMoveSlalom(const Direction &dir);
+        void OpMove(const Operation &op);
+        void OpMoveSlalom(const Operation &op);
 
     private:
         Speaker *speaker;
