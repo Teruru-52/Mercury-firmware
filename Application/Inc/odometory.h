@@ -18,26 +18,27 @@ namespace undercarriage
         float sampling_period;       // [s]
         ctrl::Pose cur_pos{0, 0, 0}; // absolute coordinates
         ctrl::Pose cur_vel{0, 0, 0}; // robot coordinates
-        float v;
-        float pre_v{0.0};
+        float vel_x;
+        float pre_vel_x{0.0};
         float acc_x;
-        float l{0.0};
+        float length{0.0};
 
     public:
         Odometory(float sampling_period);
 
         void Initialize();
         void Update();
-        void UpdateIMU();
+        // void UpdateIMU() { imu.Update(); };
         void Reset();
         void ResetTheta();
         int16_t GetPulseL();
         int16_t GetPulseR();
-        ctrl::Pose GetPosition();
-        ctrl::Pose GetVelocity();
-        float GetAccX();
-        float GetLength();
         void OutputLog();
+
+        ctrl::Pose GetPosition() { return cur_pos; };
+        ctrl::Pose GetVelocity() { return cur_vel; };
+        float GetAccX() { return acc_x; };
+        float GetLength() { return length; };
     };
 } //  namespace undercarriage
 #endif //  ODOMETORY_H_

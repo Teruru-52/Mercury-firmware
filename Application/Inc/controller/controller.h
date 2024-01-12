@@ -69,7 +69,7 @@ namespace undercarriage
         void ResetOdometory();
         int16_t GetPulseL();
         int16_t GetPulseR();
-        void UpdateIMU();
+        // void UpdateIMU();
         // void SetBase();
         void SetIRdata(const IR_Value &ir_value);
         void SetTrajectoryMode(int mode = 1);
@@ -161,9 +161,11 @@ namespace undercarriage
         float u_v;
         int ref_size;
         IR_Value ir_value;
-        ctrl::Pose ref_pos{0, 0, 0}; // absolute coordinates
-        ctrl::Pose ref_vel{0, 0, 0}; // robot coordinates
-        ctrl::Pose ref_acc{0, 0, 0}; // robot coordinates
+        ctrl::Pose ref_pos{0, 0, 0};  // absolute coordinates
+        ctrl::Pose ref_vel{0, 0, 0};  // robot coordinates
+        ctrl::Pose ref_acc{0, 0, 0};  // robot coordinates
+        const float acc_x_err = 30.0; // error threshold
+        const float vel_x_err = 20.0; // error threshold
         const float Tp1_w = 31.83;
         const float Kp_w = 144.2;
         const float Tp1_v = 0.032;

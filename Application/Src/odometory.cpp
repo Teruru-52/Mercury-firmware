@@ -17,7 +17,7 @@ namespace undercarriage
   {
     cur_pos.x = 0;
     cur_pos.y = 0;
-    l = 0;
+    length = 0;
     encoder.Reset();
     // ResetTheta();
   }
@@ -42,55 +42,34 @@ namespace undercarriage
 
   void Odometory::Update()
   {
+    imu.Update();
     encoder.Update();
 
-    v = encoder.GetVelocity();
+    vel_x = encoder.GetVelocity();
     acc_x = imu.GetAccX();
     cur_pos.th = imu.GetAngle();
     cur_vel.th = imu.GetAngularVelocity();
 
-    cur_vel.x = v;
+    cur_vel.x = vel_x;
     cur_vel.y = 0.0;
 
     // Bilinear transform
-    cur_pos.x += (v + pre_v) * cos(cur_pos.th) * sampling_period * 0.5;
-    cur_pos.y += (v + pre_v) * sin(cur_pos.th) * sampling_period * 0.5;
-    l += (v + pre_v) * sampling_period * 0.5;
-    pre_v = v;
+    cur_pos.x += (vel_x + pre_vel_x) * cos(cur_pos.th) * sampling_period * 0.5;
+    cur_pos.y += (vel_x + pre_vel_x) * sin(cur_pos.th) * sampling_period * 0.5;
+    length += (vel_x + pre_vel_x) * sampling_period * 0.5;
+    pre_vel_x = vel_x;
 
     // l = encoder.GetPosition();
     // cur_pos.x = l * cos(cur_pos.th);
     // cur_pos.y = l * sin(cur_pos.th);
   }
 
-  void Odometory::UpdateIMU()
-  {
-    imu.Update();
-  }
-
-  ctrl::Pose Odometory::GetPosition()
-  {
-    return cur_pos;
-  }
-
-  ctrl::Pose Odometory::GetVelocity()
-  {
-    return cur_vel;
-  }
-
-  float Odometory::GetAccX()
-  {
-    return acc_x;
-  }
-
-  float Odometory::GetLength()
-  {
-    return l;
-  }
-
   void Odometory::OutputLog()
   {
-    // printf("%f, %f\n", cur_pos.th, cur_vel.th);
+    printf("%f, %f, %f, %f\n", cur_pos.x, cur_pos.y, cur_pos.th, length);
+    // printf("%f, %f\n", cur.pos[2], cur.vel[1]);
+    // printf("%f\n", acc_x);
     // printf("%f, %f\n", cur_pos.x, cur_pos.y);
+    // printf("%f, %f\n", cur_pos.th, cur_vel.th);
   }
 } //  namespace undercarriage

@@ -296,7 +296,6 @@ void UpdateUndercarriage()
 {
     bat_vol = irsensors.GetBatteryVoltage();
     controller.UpdateBatteryVoltage(bat_vol);
-    controller.UpdateIMU();
     controller.UpdateOdometory();
 }
 

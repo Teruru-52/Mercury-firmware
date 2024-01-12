@@ -85,7 +85,7 @@ namespace undercarriage
 
     bool Controller::ErrorFlag()
     {
-        if (acc_x < -30.0 || fabs(cur_vel.x) > 20.0)
+        if (acc_x < -acc_x_err || fabs(cur_vel.x) > vel_x_err)
             flag_safety = true;
         return flag_safety;
     }
@@ -107,10 +107,10 @@ namespace undercarriage
         return pulse;
     }
 
-    void Controller::UpdateIMU()
-    {
-        odom->UpdateIMU();
-    }
+    // void Controller::UpdateIMU()
+    // {
+    //     odom->UpdateIMU();
+    // }
 
     // void Controller::SetBase()
     // {
@@ -679,11 +679,8 @@ namespace undercarriage
 
     void Controller::OutputLog()
     {
-        printf("%f, %f, %f, %f\n", cur_pos.x, cur_pos.y, cur_pos.th, length);
-        // printf("%f, %f\n", cur.pos[2], cur.vel[1]);
-        // printf("%f\n", l);
+        odom->OutputLog();
         // printf("%f, %f\n", u_v, u_w);
-        // printf("%f\n", acc_x);
     }
 
     void Controller::OutputSlalomLog()
