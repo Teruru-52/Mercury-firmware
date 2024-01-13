@@ -60,7 +60,7 @@ namespace undercarriage
             party_trick,
             stop,
             wait
-        } Mode;
+        } CtrlMode;
 
         void InitializeOdometory() { odom->Initialize(); };
         int16_t GetPulseL() { return odom->GetPulseL(); };
@@ -68,12 +68,15 @@ namespace undercarriage
 
         void UpdateBatteryVoltage(float bat_vol);
         void UpdateOdometory();
-        bool ErrorFlag();
         // void UpdateIMU() { odom->UpdateIMU(); };
-        // void SetBase() { theta_base = cur_pos.th; };
         void SetIRdata(const IR_Value &ir_value);
-        void SetTrajectoryMode(int mode = 1);
+        void SetTrajectoryMode(int trj_mode = 1);
+        // void SetBase() { theta_base = cur_pos.th; };
+        bool ErrorFlag();
 
+        void SetM_Iden();
+        void SetStep_Iden();
+        void SetPartyTrick();
         void PivotTurn(int angle);
         void Turn(int angle);
         void Acceleration(const AccType &acc_type);
@@ -81,10 +84,6 @@ namespace undercarriage
         void FrontWallCorrection();
         void Back();
         void Wait();
-
-        void SetM_Iden();
-        void SetStep_Iden();
-        void SetPartyTrick();
 
         void M_Iden();
         void Step_Iden();
@@ -103,20 +102,12 @@ namespace undercarriage
         void InitializePosition();
         void Brake();
         void InputVelocity(float input_v, float input_w);
-        bool GetCtrlFlag() { return flag_controller; };
-        bool GetMazeLoadFlag() { return flag_maze_load; };
 
         void ResetCtrl();
+        bool GetCtrlFlag() { return flag_ctrl; };
+        bool GetMazeLoadFlag() { return flag_maze_load; };
         void ResetWallFlag() { flag_wall = false; };
         void ResetMazeLoadFlag() { flag_maze_load = false; };
-        void MotorTest(float v_left, float v_right);
-        void Logger();
-        void OutputLog();
-        void OutputSlalomLog();
-        void OutputPivotTurnLog();
-        void OutputTranslationLog();
-        void OutputMIdenLog() { iden_m.OutputLog(); };
-        void OutputStepIdenLog() { iden_step.OutputLog(); };
 
         bool wallDataReady() { return flag_wall; };
         void updateWallData() { ir_wall_value = ir_value; };
@@ -128,6 +119,15 @@ namespace undercarriage
         void robotMove();
         void DirMove(const Direction &dir);
         void OpMove(const Operation &op);
+
+        void Logger();
+        void OutputLog();
+        void OutputSlalomLog();
+        void OutputPivotTurnLog();
+        void OutputTranslationLog();
+        void OutputMIdenLog() { iden_m.OutputLog(); };
+        void OutputStepIdenLog() { iden_step.OutputLog(); };
+        void MotorTest(float v_left, float v_right);
 
     private:
         Speaker *speaker;
@@ -145,7 +145,7 @@ namespace undercarriage
         trajectory::Acceleration *acc;
         trajectory::PivotTurn180 pivot_turn180;
         trajectory::PivotTurn90 pivot_turn90;
-        Mode mode;
+        CtrlMode mode_ctrl;
         hardware::IR_Base *ir_base;
         hardware::IR_Base *ir_is_wall;
         trajectory::Velocity *velocity;
@@ -156,44 +156,57 @@ namespace undercarriage
         float v_right;
         float u_w;
         float u_v;
+
+        float ref_v;
+        float ref_w;
         int ref_size;
-        IR_Value ir_value;
-        ctrl::Pose ref_pos{0, 0, 0};  // absolute coordinates
-        ctrl::Pose ref_vel{0, 0, 0};  // robot coordinates
-        ctrl::Pose ref_acc{0, 0, 0};  // robot coordinates
+
+        float theta_base = 0.0;
+        float length;
+        ctrl::Pose cur_pos{0, 0, 0};
+        ctrl::Pose cur_vel{0, 0, 0};
+        ctrl::Pose ref_pos{0, 0, 0}; // absolute coordinates
+        ctrl::Pose ref_vel{0, 0, 0}; // robot coordinates
+        ctrl::Pose ref_acc{0, 0, 0}; // robot coordinates
+        float acc_x;
         const float acc_x_err = 30.0; // error threshold
         const float vel_x_err = 20.0; // error threshold
+
         const float Tp1_w = 31.83;
         const float Kp_w = 144.2;
         const float Tp1_v = 0.032;
         const float Kp_v = 0.784493;
-        float ref_v;
-        float ref_w;
+
+        hardware::IR_Value ir_value;
+        hardware::IR_Value ir_wall_value;
+        bool flag_read_side_wall = false;
+        float error_fl;
+        float error_fr;
+
+        int prev_wall_cnt = 0;
+        int8_t dir_diff = 0;
+        IndexVec robot_position = {0, 0};
+        Direction robot_dir = NORTH;
+
         const int back_time = 400;       // ms
         const int correction_time = 500; // ms
         const int wait_time = 200;       // ms
-        bool flag_controller = false;
+        int cnt_blind_alley = 0;
+        int cnt_time = 0;
+
+        bool flag_ctrl = false;
         bool flag_slalom;
         bool flag_wall = false; // flag for sensors reading wall
-        bool flag_side_wall_left = true;
-        bool flag_side_wall_right = true;
-        bool flag_front_wall = false;
+        bool flag_wall_sl = true;
+        bool flag_wall_sr = true;
+        bool flag_wall_front = false;
         bool flag_safety = false;
         bool flag_maze_load = false;
         bool flag_side_correct = true;
         bool flag_straight_wall = false;
         bool flag_straight_time = false;
-        int cnt_blind_alley = 0;
-        int cnt_time = 0;
+
         int index_log = 0;
-        float theta_base = 0.0;
-        float length;
-        ctrl::Pose cur_pos{0, 0, 0};
-        ctrl::Pose cur_vel{0, 0, 0};
-        float acc_x;
-        // float base_theta;
-        float error_fl;
-        float error_fr;
         float *log_x;
         float *log_y;
         float *log_theta;
@@ -206,14 +219,6 @@ namespace undercarriage
         float *log_omega;
         float *log_kanayama_v;
         float *log_kanayama_w;
-        hardware::IR_Value ir_side_value;
-        hardware::IR_Value ir_wall_value;
-
-        int prev_wall_cnt = 0;
-        int8_t dir_diff = 0;
-        IndexVec robot_position = {0, 0};
-        Direction robot_dir = NORTH;
-        bool flag_read_side_wall = false;
     };
 } // namespace undercarriage
 

@@ -29,7 +29,7 @@ namespace undercarriage
           dynamic_feedback(dynamic_feedback),
           slalom(slalom),
           acc(acc),
-          mode(stop),
+          mode_ctrl(stop),
           ir_base(ir_base),
           ir_is_wall(ir_is_wall),
           velocity(velocity)
@@ -70,13 +70,6 @@ namespace undercarriage
         acc_x = odom->GetAccX();
     }
 
-    bool Controller::ErrorFlag()
-    {
-        if (acc_x < -acc_x_err || fabs(cur_vel.x) > vel_x_err)
-            flag_safety = true;
-        return flag_safety;
-    }
-
     void Controller::SetIRdata(const IR_Value &ir_value)
     {
         this->ir_value = ir_value;
@@ -91,12 +84,12 @@ namespace undercarriage
         }
     }
 
-    void Controller::SetTrajectoryMode(int mode)
+    void Controller::SetTrajectoryMode(int trj_mode)
     {
-        slalom->SetMode(mode);
-        acc->SetMode(mode);
+        slalom->SetMode(trj_mode);
+        acc->SetMode(trj_mode);
 
-        switch (mode)
+        switch (trj_mode)
         {
         case 1:
             ref_v = velocity->v1;
@@ -112,17 +105,58 @@ namespace undercarriage
         }
     }
 
+    bool Controller::ErrorFlag()
+    {
+        if (acc_x < -acc_x_err || fabs(cur_vel.x) > vel_x_err)
+            flag_safety = true;
+        return flag_safety;
+    }
+
+    void Controller::SetM_Iden()
+    {
+        mode_ctrl = m_iden;
+        while (1)
+        {
+            if (flag_ctrl)
+            {
+                ResetCtrl();
+                break;
+            }
+        }
+    }
+
+    void Controller::SetStep_Iden()
+    {
+        mode_ctrl = step_iden;
+        while (1)
+        {
+            if (flag_ctrl)
+            {
+                ResetCtrl();
+                break;
+            }
+        }
+    }
+
+    void Controller::SetPartyTrick()
+    {
+        mode_ctrl = party_trick;
+        while (1)
+        {
+        }
+    }
+
     void Controller::PivotTurn(int angle)
     {
         if (angle == 90)
-            mode = pivot_turn_left_90;
+            mode_ctrl = pivot_turn_left_90;
         else if (angle == -90)
-            mode = pivot_turn_right_90;
+            mode_ctrl = pivot_turn_right_90;
         else if (angle == 180)
-            mode = pivot_turn_180;
+            mode_ctrl = pivot_turn_180;
         while (1)
         {
-            if (flag_controller)
+            if (flag_ctrl)
             {
                 if (angle == 90)
                     theta_base += M_PI / 2;
@@ -139,11 +173,11 @@ namespace undercarriage
     void Controller::Turn(int angle)
     {
         slalom->ResetTrajectory(angle);
-        slalom->SetInitialTime(flag_front_wall);
-        mode = turn;
+        slalom->SetInitialTime(flag_wall_front);
+        mode_ctrl = turn;
         while (1)
         {
-            if (flag_controller)
+            if (flag_ctrl)
             {
                 if (angle == 90)
                     theta_base += M_PI / 2;
@@ -158,10 +192,10 @@ namespace undercarriage
     void Controller::Acceleration(const AccType &acc_type)
     {
         acc->ResetAccCurve(acc_type);
-        mode = acc_curve;
+        mode_ctrl = acc_curve;
         while (1)
         {
-            if (flag_controller)
+            if (flag_ctrl)
             {
                 theta_base = cur_pos.th;
                 ResetCtrl();
@@ -172,10 +206,10 @@ namespace undercarriage
 
     void Controller::GoStraight()
     {
-        mode = forward;
+        mode_ctrl = forward;
         while (1)
         {
-            if (flag_controller)
+            if (flag_ctrl)
             {
                 theta_base = cur_pos.th;
                 ResetCtrl();
@@ -186,10 +220,10 @@ namespace undercarriage
 
     void Controller::FrontWallCorrection()
     {
-        mode = front_wall_correction;
+        mode_ctrl = front_wall_correction;
         while (1)
         {
-            if (flag_controller)
+            if (flag_ctrl)
             {
                 ResetCtrl();
                 break;
@@ -199,10 +233,10 @@ namespace undercarriage
 
     void Controller::Back()
     {
-        mode = back;
+        mode_ctrl = back;
         while (1)
         {
-            if (flag_controller)
+            if (flag_ctrl)
             {
                 odom->ResetTheta();
                 theta_base = 0.0;
@@ -214,48 +248,14 @@ namespace undercarriage
 
     void Controller::Wait()
     {
-        mode = wait;
+        mode_ctrl = wait;
         while (1)
         {
-            if (flag_controller)
+            if (flag_ctrl)
             {
                 ResetCtrl();
                 break;
             }
-        }
-    }
-
-    void Controller::SetM_Iden()
-    {
-        mode = m_iden;
-        while (1)
-        {
-            if (flag_controller)
-            {
-                ResetCtrl();
-                break;
-            }
-        }
-    }
-
-    void Controller::SetStep_Iden()
-    {
-        mode = step_iden;
-        while (1)
-        {
-            if (flag_controller)
-            {
-                ResetCtrl();
-                break;
-            }
-        }
-    }
-
-    void Controller::SetPartyTrick()
-    {
-        mode = party_trick;
-        while (1)
-        {
         }
     }
 
@@ -266,7 +266,7 @@ namespace undercarriage
         if (iden_m.GetFlag())
         {
             Brake();
-            flag_controller = true;
+            flag_ctrl = true;
         }
     }
 
@@ -276,7 +276,7 @@ namespace undercarriage
         if (iden_step.GetFlag())
         {
             Brake();
-            flag_controller = true;
+            flag_ctrl = true;
         }
     }
 
@@ -290,7 +290,7 @@ namespace undercarriage
 
     void Controller::SideWallCorrection()
     {
-        if (flag_side_wall_left)
+        if (flag_wall_sl)
         {
             if (ir_value.fl > ir_is_wall->fl)
                 error_fl = ir_base->fl - static_cast<float>(ir_value.fl);
@@ -302,7 +302,7 @@ namespace undercarriage
         else
             error_fl = 0;
 
-        if (flag_side_wall_right)
+        if (flag_wall_sr)
         {
             if (ir_value.fr > ir_is_wall->fr)
                 error_fr = ir_base->fr - static_cast<float>(ir_value.fr);
@@ -317,17 +317,17 @@ namespace undercarriage
 
     void Controller::PivotTurn()
     {
-        if (mode == pivot_turn_right_90)
+        if (mode_ctrl == pivot_turn_right_90)
         {
             pivot_turn90.UpdateRef();
             ref_w = -pivot_turn90.GetRefVelocity();
         }
-        else if (mode == pivot_turn_left_90)
+        else if (mode_ctrl == pivot_turn_left_90)
         {
             pivot_turn90.UpdateRef();
             ref_w = pivot_turn90.GetRefVelocity();
         }
-        else if (mode == pivot_turn_180)
+        else if (mode_ctrl == pivot_turn_180)
         {
             pivot_turn180.UpdateRef();
             ref_w = pivot_turn180.GetRefVelocity();
@@ -340,7 +340,7 @@ namespace undercarriage
         if (pivot_turn90.Finished() || pivot_turn180.Finished())
         {
             Brake();
-            flag_controller = true;
+            flag_ctrl = true;
         }
     }
 
@@ -368,7 +368,7 @@ namespace undercarriage
 
     void Controller::Turn()
     {
-        // if (flag_front_wall)
+        // if (flag_wall_front)
         // {
         //     if (!flag_slalom)
         //     {
@@ -396,7 +396,7 @@ namespace undercarriage
         InputVelocity(u_v, u_w);
         // Logger();
         if (slalom->Finished())
-            flag_controller = true;
+            flag_ctrl = true;
     }
 
     void Controller::Acceleration()
@@ -424,7 +424,7 @@ namespace undercarriage
 
         InputVelocity(u_v, u_w);
         if (acc->Finished())
-            flag_controller = true;
+            flag_ctrl = true;
     }
 
     void Controller::GoStraight(float ref_l)
@@ -444,7 +444,7 @@ namespace undercarriage
         }
         else
         {
-            flag_controller = true;
+            flag_ctrl = true;
             flag_straight_time = false;
         }
     }
@@ -459,7 +459,7 @@ namespace undercarriage
         else
         {
             Brake();
-            flag_controller = true;
+            flag_ctrl = true;
         }
     }
 
@@ -471,7 +471,7 @@ namespace undercarriage
             cnt_time++;
         }
         else
-            flag_controller = true;
+            flag_ctrl = true;
     }
 
     void Controller::FrontWallCorrection(const IR_Value &ir_value)
@@ -487,7 +487,7 @@ namespace undercarriage
         }
         else
         {
-            flag_controller = true;
+            flag_ctrl = true;
         }
     }
 
@@ -530,7 +530,7 @@ namespace undercarriage
 
     void Controller::Brake()
     {
-        mode = stop;
+        mode_ctrl = stop;
         motor.Brake();
     }
 
@@ -560,68 +560,13 @@ namespace undercarriage
         odom->Reset();
         odom->ResetTheta();
         theta_base = 0.0;
-        mode = stop;
+        mode_ctrl = stop;
 
         flag_slalom = false;
         flag_side_correct = true;
         index_log = 0;
         cnt_time = 0;
-        flag_controller = false;
-    }
-
-    void Controller::MotorTest(float v_left, float v_right)
-    {
-        motor.Drive(v_left, v_right); // voltage [V]
-    }
-
-    void Controller::Logger()
-    {
-        log_x[index_log] = cur_pos.x;
-        log_y[index_log] = cur_pos.y;
-        log_theta[index_log] = cur_pos.th;
-        log_l[index_log] = length;
-        log_v[index_log] = cur_vel.x;
-        log_a[index_log] = acc_x;
-        log_ref_l[index_log] = ref_pos.x;
-        log_ref_v[index_log] = ref_vel.x;
-        log_ref_a[index_log] = ref_acc.x * cos(cur_pos.th);
-        log_omega[index_log] = cur_vel.th;
-        log_kanayama_v[index_log] = ref_vel.x;
-        log_kanayama_w[index_log] = ref_vel.th;
-
-        log_x[index_log] = ref_pos.x;
-        log_y[index_log] = ref_pos.y;
-        log_theta[index_log] = ref_pos.th;
-        log_omega[index_log] = ref_vel.th;
-        index_log++;
-    }
-
-    void Controller::OutputLog()
-    {
-        odom->OutputLog();
-        // printf("%f, %f\n", u_v, u_w);
-    }
-
-    void Controller::OutputSlalomLog()
-    {
-        for (int i = 0; i < ref_size; i++)
-        {
-            // printf("%f, %f, %f, %f, %f\n", log_x[i], log_y[i], log_theta[i], log_kanayama_v[i], log_kanayama_w[i]);
-            // printf("%f, %f, %f, %f, %f, %f, %f\n", log_x[i], log_y[i], log_theta[i], log_v[i], log_omega[i], log_kanayama_v[i], log_kanayama_w[i]);
-            printf("%f, %f, %f, %f\n", log_x[i], log_y[i], log_theta[i], log_omega[i]);
-        }
-    }
-
-    void Controller::OutputPivotTurnLog()
-    {
-        for (int i = 0; i < ref_size; i++)
-            printf("%f, %f\n", log_theta[i], log_omega[i]);
-    }
-
-    void Controller::OutputTranslationLog()
-    {
-        for (int i = 0; i < ref_size; i++)
-            printf("%f, %f, %f, %f, %f, %f\n", log_l[i], log_v[i], log_a[i], log_ref_l[i], log_ref_v[i], log_ref_a[i]);
+        flag_ctrl = false;
     }
 
     Direction Controller::getWallData()
@@ -640,26 +585,26 @@ namespace undercarriage
         if (ir_wall_value.sl > ir_is_wall->sl || ir_wall_value.sr > ir_is_wall->sr)
         {
             wall.byte |= NORTH << robot_dir_index;
-            flag_front_wall = true;
+            flag_wall_front = true;
         }
         else
-            flag_front_wall = false;
+            flag_wall_front = false;
 
         if (ir_wall_value.fl > ir_is_wall->fl)
         {
             wall.byte |= NORTH << (robot_dir_index + 3) % 4;
-            flag_side_wall_left = true;
+            flag_wall_sl = true;
         }
         else
-            flag_side_wall_left = false;
+            flag_wall_sl = false;
 
         if (ir_wall_value.fr > ir_is_wall->fr)
         {
             wall.byte |= NORTH << (robot_dir_index + 1) % 4;
-            flag_side_wall_right = true;
+            flag_wall_sr = true;
         }
         else
-            flag_side_wall_right = false;
+            flag_wall_sr = false;
 
         prev_wall_cnt = wall.nWall();
 
@@ -680,7 +625,7 @@ namespace undercarriage
 
     void Controller::robotMove()
     {
-        switch (mode)
+        switch (mode_ctrl)
         {
         case forward:
             GoStraight(FORWARD_LENGTH2);
@@ -850,5 +795,60 @@ namespace undercarriage
         default:
             break;
         }
+    }
+
+    void Controller::Logger()
+    {
+        log_x[index_log] = cur_pos.x;
+        log_y[index_log] = cur_pos.y;
+        log_theta[index_log] = cur_pos.th;
+        log_l[index_log] = length;
+        log_v[index_log] = cur_vel.x;
+        log_a[index_log] = acc_x;
+        log_ref_l[index_log] = ref_pos.x;
+        log_ref_v[index_log] = ref_vel.x;
+        log_ref_a[index_log] = ref_acc.x * cos(cur_pos.th);
+        log_omega[index_log] = cur_vel.th;
+        log_kanayama_v[index_log] = ref_vel.x;
+        log_kanayama_w[index_log] = ref_vel.th;
+
+        log_x[index_log] = ref_pos.x;
+        log_y[index_log] = ref_pos.y;
+        log_theta[index_log] = ref_pos.th;
+        log_omega[index_log] = ref_vel.th;
+        index_log++;
+    }
+
+    void Controller::OutputLog()
+    {
+        odom->OutputLog();
+        // printf("%f, %f\n", u_v, u_w);
+    }
+
+    void Controller::OutputSlalomLog()
+    {
+        for (int i = 0; i < ref_size; i++)
+        {
+            // printf("%f, %f, %f, %f, %f\n", log_x[i], log_y[i], log_theta[i], log_kanayama_v[i], log_kanayama_w[i]);
+            // printf("%f, %f, %f, %f, %f, %f, %f\n", log_x[i], log_y[i], log_theta[i], log_v[i], log_omega[i], log_kanayama_v[i], log_kanayama_w[i]);
+            printf("%f, %f, %f, %f\n", log_x[i], log_y[i], log_theta[i], log_omega[i]);
+        }
+    }
+
+    void Controller::OutputPivotTurnLog()
+    {
+        for (int i = 0; i < ref_size; i++)
+            printf("%f, %f\n", log_theta[i], log_omega[i]);
+    }
+
+    void Controller::OutputTranslationLog()
+    {
+        for (int i = 0; i < ref_size; i++)
+            printf("%f, %f, %f, %f, %f, %f\n", log_l[i], log_v[i], log_a[i], log_ref_l[i], log_ref_v[i], log_ref_a[i]);
+    }
+
+    void Controller::MotorTest(float v_left, float v_right)
+    {
+        motor.Drive(v_left, v_right); // voltage [V]
     }
 }
