@@ -44,14 +44,14 @@ namespace undercarriage
     cur_vel.y = 0.0;
 
     // Bilinear transform
-    cur_pos.x += (vel_x + pre_vel_x) * cos(cur_pos.th) * sampling_period * 0.5;
-    cur_pos.y += (vel_x + pre_vel_x) * sin(cur_pos.th) * sampling_period * 0.5;
-    length += (vel_x + pre_vel_x) * sampling_period * 0.5;
-    pre_vel_x = vel_x;
+    // cur_pos.x += (vel_x + pre_vel_x) * cos(cur_pos.th) * sampling_period * 0.5;
+    // cur_pos.y += (vel_x + pre_vel_x) * sin(cur_pos.th) * sampling_period * 0.5;
+    // length += (vel_x + pre_vel_x) * sampling_period * 0.5;
+    // pre_vel_x = vel_x;
 
-    // length = encoder.GetPosition();
-    // cur_pos.x = length * cos(cur_pos.th);
-    // cur_pos.y = length * sin(cur_pos.th);
+    length += encoder.GetPosition();
+    cur_pos.x = length * cos(cur_pos.th);
+    cur_pos.y = length * sin(cur_pos.th);
   }
 
   void Odometory::OutputLog()

@@ -1,4 +1,4 @@
-#include "../../Inc/hardware/encoder.h"
+#include "hardware/encoder.h"
 
 #include <cmath>
 
@@ -17,7 +17,6 @@ namespace hardware
     {
         TIM3->CNT = 0;
         TIM4->CNT = 0;
-        position = 0.0;
     }
 
     void Encoder::Update_L()
@@ -69,7 +68,7 @@ namespace hardware
 
     float Encoder::GetAngle(int16_t pulse)
     {
-        return (float)pulse * (2.0 * M_PI / ppr) * gear_ratio / 0.25;
+        return (float)pulse * (2.0 * M_PI / ppr) * gear_ratio * 0.25;
     }
 
     float Encoder::GetVelocity()
@@ -79,7 +78,6 @@ namespace hardware
 
     float Encoder::GetPosition()
     {
-        position += (GetAngle(pulse_left) + GetAngle(pulse_right)) * tire_radius * 0.5;
-        return position;
+        return (GetAngle(pulse_left) + GetAngle(pulse_right)) * tire_radius * 0.5;
     }
 } // namespace hardware
