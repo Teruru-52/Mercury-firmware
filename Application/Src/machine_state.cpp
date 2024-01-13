@@ -115,7 +115,7 @@ void State::SelectFunc(int16_t pulse_r)
 
 void State::SelectLoadMaze(int16_t pulse_l)
 {
-    if (pulse_l < 16384)
+    if (pulse_l < PULSE_HALF)
     {
         led->off_back_right();
         mazeload = not_load;

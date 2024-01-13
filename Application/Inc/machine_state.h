@@ -6,6 +6,7 @@
 #include "hardware/speaker.h"
 
 #define PULSE_DIFF 2048
+#define PULSE_HALF 16384
 
 class State
 {
