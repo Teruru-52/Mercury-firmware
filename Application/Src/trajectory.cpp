@@ -29,11 +29,6 @@ namespace trajectory
         // printf("v_ref = %f\n", v);
     }
 
-    void Slalom::SetMode(int slalom_mode)
-    {
-        this->slalom_mode = slalom_mode;
-    }
-
     void Slalom::SetInitialTime(bool flag_front_wall)
     {
         if (flag_front_wall)
@@ -88,37 +83,12 @@ namespace trajectory
         }
     }
 
-    ctrl::Pose Slalom::GetRefPosition()
-    {
-        return ref_pos;
-    }
-
-    ctrl::Pose Slalom::GetRefVelocity()
-    {
-        return ref_vel;
-    }
-
-    ctrl::Pose Slalom::GetRefAcceleration()
-    {
-        return ref_acc;
-    }
-
-    bool Slalom::Finished()
-    {
-        return flag_slalom;
-    }
-
     void Slalom::Reset()
     {
         flag_slalom = false;
         flag_time = false;
         t = 0;
         state.q.x = state.q.y = 0.0;
-    }
-
-    void Slalom::ResetWallFlag()
-    {
-        flag_read_side_wall = false;
     }
 
     // Acceleration
@@ -183,11 +153,6 @@ namespace trajectory
         t_end = ad.t_end();
     }
 
-    void Acceleration::SetMode(int acc_mode)
-    {
-        this->acc_mode = acc_mode;
-    }
-
     int Acceleration::GetRefSize()
     {
         ref_size = ad.t_end() * 1e+3;
@@ -215,37 +180,12 @@ namespace trajectory
         }
     }
 
-    float Acceleration::GetRefPosition()
-    {
-        return ref_pos;
-    }
-
-    float Acceleration::GetRefVelocity()
-    {
-        return ref_vel;
-    }
-
-    float Acceleration::GetRefAcceleration()
-    {
-        return ref_acc;
-    }
-
-    bool Acceleration::Finished()
-    {
-        return flag_acc;
-    }
-
     void Acceleration::Reset()
     {
         flag_read_side_wall = false;
         flag_time = false;
         flag_acc = false;
         t = 0;
-    }
-
-    void Acceleration::ResetWallFlag()
-    {
-        flag_read_side_wall = false;
     }
 
     // PivotTurn90
@@ -269,25 +209,10 @@ namespace trajectory
         }
     }
 
-    int PivotTurn90::GetRefSize()
-    {
-        return sizeof(ref_w) / sizeof(float);
-    }
-
-    bool PivotTurn90::Finished()
-    {
-        return flag;
-    }
-
     void PivotTurn90::Reset()
     {
         flag = false;
         index = 0;
-    }
-
-    float PivotTurn90::GetRefVelocity()
-    {
-        return ref;
     }
 
     // PivotTurn180
@@ -311,25 +236,10 @@ namespace trajectory
         }
     }
 
-    int PivotTurn180::GetRefSize()
-    {
-        return sizeof(ref_w) / sizeof(float);
-    }
-
-    bool PivotTurn180::Finished()
-    {
-        return flag;
-    }
-
     void PivotTurn180::Reset()
     {
         flag = false;
         index = 0;
-    }
-
-    float PivotTurn180::GetRefVelocity()
-    {
-        return ref;
     }
 
     // M Sequence
@@ -338,16 +248,6 @@ namespace trajectory
           flag(true)
     {
         ref_size = GetRefSize();
-    }
-
-    void M_sequence::ResetTrajectoryIndex()
-    {
-        index = 0;
-    }
-
-    int M_sequence::GetRefSize()
-    {
-        return sizeof(ref_u_w) / sizeof(float);
     }
 
     void M_sequence::UpdateRef()
@@ -361,15 +261,5 @@ namespace trajectory
         {
             flag = false;
         }
-    }
-
-    float M_sequence::GetRef()
-    {
-        return ref;
-    }
-
-    bool M_sequence::GetFlag()
-    {
-        return flag;
     }
 }

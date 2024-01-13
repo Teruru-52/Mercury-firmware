@@ -29,17 +29,17 @@ namespace trajectory
     public:
         Slalom() { ResetTrajectory(); };
         void ResetTrajectory(int angle = 90);
-        void SetMode(int slalom_mode);
+        void SetMode(int slalom_mode) { this->slalom_mode = slalom_mode; };
         void SetInitialTime(bool flag_front_wall);
         int GetRefSize();
         void UpdateRef();
-        ctrl::Pose GetRefPosition();
-        ctrl::Pose GetRefVelocity();
-        ctrl::Pose GetRefAcceleration();
-        bool Finished();
+        ctrl::Pose GetRefPosition() { return ref_pos; };
+        ctrl::Pose GetRefVelocity() { return ref_vel; };
+        ctrl::Pose GetRefAcceleration() { return ref_acc; };
+        bool Finished() { return flag_slalom; };
         void Reset();
         bool GetWallFlag() { return flag_read_side_wall; };
-        void ResetWallFlag();
+        void ResetWallFlag() { flag_read_side_wall = false; };
 
     private:
         // ctrl::slalom::Shape ss_turn90_1 = ctrl::slalom::Shape(ctrl::Pose(90, 90, M_PI / 2), 80, 0, 500 * M_PI, 5 * M_PI, M_PI);
@@ -80,17 +80,17 @@ namespace trajectory
 
         Acceleration(Velocity *velocity);
         void ResetAccCurve(const AccType &acc_type);
-        void SetMode(int acc_mode = 1);
+        void SetMode(int acc_mode = 1) { this->acc_mode = acc_mode; };
         int GetRefSize();
         void UpdateRef();
-        float GetRefPosition();
-        float GetRefVelocity();
-        float GetRefAcceleration();
-        bool Finished();
+        float GetRefPosition() { return ref_pos; };
+        float GetRefVelocity() { return ref_vel; };
+        float GetRefAcceleration() { return ref_acc; };
+        bool Finished() { return flag_acc; };
         bool GetReadSideWallFlag() { return flag_read_side_wall; };
         void Reset();
         bool GetWallFlag() { return flag_read_side_wall; };
-        void ResetWallFlag();
+        void ResetWallFlag() { flag_read_side_wall = false; };
 
     private:
         ctrl::AccelDesigner ad;
@@ -128,10 +128,10 @@ namespace trajectory
     public:
         PivotTurn90();
         void UpdateRef();
-        int GetRefSize();
-        bool Finished();
+        int GetRefSize() { return sizeof(ref_w) / sizeof(float); };
+        bool Finished() { return flag; };
         void Reset();
-        float GetRefVelocity();
+        float GetRefVelocity() { return ref; };
 
     private:
         int index;
@@ -459,10 +459,10 @@ namespace trajectory
     public:
         PivotTurn180();
         void UpdateRef();
-        int GetRefSize();
-        bool Finished();
+        int GetRefSize() { return sizeof(ref_w) / sizeof(float); };
+        bool Finished() { return flag; };
         void Reset();
-        float GetRefVelocity();
+        float GetRefVelocity() { return ref; };
 
     private:
         int index;
@@ -1003,11 +1003,11 @@ namespace trajectory
     {
     public:
         M_sequence();
-        void ResetTrajectoryIndex();
-        int GetRefSize();
+        void ResetTrajectoryIndex() { index = 0; };
+        int GetRefSize() { return sizeof(ref_u_w) / sizeof(float); };
         void UpdateRef();
-        float GetRef();
-        bool GetFlag();
+        float GetRef() { return ref; };
+        bool GetFlag() { return flag; };
 
     private:
         int index;
