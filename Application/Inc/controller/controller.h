@@ -90,9 +90,7 @@ namespace undercarriage
         void Step_Iden();
         void PartyTrick();
         void SideWallCorrection();
-        void PivotTurnRight90();
-        void PivotTurnLeft90();
-        void PivotTurn180();
+        void PivotTurn();
         void CalcSlalomInput();
         void Turn();
         void Acceleration();
@@ -108,7 +106,7 @@ namespace undercarriage
         bool GetCtrlFlag() { return flag_controller; };
         bool GetMazeLoadFlag() { return flag_maze_load; };
 
-        void Reset();
+        void ResetCtrl();
         void ResetWallFlag() { flag_wall = false; };
         void ResetMazeLoadFlag() { flag_maze_load = false; };
         void MotorTest(float v_left, float v_right);
@@ -121,16 +119,15 @@ namespace undercarriage
         void OutputStepIdenLog() { iden_step.OutputLog(); };
 
         bool wallDataReady() { return flag_wall; };
-        void updateWallData();
+        void updateWallData() { ir_wall_value = ir_value; };
         Direction getWallData();
         void UpdatePos(const Direction &dir);
-        void UpdateDir(const Direction &dir);
+        void UpdateDir(const Direction &dir) { robot_dir = dir; };
         IndexVec getRobotPosition() { return robot_position; };
+
         void robotMove();
         void DirMove(const Direction &dir);
-        void DirMoveSlalom(const Direction &dir);
         void OpMove(const Operation &op);
-        void OpMoveSlalom(const Operation &op);
 
     private:
         Speaker *speaker;

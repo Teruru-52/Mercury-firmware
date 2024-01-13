@@ -125,6 +125,9 @@ void Initialize()
         state.mode = State::run_sequence;
         break;
 
+    case State::func6:
+        break;
+
     case State::func7:
         state.mode = State::m_identification;
         break;
@@ -239,7 +242,7 @@ void MazeSearch()
             agent.forceGotoStart();
         }
         nextDir = agent.getNextDirection();
-        controller.DirMoveSlalom(nextDir); // using slalom
+        controller.DirMove(nextDir); // using slalom
         if (controller.GetMazeLoadFlag())
         {
             FlashMaze();
@@ -267,7 +270,7 @@ void TimeAttack()
         //     ;
 
         //   // i番目のを実行
-        controller.OpMoveSlalom(runSequence[i]); // robotMode関数はOperation型を受け取ってそれを実行する関数
+        controller.OpMove(runSequence[i]); // robotMode関数はOperation型を受け取ってそれを実行する関数
     }
     controller.Acceleration(AccType::stop);
     // state.mode = State::select_function;
@@ -313,7 +316,7 @@ void StateProcess()
             for (int i = 0; i < 7; i++)
             {
                 wallData = controller.getWallData();
-                controller.DirMoveSlalom(WEST); // slalom
+                controller.DirMove(WEST); // slalom
                 controller.Turn(90);
                 controller.GoStraight();
                 Toggle_GPIO(BACK_LEFT_LED);

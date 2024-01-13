@@ -8,6 +8,8 @@
 #include "accel_designer.h"
 #include <chrono>
 
+#define ENABLE_SLALOM 0
+
 namespace trajectory
 {
     struct Velocity
