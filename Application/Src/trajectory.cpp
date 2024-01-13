@@ -127,15 +127,17 @@ namespace trajectory
           flag_acc(false)
     {
         ResetAccCurve(start);
-        param_stop0 = {10, 1.5, 0.5, 0, 0, 0.09, 0, 0};
-        param_start0 = {10, 1.5, 0.5, 0, 0, 0.133, 0, 0};
-        param_forward0 = {10, 1.5, 0.5, 0, 0, 0.18, 0, 0};
-        param_stop1 = {20, 5.0, 7.0, velocity->v1, 0, 0.09, 0, 0};
-        param_start1 = {20, 5.0, 7.0, 0, velocity->v1, 0.138, 0, 0};
-        // param_forward1 = {10, 1.5, 0.5, velocity->v1, velocity->v1, 0.18, 0, 0};
-        param_stop2 = {20, 5.0, 7.0, velocity->v2, 0, 0.09, 0, 0};
-        param_start2 = {20, 5.0, 7.0, 0, velocity->v2, 0.138, 0, 0};
-        // param_forward2 = {10, 1.5, 0.5, velocity->v2, velocity->v2, 0.18, 0, 0};
+        // param_stop0 = {10, 1.5, 0.5, 0, 0, FORWARD_LENGTH_HALF, 0, 0};
+        // param_start0 = {10, 1.5, 0.5, 0, 0, FORWARD_LENGTH_START, 0, 0};
+        // param_forward0 = {10, 1.5, 0.5, 0, 0, FORWARD_LENGTH, 0, 0};
+        param_stop1 = {20, 5.0, 7.0, velocity->v1, 0, FORWARD_LENGTH_HALF, 0, 0};
+        param_start1 = {20, 5.0, 7.0, 0, velocity->v1, FORWARD_LENGTH_START, 0, 0};
+        param_start_half1 = {10, 1.5, 0.5, 0, velocity->v1, FORWARD_LENGTH_HALF, 0, 0};
+        // param_forward1 = {10, 1.5, 0.5, velocity->v1, velocity->v1, FORWARD_LENGTH, 0, 0};
+        param_stop2 = {20, 5.0, 7.0, velocity->v2, 0, FORWARD_LENGTH_HALF, 0, 0};
+        param_start2 = {20, 5.0, 7.0, 0, velocity->v2, FORWARD_LENGTH_START, 0, 0};
+        param_start_half2 = {20, 5.0, 7.0, 0, velocity->v2, FORWARD_LENGTH_HALF, 0, 0};
+        // param_forward2 = {10, 1.5, 0.5, velocity->v2, velocity->v2, FORWARD_LENGTH, 0, 0};
     }
 
     void Acceleration::ResetAccCurve(const AccType &acc_type)
@@ -143,34 +145,15 @@ namespace trajectory
         this->acc_type = acc_type;
         switch (acc_mode)
         {
-        case 0:
-            switch (acc_type)
-            {
-            case start:
-                ad.reset(param_start0);
-                break;
-            case forward_half:
-                ad.reset(param_stop0);
-                break;
-            case forward0:
-                ad.reset(param_forward0);
-                break;
-            case stop:
-                ad.reset(param_stop0);
-                break;
-            default:
-                break;
-            }
-            break;
         case 1:
             switch (acc_type)
             {
             case start:
                 ad.reset(param_start1);
                 break;
-            // case forward1:
-            //     ad.reset(param_forward1);
-            //     break;
+            case start_half:
+                ad.reset(param_start_half1);
+                break;
             case stop:
                 ad.reset(param_stop1);
                 break;
@@ -184,9 +167,9 @@ namespace trajectory
             case start:
                 ad.reset(param_start2);
                 break;
-            // case forward1:
-            //     ad.reset(param_forward2);
-            //     break;
+            case start_half:
+                ad.reset(param_start_half2);
+                break;
             case stop:
                 ad.reset(param_stop2);
                 break;
@@ -220,7 +203,7 @@ namespace trajectory
         t += Ts;
         if (acc_type != stop)
         {
-            if ((t > t_end * 0.99) && (!flag_time))
+            if ((t > t_end * 0.8) && (!flag_time))
             {
                 flag_read_side_wall = true;
                 flag_time = true;

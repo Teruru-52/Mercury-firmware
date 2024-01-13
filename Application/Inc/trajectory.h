@@ -10,6 +10,10 @@
 
 #define ENABLE_SLALOM 0
 
+#define FORWARD_LENGTH 0.18
+#define FORWARD_LENGTH_HALF 0.09
+#define FORWARD_LENGTH_START 0.138
+
 namespace trajectory
 {
     struct Velocity
@@ -67,6 +71,7 @@ namespace trajectory
         typedef enum
         {
             start,
+            start_half,
             forward_half,
             forward0,
             forward1,
@@ -91,14 +96,16 @@ namespace trajectory
         ctrl::AccelDesigner ad;
 
         Velocity *velocity;
-        ctrl::AD_Parameters param_stop0;
-        ctrl::AD_Parameters param_start0;
-        ctrl::AD_Parameters param_forward0;
+        // ctrl::AD_Parameters param_stop0;
+        // ctrl::AD_Parameters param_start0;
+        // ctrl::AD_Parameters param_forward0;
         ctrl::AD_Parameters param_stop1;
         ctrl::AD_Parameters param_start1;
+        ctrl::AD_Parameters param_start_half1;
         // ctrl::AD_Parameters param_forward1;
         ctrl::AD_Parameters param_stop2;
         ctrl::AD_Parameters param_start2;
+        ctrl::AD_Parameters param_start_half2;
         // ctrl::AD_Parameters param_forward2;
         AccType acc_type;
 

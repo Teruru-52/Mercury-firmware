@@ -16,11 +16,6 @@
 #include "Maze.h"
 #include "Agent.h"
 
-#define FORWARD_LENGTH1 0.138
-#define FORWARD_LENGTH2 0.18
-#define FORWARD_LENGTH3 0.09
-#define FORWARD_LENGTH4 0.54
-
 using AccType = trajectory::Acceleration::AccType;
 using namespace hardware;
 

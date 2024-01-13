@@ -628,7 +628,7 @@ namespace undercarriage
         switch (mode_ctrl)
         {
         case forward:
-            GoStraight(FORWARD_LENGTH2);
+            GoStraight(FORWARD_LENGTH);
             break;
         case acc_curve:
             Acceleration();
@@ -693,13 +693,13 @@ namespace undercarriage
         // Straight Line
         if (dir_diff == 0)
         {
-            if (ENABLE_SLALOM)
-            {
-                GoStraight();
-                // Acceleration(AccType::forward1);
-            }
-            else
-                Acceleration(AccType::forward0);
+            // if (ENABLE_SLALOM)
+            // {
+            GoStraight();
+            // Acceleration(AccType::forward1);
+            // }
+            // else
+            //     Acceleration(AccType::forward0);
         }
         // Turn Right
         else if (dir_diff == 1 || dir_diff == -3)
@@ -708,11 +708,13 @@ namespace undercarriage
                 Turn(-90);
             else
             {
-                Acceleration(AccType::forward_half);
+                // Acceleration(AccType::forward_half);
+                Acceleration(AccType::stop);
                 if (ir_value.sl > ir_is_wall->sl && ir_value.sr > ir_is_wall->sr)
                     FrontWallCorrection();
                 PivotTurn(-90);
-                Acceleration(AccType::forward_half);
+                // Acceleration(AccType::forward_half);
+                Acceleration(AccType::start_half);
             }
         }
         // Turn Left
@@ -722,11 +724,13 @@ namespace undercarriage
                 Turn(90);
             else
             {
-                Acceleration(AccType::forward_half);
+                // Acceleration(AccType::forward_half);
+                Acceleration(AccType::stop);
                 if (ir_value.sl > ir_is_wall->sl && ir_value.sr > ir_is_wall->sr)
                     FrontWallCorrection();
                 PivotTurn(90);
-                Acceleration(AccType::forward_half);
+                // Acceleration(AccType::forward_half);
+                Acceleration(AccType::start_half);
             }
         }
         // U-Turn
@@ -740,12 +744,16 @@ namespace undercarriage
             else
             {
                 if (ENABLE_SLALOM)
+                {
                     PivotTurn(180);
+                    Acceleration(AccType::start_half);
+                }
                 else
                 {
                     Acceleration(AccType::stop);
                     PivotTurn(180);
-                    Acceleration(AccType::stop);
+                    // Acceleration(AccType::stop);
+                    Acceleration(AccType::start_half);
                 }
             }
         }
