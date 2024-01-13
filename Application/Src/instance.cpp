@@ -1,26 +1,26 @@
 #include "instance.h"
 
+hardware::LED led;
+hardware::Speaker speaker;
+
 Maze maze;
 Maze maze_backup;
 Agent agent(maze);
-State state;
-
-hardware::LED led;
-hardware::Speaker speaker;
+State state(&led, &speaker);
 
 const float ir_start_base = 2500;
 
 // Tokyo Tech
-const float ir_fl_wall = 2190;
-const float ir_fr_wall = 2190;
-const float ir_sl_wall = 2150;
-const float ir_sr_wall = 2150;
-const float ir_fl_base = 2180;
-const float ir_fr_base = 2180;
-const float ir_sl_base = 3800;
-const float ir_sr_base = 3700;
-const float ir_sl_slalom = 2380;
-const float ir_sr_slalom = 2470;
+// const float ir_fl_wall = 2190;
+// const float ir_fr_wall = 2190;
+// const float ir_sl_wall = 2150;
+// const float ir_sr_wall = 2150;
+// const float ir_fl_base = 2180;
+// const float ir_fr_base = 2180;
+// const float ir_sl_base = 3800;
+// const float ir_sr_base = 3700;
+// const float ir_sl_slalom = 2380;
+// const float ir_sr_slalom = 2470;
 
 // Tokyo Polytechnic University
 // const float ir_fl_wall = 2180;
@@ -35,16 +35,16 @@ const float ir_sr_slalom = 2470;
 // const float ir_sr_slalom = 2400;
 
 // RT
-// const float ir_fl_wall = 2150;
-// const float ir_fr_wall = 2150;
-// const float ir_sl_wall = 2150;
-// const float ir_sr_wall = 2150;
-// const float ir_fl_base = 2250;
-// const float ir_fr_base = 2220;
-// const float ir_sl_base = 3240;
-// const float ir_sr_base = 3380;
-// const float ir_sl_slalom = 2500;
-// const float ir_sr_slalom = 2500;
+const float ir_fl_wall = 2150;
+const float ir_fr_wall = 2150;
+const float ir_sl_wall = 2150;
+const float ir_sr_wall = 2150;
+const float ir_fl_base = 2250;
+const float ir_fr_base = 2220;
+const float ir_sl_base = 3240;
+const float ir_sr_base = 3380;
+const float ir_sl_slalom = 2500;
+const float ir_sr_slalom = 2500;
 
 hardware::IR_Value ir_value;
 // for wall judge

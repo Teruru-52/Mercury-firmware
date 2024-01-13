@@ -74,117 +74,6 @@ void StartupProcess()
     irsensors.on_all_led();
 }
 
-void SelectFunc(int16_t pulse_l, int16_t pulse_r)
-{
-    static State pre_state;
-    const int16_t pulse_diff = 2048;
-    if (pulse_r < pulse_diff)
-    {
-        led.Func0();
-        state.func = State::func0;
-    }
-    else if (pulse_r < pulse_diff * 2)
-    {
-        led.Func1();
-        state.func = State::func1;
-    }
-    else if (pulse_r < pulse_diff * 3)
-    {
-        led.Func2();
-        state.func = State::func2;
-    }
-    else if (pulse_r < pulse_diff * 4)
-    {
-        led.Func3();
-        state.func = State::func3;
-    }
-    else if (pulse_r < pulse_diff * 5)
-    {
-        led.Func4();
-        state.func = State::func4;
-    }
-    else if (pulse_r < pulse_diff * 6)
-    {
-        led.Func5();
-        state.func = State::func5;
-    }
-    else if (pulse_r < pulse_diff * 7)
-    {
-        led.Func6();
-        state.func = State::func6;
-    }
-    else if (pulse_r < pulse_diff * 8)
-    {
-        led.Func7();
-        state.func = State::func7;
-    }
-    else if (pulse_r < pulse_diff * 9)
-    {
-        led.Func8();
-        state.func = State::func8;
-    }
-    else if (pulse_r < pulse_diff * 10)
-    {
-        led.Func9();
-        state.func = State::func9;
-    }
-    else if (pulse_r < pulse_diff * 11)
-    {
-        led.Func10();
-        state.func = State::func10;
-    }
-    else if (pulse_r < pulse_diff * 12)
-    {
-        led.Func11();
-        state.func = State::func11;
-    }
-    else if (pulse_r < pulse_diff * 13)
-    {
-        led.Func12();
-        state.func = State::func12;
-    }
-    else if (pulse_r < pulse_diff * 14)
-    {
-        led.Func13();
-        state.func = State::func13;
-    }
-    else if (pulse_r < pulse_diff * 13)
-    {
-        led.Func12();
-        state.func = State::func12;
-    }
-    else if (pulse_r < pulse_diff * 14)
-    {
-        led.Func13();
-        state.func = State::func13;
-    }
-    else if (pulse_r < pulse_diff * 15)
-    {
-        led.Func14();
-        state.func = State::func14;
-    }
-    else
-    {
-        led.Func15();
-        state.func = State::func15;
-    }
-    if (state.func != pre_state.func)
-        speaker.Beep();
-    pre_state.func = state.func;
-
-    // select to load maze
-    if (pulse_l < 16384)
-    {
-        led.off_back_right();
-        state.mazeload = State::not_load;
-    }
-    else
-    {
-        led.on_back_right();
-        state.mazeload = State::load;
-    }
-}
-
 void Initialize()
 {
     led.off_all();
@@ -199,34 +88,30 @@ void Initialize()
 
     switch (state.func)
     {
-    case State::func0:
-        state.mode = State::test_ir;
-        break;
-
-    case State::func1: // run slow speed (SEARCHING_NOT_GOAL)
+    case State::func0: // run slow speed (SEARCHING_NOT_GOAL)
         // __HAL_TIM_SET_COMPARE(&htim8, TIM_CHANNEL_1, 2000);
         controller.SetTrajectoryMode(1);
         state.mode = State::search;
         break;
 
-    case State::func2: // run fast speed (SEARCHING_NOT_GOAL)
+    case State::func1: // run fast speed (SEARCHING_NOT_GOAL)
         controller.SetTrajectoryMode(2);
         state.mode = State::search;
         break;
 
-    case State::func3: // run slow speed (load maze, SEARCHING_NOT_GOAL)
+    case State::func2: // run slow speed (load maze, SEARCHING_NOT_GOAL)
         LoadMaze();
         controller.SetTrajectoryMode(1);
         state.mode = State::search;
         break;
 
-    case State::func4: // run fast speed (load maze, SEARCHING_NOT_GOAL)
+    case State::func3: // run fast speed (load maze, SEARCHING_NOT_GOAL)
         LoadMaze();
         controller.SetTrajectoryMode(2);
         state.mode = State::search;
         break;
 
-    case State::func5: // run slow speed (load maze, Time Attack)
+    case State::func4: // run slow speed (load maze, Time Attack)
         __HAL_TIM_SET_COMPARE(&htim8, TIM_CHANNEL_1, 2000);
         // LoadMaze();
         // controller.SetTrajectoryMode(1);
@@ -234,45 +119,49 @@ void Initialize()
         state.mode = State::output;
         break;
 
-    case State::func6: // run fast speed (load maze, Time Attack)
+    case State::func5: // run fast speed (load maze, Time Attack)
         LoadMaze();
         controller.SetTrajectoryMode(2);
         state.mode = State::run_sequence;
         break;
 
-    case State::func8:
+    case State::func7:
         state.mode = State::m_identification;
         break;
 
-    case State::func9:
+    case State::func8:
         state.mode = State::step_identification;
         break;
 
-    case State::func10:
+    case State::func9:
         state.mode = State::party_trick;
         break;
 
-    case State::func11:
+    case State::func10:
         controller.SetTrajectoryMode(2);
         state.mode = State::test_slalom2;
         break;
 
-    case State::func12:
+    case State::func11:
         controller.SetTrajectoryMode(1);
         state.mode = State::test_slalom1;
         break;
 
-    case State::func13:
+    case State::func12:
         controller.SetTrajectoryMode(1);
         state.mode = State::test_translation;
         break;
 
-    case State::func14:
+    case State::func13:
         state.mode = State::test_rotation;
         break;
 
-    case State::func15:
+    case State::func14:
         state.mode = State::test_odometory;
+        break;
+
+    case State::func15:
+        state.mode = State::test_ir;
         break;
 
     default:
@@ -395,7 +284,8 @@ void StateProcess()
         irsensors.UpdateSideValue();
         pulse_l = controller.GetPulseL();
         pulse_r = controller.GetPulseR();
-        SelectFunc(pulse_l, pulse_r);
+        state.SelectFunc(pulse_r);
+        state.SelectLoadMaze(pulse_l);
 
         if (irsensors.StartInitialize())
             Initialize();

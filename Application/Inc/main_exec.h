@@ -15,13 +15,12 @@ extern "C"
 #include "main.h"
 
     void StartupProcess();
-    void SelectFunc(int16_t pulse_l, int16_t pulse_r);
     void Initialize();
     void UpdateUndercarriage();
     void UpdateIRSensor();
     void Notification();
     void MazeSearch();
-    // void TimeAttack();
+    void TimeAttack();
     void StateProcess();
     void FlashMaze();
     void LoadMaze();

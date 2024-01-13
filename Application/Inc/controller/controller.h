@@ -170,7 +170,6 @@ namespace undercarriage
         const float Kp_w = 144.2;
         const float Tp1_v = 0.032;
         const float Kp_v = 0.784493;
-        int vel_mode = 1;
         float ref_v;
         float ref_w;
         const int back_time = 400;       // ms

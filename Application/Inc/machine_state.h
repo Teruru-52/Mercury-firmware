@@ -2,6 +2,10 @@
 #define _STATE_H_
 
 #include "main.h"
+#include "hardware/led.h"
+#include "hardware/speaker.h"
+
+#define PULSE_DIFF 2048
 
 class State
 {
@@ -72,7 +76,14 @@ public:
     Mode mode;
     Log log;
 
-    State(Mode init_mode = select_function) : func(not_selected), mazeload(not_load), interruption(not_interrupt), mode(init_mode), log(slalom) {}
+    State(hardware::LED *led, hardware::Speaker *speaker);
+    void SelectFunc(int16_t pulse_r);
+    void SelectLoadMaze(int16_t pulse_l);
+
+private:
+    hardware::LED *led;
+    hardware::Speaker *speaker;
+    Function pre_func = not_selected;
 };
 
 #endif /* _STATE_H_ */

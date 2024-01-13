@@ -93,7 +93,6 @@ namespace undercarriage
 
     void Controller::SetTrajectoryMode(int mode)
     {
-        vel_mode = mode;
         slalom->SetMode(mode);
         acc->SetMode(mode);
 
