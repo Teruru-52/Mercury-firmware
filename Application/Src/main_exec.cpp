@@ -254,17 +254,17 @@ void Initialize()
 
     case State::func11:
         controller.SetTrajectoryMode(2);
-        state.mode = State::test_slalom3;
+        state.mode = State::test_slalom2;
         break;
 
     case State::func12:
         controller.SetTrajectoryMode(1);
-        state.mode = State::test_slalom2;
+        state.mode = State::test_slalom1;
         break;
 
     case State::func13:
         controller.SetTrajectoryMode(1);
-        state.mode = State::test_slalom1;
+        state.mode = State::test_translation;
         break;
 
     case State::func14:
@@ -439,6 +439,15 @@ void StateProcess()
             for (int i = 0; i < 4; i++)
                 controller.PivotTurn(180);
             state.log = State::pivot_turn;
+            state.mode = State::output;
+            break;
+
+        case State::test_translation:
+            controller.StartMove();
+            for (int i = 0; i < 14; i++)
+                controller.GoStraight();
+            controller.Acceleration(AccType::stop);
+            state.log = State::translation;
             state.mode = State::output;
             break;
 
