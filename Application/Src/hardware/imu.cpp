@@ -56,9 +56,9 @@ namespace hardware
         Write_GPIO(SPI_CS, GPIO_PIN_SET);
         __HAL_SPI_ENABLE(&hspi1); // clockが動かないように、あらかじめEnableにしておく
 
-        HAL_Delay(100);                          // wait start up
-        who_am_i = read_byte(SPI_WHO_AM_I);      // read who am i
-        printf("who_am_i = 0x%x\r\n", who_am_i); // check who am i value
+        HAL_Delay(100);                     // wait start up
+        who_am_i = read_byte(SPI_WHO_AM_I); // read who am i
+        // printf("who_am_i = 0x%x\r\n", who_am_i); // check who am i value
         HAL_Delay(10);
         while (who_am_i != 0x70)
         {
