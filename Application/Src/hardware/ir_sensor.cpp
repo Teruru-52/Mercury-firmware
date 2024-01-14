@@ -69,6 +69,26 @@ namespace hardware
         led.off_side_right();
     }
 
+    void IRsensor::PrintWalldata(const IR_Value &ir_value)
+    {
+        if (ir_value.sl > ir_is_wall->sl)
+            printf("1");
+        else
+            printf("0");
+        if (ir_value.fl > ir_is_wall->fl)
+            printf("1");
+        else
+            printf("0");
+        if (ir_value.fr > ir_is_wall->fr)
+            printf("1");
+        else
+            printf("0");
+        if (ir_value.sr > ir_is_wall->sr)
+            printf("1\n");
+        else
+            printf("0\n");
+    }
+
     void IRsensor::StartDMA()
     {
         HAL_ADC_Start_DMA(&hadc1, (uint32_t *)dma_f, 3);

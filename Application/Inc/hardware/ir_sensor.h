@@ -55,6 +55,7 @@ namespace hardware
 
         void UI_led_onoff(const IR_Value &ir_value);
         void UI_led_off();
+        void PrintWalldata(const IR_Value &ir_value);
 
         void StartDMA();
         void UpdateSideValue();
