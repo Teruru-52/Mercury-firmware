@@ -38,7 +38,7 @@ namespace hardware
         off_side_led();
     }
 
-    void IRsensor::UI_led_onoff()
+    void IRsensor::UI_led_onoff(const IR_Value &ir_value)
     {
         if (ir_value.fl > ir_is_wall->fl)
             led.on_front_left();
@@ -98,17 +98,10 @@ namespace hardware
         ir_value.sl = max_sl;
         ir_value.sr = max_sr;
 
-        UI_led_onoff();
-
         max_fl = 0;
         max_fr = 0;
         max_sl = 0;
         max_sr = 0;
-    }
-
-    IR_Value IRsensor::GetIRSensorData()
-    {
-        return ir_value;
     }
 
     float IRsensor::GetBatteryVoltage()

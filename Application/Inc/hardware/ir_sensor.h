@@ -53,14 +53,14 @@ namespace hardware
         void on_all_led();
         void off_all_led();
 
-        void UI_led_onoff();
+        void UI_led_onoff(const IR_Value &ir_value);
         void UI_led_off();
 
         void StartDMA();
         void UpdateSideValue();
         void UpdateFrontValue();
         void Update();
-        IR_Value GetIRSensorData();
+        IR_Value GetIRSensorData() { return ir_value; };
         float GetBatteryVoltage();
         void BatteryCheck();
         bool StartInitialize();
