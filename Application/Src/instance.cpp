@@ -35,16 +35,16 @@ const float ir_start_base = 2500;
 // const float ir_sr_slalom = 2400;
 
 // RT
-const float ir_fl_wall = 2150;
-const float ir_fr_wall = 2150;
+const float ir_fl_wall = 2220; // WALL_TIMING 0.8
+const float ir_fr_wall = 2160;
 const float ir_sl_wall = 2150;
 const float ir_sr_wall = 2150;
-const float ir_fl_base = 2250;
+const float ir_fl_base = 2220; // side wall correction
 const float ir_fr_base = 2220;
-const float ir_sl_base = 3240;
-const float ir_sr_base = 3380;
-const float ir_sl_slalom = 2500;
-const float ir_sr_slalom = 2500;
+const float ir_sl_base = 3650; // front wall correction
+const float ir_sr_base = 3550;
+const float ir_sl_slalom = 2420; // front wall correction (slalom)
+const float ir_sr_slalom = 2420;
 
 hardware::IR_Value ir_value;
 // for wall judge
