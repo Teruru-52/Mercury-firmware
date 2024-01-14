@@ -65,6 +65,7 @@ namespace undercarriage
     {
         odom->Update();
         cur_pos = odom->GetPosition();
+        cur_pos.th += theta_base;
         cur_vel = odom->GetVelocity();
         length = odom->GetLength();
         acc_x = odom->GetAccX();
@@ -164,6 +165,7 @@ namespace undercarriage
                     theta_base -= M_PI / 2;
                 else if (angle == 180)
                     theta_base += M_PI;
+                printf("theta_base: %.1f\n", theta_base);
                 ResetCtrl();
                 break;
             }
@@ -183,6 +185,7 @@ namespace undercarriage
                     theta_base += M_PI / 2;
                 else if (angle == -90)
                     theta_base -= M_PI / 2;
+                printf("theta_base: %.1f\n", theta_base);
                 ResetCtrl();
                 break;
             }
@@ -198,6 +201,7 @@ namespace undercarriage
             if (flag_ctrl)
             {
                 theta_base = cur_pos.th;
+                printf("theta_base: %.1f\n", theta_base);
                 ResetCtrl();
                 break;
             }
@@ -240,6 +244,7 @@ namespace undercarriage
             {
                 odom->ResetTheta();
                 theta_base = 0.0;
+                printf("theta_base: %.1f\n", theta_base);
                 ResetCtrl();
                 break;
             }
@@ -297,7 +302,7 @@ namespace undercarriage
             else
                 error_fl = 0.0;
             if (ir_value.fr < ir_is_wall->fr)
-                error_fl *= 2.0;
+                error_fl *= 1.8;
         }
         else
             error_fl = 0;
@@ -309,7 +314,7 @@ namespace undercarriage
             else
                 error_fr = 0.0;
             if (ir_value.fl < ir_is_wall->fl)
-                error_fr *= 2.0;
+                error_fr *= 1.8;
         }
         else
             error_fr = 0;
@@ -348,13 +353,12 @@ namespace undercarriage
     {
         slalom->UpdateRef();
         ref_pos = slalom->GetRefPosition();
-        // ref_pos.th += theta_base;
+        ref_pos.th += theta_base;
         ref_vel = slalom->GetRefVelocity();
         ref_acc = slalom->GetRefAcceleration();
         // Logger();
 
         kanayama->UpdateRef(ref_pos, ref_vel);
-        cur_pos.th -= theta_base;
         ref_vel = kanayama->CalcInput(cur_pos);
         u_v = pid_traslational_vel->Update(ref_vel.x - cur_vel.x);
         // u_v = pid_traslational_vel->Update(ref_vel.x - cur_vel.x) + ref_vel.x / Kp_v;
@@ -415,7 +419,6 @@ namespace undercarriage
         // Logger();
         u_v = pid_traslational_vel->Update(ref_vel.x - cur_vel.x) + (Tp1_v * ref_acc.x + ref_vel.x) / Kp_v;
         // u_v = pid_traslational_vel->Update(ref_vel.x - cur_vel.x);
-        // u_w = pid_rotational_vel->Update(-cur_vel.th);
 
         if (flag_side_correct)
             u_w = pid_ir_sensor_side->Update(error_fl - error_fr) + pid_angle->Update(theta_base - cur_pos.th);
@@ -429,7 +432,7 @@ namespace undercarriage
 
     void Controller::GoStraight(float ref_l)
     {
-        if ((length > ref_l * 0.8) && (!flag_straight_time))
+        if ((length > ref_l * WALL_TIMING) && (!flag_straight_time))
         {
             flag_straight_time = true;
             flag_straight_wall = true;
@@ -438,8 +441,10 @@ namespace undercarriage
         {
             SideWallCorrection();
             u_v = pid_traslational_vel->Update(ref_v - cur_vel.x) + ref_v / Kp_v;
-            u_w = pid_ir_sensor_side->Update(error_fl - error_fr) + pid_angle->Update(theta_base - cur_pos.th);
-            // u_w = pid_angle->Update(theta_base-cur_pos.th);
+            if (flag_side_correct)
+                u_w = pid_ir_sensor_side->Update(error_fl - error_fr) + pid_angle->Update(theta_base - cur_pos.th);
+            else
+                u_w = pid_angle->Update(theta_base - cur_pos.th);
             InputVelocity(u_v, u_w);
         }
         else
@@ -486,14 +491,11 @@ namespace undercarriage
             cnt_time++;
         }
         else
-        {
             flag_ctrl = true;
-        }
     }
 
     void Controller::BlindAlley()
     {
-        flag_side_correct = false;
         Acceleration(AccType::stop);
         FrontWallCorrection();
 
@@ -559,11 +561,11 @@ namespace undercarriage
 
         odom->Reset();
         odom->ResetTheta();
-        theta_base = 0.0;
+        // theta_base = 0.0;
         mode_ctrl = stop;
 
         flag_slalom = false;
-        flag_side_correct = true;
+        flag_side_correct = false;
         index_log = 0;
         cnt_time = 0;
         flag_ctrl = false;
@@ -690,16 +692,12 @@ namespace undercarriage
         }
 
         dir_diff = next_dir_index - robot_dir_index;
+        // printf("dir_diff = %d\n", dir_diff);
         // Straight Line
         if (dir_diff == 0)
         {
-            // if (ENABLE_SLALOM)
-            // {
+            flag_side_correct = true;
             GoStraight();
-            // Acceleration(AccType::forward1);
-            // }
-            // else
-            //     Acceleration(AccType::forward0);
         }
         // Turn Right
         else if (dir_diff == 1 || dir_diff == -3)
@@ -708,13 +706,21 @@ namespace undercarriage
                 Turn(-90);
             else
             {
-                // Acceleration(AccType::forward_half);
                 Acceleration(AccType::stop);
                 if (ir_value.sl > ir_is_wall->sl && ir_value.sr > ir_is_wall->sr)
                     FrontWallCorrection();
                 PivotTurn(-90);
-                // Acceleration(AccType::forward_half);
-                Acceleration(AccType::start_half);
+                if (prev_wall_cnt == 2)
+                    cnt_can_back++;
+                printf("cnt: %d\n", cnt_can_back);
+                if (cnt_can_back >= CNT_BACK && flag_wall_front && flag_wall_sl)
+                {
+                    Back();
+                    Acceleration(AccType::start);
+                    cnt_can_back = 0;
+                }
+                else
+                    Acceleration(AccType::start_half);
             }
         }
         // Turn Left
@@ -724,13 +730,21 @@ namespace undercarriage
                 Turn(90);
             else
             {
-                // Acceleration(AccType::forward_half);
                 Acceleration(AccType::stop);
                 if (ir_value.sl > ir_is_wall->sl && ir_value.sr > ir_is_wall->sr)
                     FrontWallCorrection();
                 PivotTurn(90);
-                // Acceleration(AccType::forward_half);
-                Acceleration(AccType::start_half);
+                if (prev_wall_cnt == 2)
+                    cnt_can_back++;
+                printf("cnt: %d\n", cnt_can_back);
+                if (cnt_can_back >= CNT_BACK && flag_wall_front && flag_wall_sl)
+                {
+                    Back();
+                    Acceleration(AccType::start);
+                    cnt_can_back = 0;
+                }
+                else
+                    Acceleration(AccType::start_half);
             }
         }
         // U-Turn
@@ -743,18 +757,9 @@ namespace undercarriage
             }
             else
             {
-                if (ENABLE_SLALOM)
-                {
-                    PivotTurn(180);
-                    Acceleration(AccType::start_half);
-                }
-                else
-                {
-                    Acceleration(AccType::stop);
-                    PivotTurn(180);
-                    // Acceleration(AccType::stop);
-                    Acceleration(AccType::start_half);
-                }
+                Acceleration(AccType::stop);
+                PivotTurn(180);
+                Acceleration(AccType::start_half);
             }
         }
     }
@@ -764,10 +769,11 @@ namespace undercarriage
         switch (op.op)
         {
         case Operation::FORWARD:
-            if (ENABLE_SLALOM)
-                GoStraight();
-            else
-                Acceleration(AccType::forward0);
+            flag_side_correct = true;
+            // if (ENABLE_SLALOM)
+            GoStraight();
+            // else
+            //     Acceleration(AccType::forward0);
             break;
 
         case Operation::TURN_LEFT90:
@@ -778,7 +784,7 @@ namespace undercarriage
                 if (ir_value.sl > ir_is_wall->sl && ir_value.sr > ir_is_wall->sr)
                     FrontWallCorrection();
                 PivotTurn(90);
-                Acceleration(AccType::forward0);
+                Acceleration(AccType::start_half);
             }
             break;
 
@@ -790,15 +796,13 @@ namespace undercarriage
                 if (ir_value.sl > ir_is_wall->sl && ir_value.sr > ir_is_wall->sr)
                     FrontWallCorrection();
                 PivotTurn(-90);
-                Acceleration(AccType::forward0);
+                Acceleration(AccType::start_half);
             }
             break;
 
         case Operation::STOP:
-            if (ENABLE_SLALOM)
-                Acceleration(AccType::stop);
-            else
-                Brake();
+            Acceleration(AccType::stop);
+            Brake();
             break;
         default:
             break;

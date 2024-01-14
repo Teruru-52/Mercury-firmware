@@ -16,6 +16,9 @@
 #include "Maze.h"
 #include "Agent.h"
 
+#define WALL_TIMING 0.8
+#define CNT_BACK 3
+
 using AccType = trajectory::Acceleration::AccType;
 using namespace hardware;
 
@@ -106,6 +109,7 @@ namespace undercarriage
 
         bool wallDataReady() { return flag_wall; };
         void updateWallData() { ir_wall_value = ir_value; };
+        IR_Value GetIRWall() { return ir_wall_value; };
         Direction getWallData();
         void UpdatePos(const Direction &dir);
         void UpdateDir(const Direction &dir) { robot_dir = dir; };
@@ -187,6 +191,7 @@ namespace undercarriage
         const int correction_time = 500; // ms
         const int wait_time = 200;       // ms
         int cnt_blind_alley = 0;
+        int cnt_can_back = 0;
         int cnt_time = 0;
 
         bool flag_ctrl = false;
@@ -197,7 +202,7 @@ namespace undercarriage
         bool flag_wall_front = false;
         bool flag_safety = false;
         bool flag_maze_load = false;
-        bool flag_side_correct = true;
+        bool flag_side_correct = false;
         bool flag_straight_wall = false;
         bool flag_straight_time = false;
 
