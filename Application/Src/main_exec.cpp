@@ -10,9 +10,9 @@
 
 using AccType = trajectory::Acceleration::AccType;
 
-Direction wallData;
-Direction nextDir;
-IndexVec robotPos;
+Direction wallData = 0x0E;
+Direction nextDir = NORTH;
+IndexVec robotPos = IndexVec(0, 0);
 Agent::State prevState = Agent::State::IDLE;
 OperationList runSequence;
 
@@ -77,15 +77,6 @@ void StartupProcess()
 void Initialize()
 {
     led.off_all();
-    speaker.Beep();
-    controller.InitializeOdometory();
-    speaker.Beep();
-
-    wallData = 0x0E;
-    robotPos = IndexVec(0, 0);
-    agent.update(robotPos, wallData);
-    nextDir = NORTH;
-
     switch (state.func)
     {
     case State::func0: // run slow speed (SEARCHING_NOT_GOAL)
@@ -198,6 +189,11 @@ void Initialize()
     case State::not_load:
         break;
     }
+
+    speaker.Beep();
+    controller.InitializeOdometory();
+    speaker.Beep();
+    agent.update(robotPos, wallData);
     state.interruption = State::interrupt;
 }
 
@@ -213,11 +209,6 @@ void UpdateIRSensor()
     irsensors.Update();
     ir_value = irsensors.GetIRSensorData();
     controller.SetIRdata(ir_value);
-    if (controller.wallDataReady())
-    {
-        wallData = controller.getWallData();
-        controller.ResetWallFlag();
-    }
 }
 
 void Notification()
@@ -233,17 +224,19 @@ void MazeSearch()
 {
     while (1)
     {
-        // while (1)
-        // {
-        //     if (controller.wallDataReady())
-        //     {
-        //         controller.ResetWallFlag();
-        //         break;
-        //     }
-        // }
+        while (1)
+        {
+            if (controller.wallDataReady())
+            {
+                controller.ResetWallFlag();
+                break;
+            }
+        }
         irsensors.UI_led_onoff(controller.GetIRWall());
+        // irsensors.PrintWalldata(controller.GetIRWall());
         controller.UpdateDir(nextDir);
         controller.UpdatePos(nextDir);
+        wallData = controller.getWallData();
         robotPos = controller.getRobotPosition();
         agent.update(robotPos, wallData);
         if (agent.getState() == Agent::FINISHED)
@@ -261,7 +254,7 @@ void MazeSearch()
             agent.forceGotoStart();
         }
         nextDir = agent.getNextDirection();
-        printf("nextDir.byte = %d\n", nextDir.byte);
+        // printf("nextDir.byte = %d\n", nextDir.byte);
         controller.DirMove(nextDir);
         // if (controller.GetMazeLoadFlag())
         // {
@@ -421,7 +414,8 @@ void StateProcess()
             // FlashMaze();
             agent.caclRunSequence(false);
             // state.mode = State::select_function;
-            state.mode = State::run_sequence;
+            // state.mode = State::run_sequence;
+            state.mode = State::output;
             break;
 
         case State::error:
