@@ -100,13 +100,13 @@ namespace trajectory
         // param_stop0 = {10, 1.5, 0.5, 0, 0, FORWARD_LENGTH_HALF, 0, 0};
         // param_start0 = {10, 1.5, 0.5, 0, 0, FORWARD_LENGTH_START, 0, 0};
         // param_forward0 = {10, 1.5, 0.5, 0, 0, FORWARD_LENGTH, 0, 0};
-        param_stop1 = {20, 5.0, 7.0, velocity->v1, 0, FORWARD_LENGTH_HALF, 0, 0};
-        param_start1 = {20, 5.0, 7.0, 0, velocity->v1, FORWARD_LENGTH_START, 0, 0};
-        param_start_half1 = {10, 1.5, 0.5, 0, velocity->v1, FORWARD_LENGTH_HALF, 0, 0};
+        param_stop1 = {10, 1.5, 0.3, velocity->v1, 0, FORWARD_LENGTH_HALF, 0, 0};
+        param_start1 = {10, 1.5, 0.3, 0, velocity->v1, FORWARD_LENGTH_START, 0, 0};
+        param_start_half1 = {10, 1.5, 0.3, 0, velocity->v1, FORWARD_LENGTH_HALF, 0, 0};
         // param_forward1 = {10, 1.5, 0.5, velocity->v1, velocity->v1, FORWARD_LENGTH, 0, 0};
-        param_stop2 = {20, 5.0, 7.0, velocity->v2, 0, FORWARD_LENGTH_HALF, 0, 0};
-        param_start2 = {20, 5.0, 7.0, 0, velocity->v2, FORWARD_LENGTH_START, 0, 0};
-        param_start_half2 = {20, 5.0, 7.0, 0, velocity->v2, FORWARD_LENGTH_HALF, 0, 0};
+        param_stop2 = {20, 10.0, 7.0, velocity->v2, 0, FORWARD_LENGTH_HALF, 0, 0};
+        param_start2 = {20, 10.0, 7.0, 0, velocity->v2, FORWARD_LENGTH_START, 0, 0};
+        param_start_half2 = {20, 10.0, 7.0, 0, velocity->v2, FORWARD_LENGTH_HALF, 0, 0};
         // param_forward2 = {10, 1.5, 0.5, velocity->v2, velocity->v2, FORWARD_LENGTH, 0, 0};
     }
 
@@ -175,9 +175,7 @@ namespace trajectory
             }
         }
         if (t > t_end)
-        {
             flag_acc = true;
-        }
     }
 
     void Acceleration::Reset()
