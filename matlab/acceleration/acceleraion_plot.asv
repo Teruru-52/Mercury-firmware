@@ -1,6 +1,7 @@
 clear;
 close all
 
+ts = 0.001;
 %% import data
 data = csvread("data_180.csv");
 
@@ -11,7 +12,6 @@ ref_l = data(:,4);
 ref_v = data(:,5);
 ref_a = data(:,6);
 
-ts = 0.001;
 n = length(ref_v);
 t = 0:1:n-1;
 t = t*0.001;
@@ -52,3 +52,5 @@ ylabel('$a$ [m/s$^2$]','Interpreter','latex');
 xlim([0 n*ts])
 legend('ref','data','Interpreter','latex','Location','northwest');
 set(gca, "FontName", "Times New Roman", "FontSize", 15);
+h_axes.XAxis.FontSize = 25;
+h_axes.YAxis.FontSize = 25;
