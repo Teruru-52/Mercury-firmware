@@ -130,7 +130,7 @@ namespace hardware
         {
             led.on_side_left();
         }
-        printf("%f [V]\n", bat_vol);
+        printf("battery: %.2f [V]\n", bat_vol);
     }
 
     bool IRsensor::StartInitialize()

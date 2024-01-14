@@ -92,23 +92,27 @@ void Initialize()
         // __HAL_TIM_SET_COMPARE(&htim8, TIM_CHANNEL_1, 2000);
         controller.SetTrajectoryMode(1);
         state.mode = State::search;
+        printf("mode: search0\n");
         break;
 
     case State::func1: // run fast speed (SEARCHING_NOT_GOAL)
         controller.SetTrajectoryMode(2);
         state.mode = State::search;
+        printf("mode: search1\n");
         break;
 
     case State::func2: // run slow speed (load maze, SEARCHING_NOT_GOAL)
         LoadMaze();
         controller.SetTrajectoryMode(1);
         state.mode = State::search;
+        printf("mode: search2\n");
         break;
 
     case State::func3: // run fast speed (load maze, SEARCHING_NOT_GOAL)
         LoadMaze();
         controller.SetTrajectoryMode(2);
         state.mode = State::search;
+        printf("mode: search3\n");
         break;
 
     case State::func4: // run slow speed (load maze, Time Attack)
@@ -116,6 +120,7 @@ void Initialize()
         // LoadMaze();
         // controller.SetTrajectoryMode(1);
         // state.mode = State::run_sequence;
+        // printf("mode: run_sequence\n");
         state.mode = State::output;
         break;
 
@@ -123,48 +128,61 @@ void Initialize()
         LoadMaze();
         controller.SetTrajectoryMode(2);
         state.mode = State::run_sequence;
+        printf("mode: run_sequence\n");
         break;
 
     case State::func6:
+        state.mode = State::m_identification;
+        printf("mode: m_identification\n");
         break;
 
     case State::func7:
-        state.mode = State::m_identification;
+        state.mode = State::step_identification;
+        printf("mode: step_identification\n");
         break;
 
     case State::func8:
-        state.mode = State::step_identification;
+        state.mode = State::party_trick;
+        printf("mode: party_trick\n");
         break;
 
     case State::func9:
-        state.mode = State::party_trick;
+        controller.SetTrajectoryMode(2);
+        state.mode = State::test_slalom2;
+        printf("mode: test_slalom2\n");
         break;
 
     case State::func10:
-        controller.SetTrajectoryMode(2);
-        state.mode = State::test_slalom2;
+        controller.SetTrajectoryMode(1);
+        state.mode = State::test_slalom1;
+        printf("mode: test_slalom1\n");
         break;
 
     case State::func11:
         controller.SetTrajectoryMode(1);
-        state.mode = State::test_slalom1;
+        state.mode = State::test_translation2;
+        printf("mode: test_translation2\n");
         break;
 
     case State::func12:
         controller.SetTrajectoryMode(1);
-        state.mode = State::test_translation;
+        state.mode = State::test_translation1;
+        printf("mode: test_translation1\n");
         break;
 
     case State::func13:
         state.mode = State::test_rotation;
+        printf("mode: test_rotation\n");
         break;
 
     case State::func14:
         state.mode = State::test_odometory;
+        printf("mode: test_odometory\n");
         break;
 
     case State::func15:
         state.mode = State::test_ir;
+        printf("mode: test_ir\n");
         break;
 
     default:
@@ -174,7 +192,7 @@ void Initialize()
     switch (state.mazeload)
     {
     case State::load:
-        LoadMaze();
+        // LoadMaze();
         break;
 
     case State::not_load:
@@ -223,6 +241,7 @@ void MazeSearch()
         //         break;
         //     }
         // }
+        irsensors.UI_led_onoff(controller.GetIRWall());
         controller.UpdateDir(nextDir);
         controller.UpdatePos(nextDir);
         robotPos = controller.getRobotPosition();
@@ -242,12 +261,13 @@ void MazeSearch()
             agent.forceGotoStart();
         }
         nextDir = agent.getNextDirection();
-        controller.DirMove(nextDir); // using slalom
-        if (controller.GetMazeLoadFlag())
-        {
-            FlashMaze();
-            controller.ResetMazeLoadFlag();
-        }
+        printf("nextDir.byte = %d\n", nextDir.byte);
+        controller.DirMove(nextDir);
+        // if (controller.GetMazeLoadFlag())
+        // {
+        //     FlashMaze();
+        //     controller.ResetMazeLoadFlag();
+        // }
         // controller.Wait();
     }
 }
@@ -298,6 +318,10 @@ void StateProcess()
     {
         switch (state.mode)
         {
+        case State::test_ir:
+            irsensors.UI_led_onoff(ir_value);
+            break;
+
         case State::test_slalom1:
             controller.StartMove();
             // controller.Acceleration(AccType::start);
@@ -335,7 +359,17 @@ void StateProcess()
             state.mode = State::output;
             break;
 
-        case State::test_translation:
+        case State::test_translation1:
+            // controller.StartMove();
+            controller.ResetCtrl();
+            controller.Acceleration(AccType::start_half);
+            // controller.GoStraight();
+            controller.Acceleration(AccType::stop);
+            state.log = State::translation;
+            state.mode = State::output;
+            break;
+
+        case State::test_translation2:
             controller.StartMove();
             for (int i = 0; i < 14; i++)
                 controller.GoStraight();
