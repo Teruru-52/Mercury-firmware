@@ -56,7 +56,7 @@ namespace undercarriage
 
   void Odometory::OutputLog()
   {
-    printf("%f, %f, %f, %f\n", cur_pos.x, cur_pos.y, cur_pos.th, length);
+    printf("%.3f, %.3f, %.3f, %.3f\n", cur_pos.x, cur_pos.y, cur_pos.th, length);
     // printf("%f, %f\n", cur.pos[2], cur.vel[1]);
     // printf("%f\n", acc_x);
     // printf("%f, %f\n", cur_pos.x, cur_pos.y);
