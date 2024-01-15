@@ -13,18 +13,13 @@ namespace undercarriage
         output = new float[ref_size];
     }
 
-    void Identification::UpdateBatteryVoltage(float bat_vol)
-    {
-        motor.UpdateBatteryVoltage(bat_vol);
-    }
-
     void Identification::UpdateRef()
     {
         m_sequence.UpdateRef();
         u_w = m_sequence.GetRef() * 1.2;
     }
 
-    void Identification::IdenRotate(const ctrl::Pose &cur_vel)
+    float Identification::GetRotInput(const ctrl::Pose &cur_vel)
     {
         if (m_sequence.GetFlag())
         {
@@ -38,34 +33,20 @@ namespace undercarriage
                 output[index_log] = cur_vel.th;
                 index_log++;
             }
-            InputVelocity(0, u_w);
             index++;
         }
         else
         {
-            motor.Brake();
+            u_w = 0;
             m_sequence.ResetTrajectoryIndex();
             flag = true;
         }
-    }
-
-    void Identification::InputVelocity(float input_v, float input_w)
-    {
-        v_left = input_v - input_w;
-        v_right = input_v + input_w;
-        motor.Drive(v_left, v_right);
-    }
-
-    bool Identification::GetFlag()
-    {
-        return flag;
+        return u_w;
     }
 
     void Identification::OutputLog()
     {
         for (int i = 0; i < ref_size; i++)
-        {
             printf("%f, %f\n", input[i], output[i]);
-        }
     }
 }

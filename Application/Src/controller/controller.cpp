@@ -54,13 +54,6 @@ namespace undercarriage
         log_kanayama_w = new float[ref_size];
     }
 
-    void Controller::UpdateBatteryVoltage(float bat_vol)
-    {
-        motor.UpdateBatteryVoltage(bat_vol);
-        iden_m.UpdateBatteryVoltage(bat_vol);
-        iden_step.UpdateBatteryVoltage(bat_vol);
-    }
-
     void Controller::UpdateOdometory()
     {
         odom->Update();
@@ -266,7 +259,8 @@ namespace undercarriage
 
     void Controller::M_Iden()
     {
-        iden_m.IdenRotate(cur_vel);
+        u_w = iden_m.GetRotInput(cur_vel);
+        InputVelocity(0, u_w);
 
         if (iden_m.GetFlag())
         {
@@ -277,7 +271,8 @@ namespace undercarriage
 
     void Controller::Step_Iden()
     {
-        iden_step.IdenTrans(cur_vel);
+        u_v = iden_step.GetTransInput(cur_vel);
+        InputVelocity(u_v, 0);
         if (iden_step.GetFlag())
         {
             Brake();
@@ -821,9 +816,11 @@ namespace undercarriage
         log_ref_v[index_log] = ref_vel.x;
         log_ref_a[index_log] = ref_acc.x * cos(cur_pos.th);
         log_omega[index_log] = cur_vel.th;
-        log_kanayama_v[index_log] = ref_vel.x;
-        log_kanayama_w[index_log] = ref_vel.th;
-
+        if (mode_ctrl == turn)
+        {
+            log_kanayama_v[index_log] = ref_vel.x;
+            log_kanayama_w[index_log] = ref_vel.th;
+        }
         log_x[index_log] = ref_pos.x;
         log_y[index_log] = ref_pos.y;
         log_theta[index_log] = ref_pos.th;

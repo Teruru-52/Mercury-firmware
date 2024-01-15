@@ -64,7 +64,7 @@ namespace undercarriage
         int16_t GetPulseL() { return odom->GetPulseL(); };
         int16_t GetPulseR() { return odom->GetPulseR(); };
 
-        void UpdateBatteryVoltage(float bat_vol);
+        void UpdateBatteryVoltage(float bat_vol) { motor.UpdateBatteryVoltage(bat_vol); };
         void UpdateOdometory();
         // void UpdateIMU() { odom->UpdateIMU(); };
         void SetIRdata(const IR_Value &ir_value);

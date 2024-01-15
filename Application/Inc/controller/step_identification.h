@@ -11,15 +11,11 @@ namespace undercarriage
     {
     public:
         Step_Identification();
-        void UpdateBatteryVoltage(float bat_vol);
-        void IdenTrans(const ctrl::Pose &cur_vel);
-        void InputVelocity(float input_v, float input_w);
-        bool GetFlag();
+        float GetTransInput(const ctrl::Pose &cur_vel);
+        bool GetFlag() { return flag; };
         void OutputLog();
 
     private:
-        hardware::Motor motor;
-
         float v_left;
         float v_right;
         float u_v;
