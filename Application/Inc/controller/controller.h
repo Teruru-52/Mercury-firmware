@@ -168,13 +168,12 @@ namespace undercarriage
         ctrl::Pose ref_vel{0, 0, 0}; // robot coordinates
         ctrl::Pose ref_acc{0, 0, 0}; // robot coordinates
         float acc_x;
-        const float acc_x_err = 30.0; // error threshold
-        const float vel_x_err = 20.0; // error threshold
+        const float acc_x_err = 30.0 * 1e+3; // error threshold
 
         const float Tp1_w = 31.83;
-        const float Kp_w = 144.2;
+        const float Kp_w = 144.2 * 1e+3;
         const float Tp1_v = 0.032;
-        const float Kp_v = 0.784493;
+        const float Kp_v = 0.784493 * 1e+3;
 
         hardware::IR_Value ir_value;
         hardware::IR_Value ir_wall_value;

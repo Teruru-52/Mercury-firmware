@@ -29,7 +29,7 @@ namespace hardware
         // const float gyro_factor = 16.4;
         const float gyro_factor = 16.6;
         const float acc_factor = 8192.0;
-        const float g = 9.80;
+        const float g = 9.80 * 1e+3;
 
         float theta;
         float gyro_z;

@@ -59,16 +59,16 @@ namespace trajectory
     void Slalom::UpdateRef()
     {
         st.update(state, t, Ts, 0);
-        ref_pos.x = state.q.x * 1e-3;
-        ref_pos.y = state.q.y * 1e-3;
+        ref_pos.x = state.q.x;
+        ref_pos.y = state.q.y;
         ref_pos.th = state.q.th;
-        ref_vel.x = v * 1e-3;
+        ref_vel.x = v;
         ref_vel.y = 0.0;
         ref_vel.th = state.dq.th;
         // ref_acc.x = (state.ddq.x * cos(ref_pos.th) + state.ddq.y * sin(ref_pos.th)) * 1e-3;
         // ref_acc.y = 0.0;
-        ref_acc.x = state.ddq.x * 1e-3;
-        ref_acc.y = state.ddq.y * 1e-3;
+        ref_acc.x = state.ddq.x;
+        ref_acc.y = state.ddq.y;
         ref_acc.th = state.ddq.th;
 
         t += Ts;
@@ -97,17 +97,17 @@ namespace trajectory
           flag_acc(false)
     {
         ResetAccCurve(start);
-        // param_stop0 = {10, 1.5, 0.5, 0, 0, FORWARD_LENGTH_HALF, 0, 0};
-        // param_start0 = {10, 1.5, 0.5, 0, 0, FORWARD_LENGTH_START, 0, 0};
-        // param_forward0 = {10, 1.5, 0.5, 0, 0, FORWARD_LENGTH, 0, 0};
-        param_stop1 = {10, 1.5, 0.3, velocity->v1, 0, FORWARD_LENGTH_HALF, 0, 0};
-        param_start1 = {10, 1.5, 0.3, 0, velocity->v1, FORWARD_LENGTH_START, 0, 0};
-        param_start_half1 = {10, 1.5, 0.3, 0, velocity->v1, FORWARD_LENGTH_HALF, 0, 0};
-        // param_forward1 = {10, 1.5, 0.5, velocity->v1, velocity->v1, FORWARD_LENGTH, 0, 0};
-        param_stop2 = {20, 10.0, 7.0, velocity->v2, 0, FORWARD_LENGTH_HALF, 0, 0};
-        param_start2 = {20, 10.0, 7.0, 0, velocity->v2, FORWARD_LENGTH_START, 0, 0};
-        param_start_half2 = {20, 10.0, 7.0, 0, velocity->v2, FORWARD_LENGTH_HALF, 0, 0};
-        // param_forward2 = {10, 1.5, 0.5, velocity->v2, velocity->v2, FORWARD_LENGTH, 0, 0};
+        // param_stop0 = {10000, 1500, 500, 0, 0, FORWARD_LENGTH_HALF, 0, 0};
+        // param_start0 = {10000, 1500, 500, 0, 0, FORWARD_LENGTH_START, 0, 0};
+        // param_forward0 = {10000, 1500, 500, 0, 0, FORWARD_LENGTH, 0, 0};
+        param_stop1 = {10000, 1500, 300, velocity->v1, 0, FORWARD_LENGTH_HALF, 0, 0};
+        param_start1 = {10000, 1500, 300, 0, velocity->v1, FORWARD_LENGTH_START, 0, 0};
+        param_start_half1 = {10000, 1500, 300, 0, velocity->v1, FORWARD_LENGTH_HALF, 0, 0};
+        // param_forward1 = {10000, 1500, 500, velocity->v1, velocity->v1, FORWARD_LENGTH, 0, 0};
+        param_stop2 = {20000, 10000.0, 7000, velocity->v2, 0, FORWARD_LENGTH_HALF, 0, 0};
+        param_start2 = {20000, 10000.0, 7000, 0, velocity->v2, FORWARD_LENGTH_START, 0, 0};
+        param_start_half2 = {20000, 10000.0, 7000, 0, velocity->v2, FORWARD_LENGTH_HALF, 0, 0};
+        // param_forward2 = {10000, 1500, 500, velocity->v2, velocity->v2, FORWARD_LENGTH, 0, 0};
     }
 
     void Acceleration::ResetAccCurve(const AccType &acc_type)

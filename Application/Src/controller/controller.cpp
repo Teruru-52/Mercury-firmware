@@ -101,7 +101,7 @@ namespace undercarriage
 
     bool Controller::ErrorFlag()
     {
-        if (acc_x < -acc_x_err || fabs(cur_vel.x) > vel_x_err)
+        if (acc_x < -acc_x_err)
             flag_safety = true;
         return flag_safety;
     }
@@ -282,7 +282,7 @@ namespace undercarriage
 
     void Controller::PartyTrick()
     {
-        // u_v = pid_traslational_vel->Update(-cur_vel[0]);
+        // u_v = pid_traslational_vel->Update(-cur_vel[0])*1e-3;
         u_v = 0.0;
         u_w = pid_angle->Update(-cur_pos.th) + pid_rotational_vel->Update(-cur_vel.th);
         InputVelocity(u_v, u_w);
@@ -332,7 +332,7 @@ namespace undercarriage
             pivot_turn180.UpdateRef();
             ref_w = pivot_turn180.GetRefVelocity();
         }
-        // u_v = pid_traslational_vel->Update(-cur_vel[0]);
+        // u_v = pid_traslational_vel->Update(-cur_vel[0])*1e-3;
         u_v = 0.0;
         u_w = pid_rotational_vel->Update(ref_w - cur_vel.th) + ref_w / Kp_w;
         InputVelocity(u_v, u_w);
@@ -355,13 +355,13 @@ namespace undercarriage
 
         kanayama->UpdateRef(ref_pos, ref_vel);
         ref_vel = kanayama->CalcInput(cur_pos);
-        u_v = pid_traslational_vel->Update(ref_vel.x - cur_vel.x);
-        // u_v = pid_traslational_vel->Update(ref_vel.x - cur_vel.x) + ref_vel.x / Kp_v;
+        u_v = pid_traslational_vel->Update(ref_vel.x - cur_vel.x) * 1e-3;
+        // u_v = pid_traslational_vel->Update(ref_vel.x - cur_vel.x) * 1e-3 + ref_vel.x / Kp_v;
         u_w = pid_rotational_vel->Update(ref_vel.th - cur_vel.th) + ref_vel.th / Kp_w;
 
         // dynamic_feedback->UpdateRef(ref_pos, ref_vel, ref_acc);
         // ref_vel = dynamic_feedback->CalcInput(cur_pos, cur_vel);
-        // u_v = pid_traslational_vel->Update(ref_vel.x - cur_vel.x) + ref_vel.x / Kp_v;
+        // u_v = pid_traslational_vel->Update(ref_vel.x - cur_vel.x)*1e-3 + ref_vel.x / Kp_v;
         // u_w = pid_rotational_vel->Update(ref_vel.th - cur_vel.th) + ref_vel.th / Kp_w;
     }
 
@@ -381,7 +381,7 @@ namespace undercarriage
         //         else
         //         {
         //             SideWallCorrection();
-        //             u_v = pid_traslational_vel->Update(ref_v - cur_vel.x) + ref_v / Kp_v;
+        //             u_v = pid_traslational_vel->Update(ref_v - cur_vel.x)*1e-3 + ref_v / Kp_v;
         //             // u_w = pid_ir_sensor_side->Update(error_fl - error_fr) + pid_angle->Update(theta_base - cur_pos.th);
         //             u_w = pid_angle->Update(theta_base - cur_pos.th);
         //         }
@@ -412,8 +412,8 @@ namespace undercarriage
         // kanayama->UpdateRef(ref_pos, ref_vel);
         // ref_vel = kanayama->CalcInput(cur_pos);
         // Logger();
-        u_v = pid_traslational_vel->Update(ref_vel.x - cur_vel.x) + (Tp1_v * ref_acc.x + ref_vel.x) / Kp_v;
-        // u_v = pid_traslational_vel->Update(ref_vel.x - cur_vel.x);
+        u_v = pid_traslational_vel->Update(ref_vel.x - cur_vel.x) * 1e-3 + (Tp1_v * ref_acc.x + ref_vel.x) / Kp_v;
+        // u_v = pid_traslational_vel->Update(ref_vel.x - cur_vel.x)*1e-3;
 
         if (flag_side_correct)
             u_w = pid_ir_sensor_side->Update(error_fl - error_fr) + pid_angle->Update(theta_base - cur_pos.th);
@@ -435,7 +435,7 @@ namespace undercarriage
         if (length < ref_l)
         {
             SideWallCorrection();
-            u_v = pid_traslational_vel->Update(ref_v - cur_vel.x) + ref_v / Kp_v;
+            u_v = pid_traslational_vel->Update(ref_v - cur_vel.x) * 1e-3 + ref_v / Kp_v;
             if (flag_side_correct)
                 u_w = pid_ir_sensor_side->Update(error_fl - error_fr) + pid_angle->Update(theta_base - cur_pos.th);
             else

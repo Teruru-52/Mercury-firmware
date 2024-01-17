@@ -8,11 +8,11 @@
 #include "accel_designer.h"
 #include <chrono>
 
-#define ENABLE_SLALOM 0
+#define ENABLE_SLALOM 1
 
-#define FORWARD_LENGTH 0.18
-#define FORWARD_LENGTH_HALF 0.09
-#define FORWARD_LENGTH_START 0.138
+#define FORWARD_LENGTH 180
+#define FORWARD_LENGTH_HALF 90
+#define FORWARD_LENGTH_START 138
 
 namespace trajectory
 {

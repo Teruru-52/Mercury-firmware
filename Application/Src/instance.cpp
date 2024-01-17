@@ -69,13 +69,13 @@ PID pid_ir_sensor_side(0.003, 0.000, 0.0, 0.0, control_period);
 undercarriage::Kanayama kanayama(3.0, 3.0, 1.0);
 undercarriage::Dynamic_Feedback dynamic_feedback(1.0, 0.05, 1.0, 0.05, control_period);
 
-// const float v1 = 0.186825;
-// const float v1 = 0.2594938;
-// const float v1 = 0.469949951;
-// const float v1 = 0.544497925;
-// const float v1 = 0.643138489;
-trajectory::Velocity velocity = {.v1 = 0.186825, .v2 = 0.469949951};
-// trajectory::Velocity velocity = {.v1 = 0.2594938, .v2 = 0.469949951};
+// const float v1 = 186.825;
+// const float v1 = 259.4938;
+// const float v1 = 469.949951;
+// const float v1 = 544.497925;
+// const float v1 = 643.138489;
+trajectory::Velocity velocity = {.v1 = 186.825, .v2 = 469.949951};
+// trajectory::Velocity velocity = {.v1 = 259.4938, .v2 = 469.949951};
 
 trajectory::Slalom slalom;
 trajectory::Acceleration acc(&velocity);
