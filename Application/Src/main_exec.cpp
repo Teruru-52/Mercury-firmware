@@ -311,22 +311,18 @@ void StateProcess()
     {
         switch (state.mode)
         {
-        case State::test_ir:
-            irsensors.UI_led_onoff(ir_value);
-            break;
-
-        case State::test_slalom1:
-            controller.StartMove();
-            // controller.Acceleration(AccType::start);
-            // controller.GoStraight();
+        case State::test_slalom1: // func10
+            // controller.StartMove();
+            controller.Acceleration(AccType::start);
+            controller.GoStraight();
             controller.Turn(-90);
-            controller.Acceleration(AccType::stop);
-            controller.FrontWallCorrection();
+            // controller.Acceleration(AccType::stop);
+            // controller.FrontWallCorrection();
             state.log = State::slalom;
             state.mode = State::output;
             break;
 
-        case State::test_slalom2:
+        case State::test_slalom2: // func9
             controller.StartMove();
             // controller.Acceleration(AccType::start);
             controller.GoStraight();
@@ -343,7 +339,7 @@ void StateProcess()
             state.mode = State::output;
             break;
 
-        case State::test_rotation:
+        case State::test_rotation: // func13
             for (int i = 0; i < 8; i++)
                 controller.PivotTurn(90);
             for (int i = 0; i < 4; i++)
@@ -352,9 +348,8 @@ void StateProcess()
             state.mode = State::output;
             break;
 
-        case State::test_translation1:
+        case State::test_translation1: // func12
             // controller.StartMove();
-            controller.ResetCtrl();
             controller.Acceleration(AccType::start_half);
             // controller.GoStraight();
             controller.Acceleration(AccType::stop);
@@ -362,7 +357,7 @@ void StateProcess()
             state.mode = State::output;
             break;
 
-        case State::test_translation2:
+        case State::test_translation2: // func11
             controller.StartMove();
             for (int i = 0; i < 14; i++)
                 controller.GoStraight();
@@ -371,20 +366,24 @@ void StateProcess()
             state.mode = State::output;
             break;
 
-        case State::m_identification:
+        case State::m_identification: // func6
             controller.SetM_Iden();
             state.log = State::m_iden;
             state.mode = State::output;
             break;
 
-        case State::step_identification:
+        case State::step_identification: // func7
             controller.SetStep_Iden();
             state.log = State::step_iden;
             state.mode = State::output;
             break;
 
-        case State::party_trick:
+        case State::party_trick: // func8
             controller.SetPartyTrick();
+            break;
+
+        case State::test_ir: // func15
+            irsensors.UI_led_onoff(ir_value);
             break;
 
         case State::output:
