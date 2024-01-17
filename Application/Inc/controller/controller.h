@@ -166,6 +166,7 @@ namespace undercarriage
         ctrl::Pose cur_vel{0, 0, 0};
         ctrl::Pose ref_pos{0, 0, 0}; // absolute coordinates
         ctrl::Pose ref_vel{0, 0, 0}; // robot coordinates
+        ctrl::Pose ref_vel_ctrl{0, 0, 0};
         ctrl::Pose ref_acc{0, 0, 0}; // robot coordinates
         float acc_x;
         const float acc_x_err = 30.0 * 1e+3; // error threshold
@@ -208,14 +209,17 @@ namespace undercarriage
         int index_log = 0;
         float *log_x;
         float *log_y;
+        // float *log_l;
         float *log_theta;
-        float *log_l;
+        float *log_omega;
         float *log_v;
         float *log_a;
-        float *log_ref_l;
+        float *log_ref_x;
+        float *log_ref_y;
+        float *log_ref_theta;
+        float *log_ref_omega;
         float *log_ref_v;
         float *log_ref_a;
-        float *log_omega;
         float *log_kanayama_v;
         float *log_kanayama_w;
     };

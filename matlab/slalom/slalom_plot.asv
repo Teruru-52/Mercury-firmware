@@ -43,23 +43,24 @@ grid on;
 hold on;
 plot(t, ref_x,'LineWidth',3);
 xlabel('Time [ms]','Interpreter','latex');
-ylabel('$x$ [mm]','Interpreter','latex');
+ylabel('$v$ [mm/s]','Interpreter','latex');
 xlim([0 max(t)])
 legend('data','ref','Interpreter','latex','Location','northwest')
 set(gca, "FontName", "Times New Roman", "FontSize", 15);
 
-subplot(4,2,4);
+subplot(4,2,2);
 plot(t, data_y,'LineWidth',3);
 grid on;
 hold on;
 plot(t, ref_y,'LineWidth',3);
 xlabel('Time [ms]','Interpreter','latex');
-ylabel('$y$ [mm]','Interpreter','latex');
+ylabel('$v$ [mm/s]','Interpreter','latex');
 xlim([0 max(t)])
 legend('data','ref','Interpreter','latex','Location','northwest')
 set(gca, "FontName", "Times New Roman", "FontSize", 15);
 
-subplot(4,2,5);
+
+subplot(4,2,6);
 plot(t, data_v,'LineWidth',3);
 grid on;
 hold on;
@@ -71,7 +72,7 @@ xlim([0 max(t)])
 legend('data','ref', 'kanayama','Interpreter','latex','Location','northwest')
 set(gca, "FontName", "Times New Roman", "FontSize", 15);
 
-subplot(4,2,6);
+subplot(4,2,5);
 plot(t, data_theta,'LineWidth',3);
 grid on;
 hold on;

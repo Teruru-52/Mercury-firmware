@@ -42,14 +42,17 @@ namespace undercarriage
 
         log_x = new float[ref_size];
         log_y = new float[ref_size];
+        // log_l = new float[ref_size];
         log_theta = new float[ref_size];
-        log_l = new float[ref_size];
+        log_omega = new float[ref_size];
         log_v = new float[ref_size];
         log_a = new float[ref_size];
-        log_ref_l = new float[ref_size];
+        log_ref_x = new float[ref_size];
+        log_ref_y = new float[ref_size];
+        log_ref_theta = new float[ref_size];
+        log_ref_omega = new float[ref_size];
         log_ref_v = new float[ref_size];
         log_ref_a = new float[ref_size];
-        log_omega = new float[ref_size];
         log_kanayama_v = new float[ref_size];
         log_kanayama_w = new float[ref_size];
     }
@@ -354,15 +357,15 @@ namespace undercarriage
         // Logger();
 
         kanayama->UpdateRef(ref_pos, ref_vel);
-        ref_vel = kanayama->CalcInput(cur_pos);
-        u_v = pid_traslational_vel->Update(ref_vel.x - cur_vel.x) * 1e-3;
-        // u_v = pid_traslational_vel->Update(ref_vel.x - cur_vel.x) * 1e-3 + ref_vel.x / Kp_v;
-        u_w = pid_rotational_vel->Update(ref_vel.th - cur_vel.th) + ref_vel.th / Kp_w;
+        ref_vel_ctrl = kanayama->CalcInput(cur_pos);
+        u_v = pid_traslational_vel->Update(ref_vel_ctrl.x - cur_vel.x) * 1e-3;
+        // u_v = pid_traslational_vel->Update(ref_vel_ctrl.x - cur_vel.x) * 1e-3 + ref_vel_ctrl.x / Kp_v;
+        u_w = pid_rotational_vel->Update(ref_vel_ctrl.th - cur_vel.th) + ref_vel_ctrl.th / Kp_w;
 
         // dynamic_feedback->UpdateRef(ref_pos, ref_vel, ref_acc);
-        // ref_vel = dynamic_feedback->CalcInput(cur_pos, cur_vel);
-        // u_v = pid_traslational_vel->Update(ref_vel.x - cur_vel.x)*1e-3 + ref_vel.x / Kp_v;
-        // u_w = pid_rotational_vel->Update(ref_vel.th - cur_vel.th) + ref_vel.th / Kp_w;
+        // ref_vel_ctrl = dynamic_feedback->CalcInput(cur_pos, cur_vel);
+        // u_v = pid_traslational_vel->Update(ref_vel_ctrl.x - cur_vel.x)*1e-3 + ref_vel_ctrl.x / Kp_v;
+        // u_w = pid_rotational_vel->Update(ref_vel_ctrl.th - cur_vel.th) + ref_vel_ctrl.th / Kp_w;
     }
 
     void Controller::Turn()
@@ -382,8 +385,8 @@ namespace undercarriage
         //         {
         //             SideWallCorrection();
         //             u_v = pid_traslational_vel->Update(ref_v - cur_vel.x)*1e-3 + ref_v / Kp_v;
-        //             // u_w = pid_ir_sensor_side->Update(error_fl - error_fr) + pid_angle->Update(theta_base - cur_pos.th);
-        //             u_w = pid_angle->Update(theta_base - cur_pos.th);
+        //             // u_w = pid_ir_sensor_side->Update(error_fl - error_fr) + pid_angle->Update(-cur_pos.th);
+        //             u_w = pid_angle->Update(-cur_pos.th);
         //         }
         //     }
         //     else
@@ -393,7 +396,7 @@ namespace undercarriage
         CalcSlalomInput();
 
         InputVelocity(u_v, u_w);
-        // Logger();
+        Logger();
         if (slalom->Finished())
             flag_ctrl = true;
     }
@@ -411,7 +414,7 @@ namespace undercarriage
         ref_acc.y = 0.0;
         // kanayama->UpdateRef(ref_pos, ref_vel);
         // ref_vel = kanayama->CalcInput(cur_pos);
-        // Logger();
+        Logger();
         u_v = pid_traslational_vel->Update(ref_vel.x - cur_vel.x) * 1e-3 + (Tp1_v * ref_acc.x + ref_vel.x) / Kp_v;
         // u_v = pid_traslational_vel->Update(ref_vel.x - cur_vel.x)*1e-3;
 
@@ -427,19 +430,19 @@ namespace undercarriage
 
     void Controller::GoStraight(float ref_l)
     {
-        if ((length > ref_l * WALL_TIMING) && (!flag_straight_time))
+        if ((cur_pos.x > ref_l * WALL_TIMING) && (!flag_straight_time))
         {
             flag_straight_time = true;
             flag_straight_wall = true;
         }
-        if (length < ref_l)
+        if (cur_pos.x < ref_l)
         {
             SideWallCorrection();
             u_v = pid_traslational_vel->Update(ref_v - cur_vel.x) * 1e-3 + ref_v / Kp_v;
             if (flag_side_correct)
-                u_w = pid_ir_sensor_side->Update(error_fl - error_fr) + pid_angle->Update(theta_base - cur_pos.th);
+                u_w = pid_ir_sensor_side->Update(error_fl - error_fr) + pid_angle->Update(-cur_pos.th);
             else
-                u_w = pid_angle->Update(theta_base - cur_pos.th);
+                u_w = pid_angle->Update(-cur_pos.th);
             InputVelocity(u_v, u_w);
         }
         else
@@ -459,6 +462,7 @@ namespace undercarriage
         else
         {
             Brake();
+            odom->ResetEncoder();
             flag_ctrl = true;
         }
     }
@@ -808,52 +812,54 @@ namespace undercarriage
     {
         log_x[index_log] = cur_pos.x;
         log_y[index_log] = cur_pos.y;
+        // log_l[index_log] = length;
         log_theta[index_log] = cur_pos.th;
-        log_l[index_log] = length;
+        log_omega[index_log] = cur_vel.th;
         log_v[index_log] = cur_vel.x;
         log_a[index_log] = acc_x;
-        log_ref_l[index_log] = ref_pos.x;
+        log_ref_x[index_log] = ref_pos.x;
+        log_ref_y[index_log] = ref_pos.y;
+        log_ref_theta[index_log] = ref_pos.th;
+        log_ref_omega[index_log] = ref_vel.th;
         log_ref_v[index_log] = ref_vel.x;
-        log_ref_a[index_log] = ref_acc.x * cos(cur_pos.th);
-        log_omega[index_log] = cur_vel.th;
+        log_ref_a[index_log] = ref_acc.x;
         if (mode_ctrl == turn)
         {
-            log_kanayama_v[index_log] = ref_vel.x;
-            log_kanayama_w[index_log] = ref_vel.th;
+            log_kanayama_v[index_log] = ref_vel_ctrl.x;
+            log_kanayama_w[index_log] = ref_vel_ctrl.th;
         }
-        log_x[index_log] = ref_pos.x;
-        log_y[index_log] = ref_pos.y;
-        log_theta[index_log] = ref_pos.th;
-        log_omega[index_log] = ref_vel.th;
         index_log++;
     }
 
     void Controller::OutputLog()
     {
         odom->OutputLog();
-        // printf("%f, %f\n", u_v, u_w);
+        // printf("%.3f, %.3f\n", u_v, u_w);
     }
 
     void Controller::OutputSlalomLog()
     {
         for (int i = 0; i < ref_size; i++)
         {
-            // printf("%f, %f, %f, %f, %f\n", log_x[i], log_y[i], log_theta[i], log_kanayama_v[i], log_kanayama_w[i]);
-            // printf("%f, %f, %f, %f, %f, %f, %f\n", log_x[i], log_y[i], log_theta[i], log_v[i], log_omega[i], log_kanayama_v[i], log_kanayama_w[i]);
-            printf("%f, %f, %f, %f\n", log_x[i], log_y[i], log_theta[i], log_omega[i]);
+            // printf("%.3f, %.3f, %.3f, %.3f, %.3f\n", log_x[i], log_y[i], log_theta[i], log_kanayama_v[i], log_kanayama_w[i]);
+            printf("%.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f\n",
+                   log_x[i], log_y[i], log_theta[i], log_v[i], log_omega[i],
+                   log_ref_x[i], log_ref_y[i], log_ref_theta[i], log_ref_v[i], log_ref_omega[i],
+                   log_kanayama_v[i], log_kanayama_w[i]);
+            // printf("%.3f, %.3f, %.3f, %.3f\n", log_x[i], log_y[i], log_theta[i], log_omega[i]);
         }
     }
 
     void Controller::OutputPivotTurnLog()
     {
         for (int i = 0; i < ref_size; i++)
-            printf("%f, %f\n", log_theta[i], log_omega[i]);
+            printf("%.3f, %.3f\n", log_theta[i], log_omega[i]);
     }
 
     void Controller::OutputTranslationLog()
     {
         for (int i = 0; i < ref_size; i++)
-            printf("%f, %f, %f, %f, %f, %f\n", log_l[i], log_v[i], log_a[i], log_ref_l[i], log_ref_v[i], log_ref_a[i]);
+            printf("%.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f\n", log_x[i], log_y[i], log_v[i], log_a[i], log_ref_x[i], log_ref_v[i], log_ref_a[i]);
     }
 
     void Controller::MotorTest(float v_left, float v_right)
