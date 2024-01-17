@@ -11,6 +11,7 @@ namespace undercarriage
   {
     imu.Initialize();
     imu.CalcOffset();
+    ResetEncoder();
     Reset();
   }
 
@@ -20,7 +21,6 @@ namespace undercarriage
     cur_pos.y = 0;
     length = 0;
     pre_vel_x = 0;
-    encoder.Reset();
     // ResetTheta();
   }
 
