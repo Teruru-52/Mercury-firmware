@@ -69,7 +69,8 @@ public:
         m_iden,
         step_iden,
         pivot_turn,
-        translation
+        translation,
+        maze,
     } Log;
 
     Function func;

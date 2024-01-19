@@ -48,6 +48,14 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
                 state.interruption = State::not_interrupt;
             }
 
+            if (controller.GetMazeLoadFlag())
+            {
+                state.interruption = State::not_interrupt;
+                FlashMaze();
+                controller.ResetMazeLoadFlag();
+                state.interruption = State::interrupt;
+            }
+
             if (cnt1kHz == 0)
             {
                 cnt1Hz++;
@@ -107,12 +115,12 @@ void Initialize()
         break;
 
     case State::func4: // run slow speed (load maze, Time Attack)
-        __HAL_TIM_SET_COMPARE(&htim8, TIM_CHANNEL_1, 2000);
-        // LoadMaze();
-        // controller.SetTrajectoryMode(1);
-        // state.mode = State::run_sequence;
-        // printf("mode: run_sequence\n");
-        state.mode = State::output;
+        // __HAL_TIM_SET_COMPARE(&htim8, TIM_CHANNEL_1, 2000);
+        LoadMaze();
+        controller.SetTrajectoryMode(1);
+        state.mode = State::run_sequence;
+        printf("mode: run_sequence\n");
+        // state.mode = State::output;
         break;
 
     case State::func5: // run fast speed (load maze, Time Attack)
@@ -244,24 +252,24 @@ void MazeSearch()
             controller.Acceleration(AccType::stop);
             break;
         }
-        // if (prevState == Agent::SEARCHING_NOT_GOAL && agent.getState() == Agent::SEARCHING_REACHED_GOAL)
-        // {
-        // maze_backup = maze;
-        // }
-        prevState = agent.getState();
-        if (cnt1Hz > 210 && agent.getState() == Agent::SEARCHING_REACHED_GOAL)
+        if (agent.getState() == Agent::SEARCHING_REACHED_GOAL)
         {
-            agent.forceGotoStart();
+            // Write_GPIO(BACK_LEFT_LED, GPIO_PIN_SET);
         }
+        if (prevState == Agent::SEARCHING_NOT_GOAL && agent.getState() == Agent::BACK_TO_START)
+        // if (prevState == Agent::SEARCHING_NOT_GOAL && agent.getState() == Agent::SEARCHING_REACHED_GOAL)
+        {
+            Write_GPIO(BACK_LEFT_LED, GPIO_PIN_SET);
+            // maze_backup = maze;
+        }
+        prevState = agent.getState();
+        // if (cnt1Hz > 210 && agent.getState() == Agent::SEARCHING_REACHED_GOAL)
+        // {
+        //     agent.forceGotoStart();
+        // }
         nextDir = agent.getNextDirection();
         // printf("nextDir.byte = %d\n", nextDir.byte);
         controller.DirMove(nextDir);
-        // if (controller.GetMazeLoadFlag())
-        // {
-        //     FlashMaze();
-        //     controller.ResetMazeLoadFlag();
-        // }
-        // controller.Wait();
     }
 }
 
@@ -272,22 +280,14 @@ void TimeAttack()
      *********************************/
     // コマンドリストみたいなやつを取り出す
     runSequence = agent.getRunSequence();
-    HAL_Delay(2500);
 
     // // Operationを先頭から順番に実行していく
     controller.Acceleration(AccType::start);
     for (size_t i = 1; i < runSequence.size() - 1; i++)
-    {
-        // Operationの実行が終わるまで待つ(nマス進んだ,右に曲がった)
-        // while (!operationFinished())
-        //     ;
-
-        //   // i番目のを実行
-        controller.OpMove(runSequence[i]); // robotMode関数はOperation型を受け取ってそれを実行する関数
-    }
+        controller.OpMove(runSequence[i]);
     controller.Acceleration(AccType::stop);
-    // state.mode = State::select_function;
-    state.mode = State::output;
+    state.mode = State::select_function;
+    // state.mode = State::output;
 }
 
 void StateProcess()
@@ -332,7 +332,6 @@ void StateProcess()
                 controller.DirMove(WEST); // slalom
                 controller.Turn(90);
                 controller.GoStraight();
-                Toggle_GPIO(BACK_LEFT_LED);
             }
             controller.Acceleration(AccType::stop);
             state.log = State::slalom;
@@ -402,6 +401,8 @@ void StateProcess()
                     controller.OutputPivotTurnLog();
                 else if (state.log == State::translation)
                     controller.OutputTranslationLog();
+                // else if (state.log == State::maze)
+                //     ;
             }
             break;
 
@@ -410,11 +411,11 @@ void StateProcess()
             MazeSearch();
             controller.InitializePosition();
             Notification();
-            // FlashMaze();
             agent.caclRunSequence(false);
             // state.mode = State::select_function;
-            // state.mode = State::run_sequence;
-            state.mode = State::output;
+            state.mode = State::run_sequence;
+            // state.log = State::maze;
+            // state.mode = State::output;
             break;
 
         case State::error:
