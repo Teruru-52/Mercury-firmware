@@ -65,9 +65,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
             if (cnt1kHz % 200 == 0)
             {
                 if (state.mode == State::test_ir)
-                    printf("%lu, %lu,%lu, %lu\n", ir_value.fl, ir_value.fr, ir_value.sl, ir_value.sr);
-                else if (state.mode == State::test_odometory)
-                    controller.OutputLog();
+                    irsensors.OutputLog();
+                // else if (state.mode == State::test_odometory)
+                controller.OutputLog();
             }
         }
     }

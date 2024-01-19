@@ -6,26 +6,6 @@ namespace hardware
         : ir_start_base(ir_start_base),
           ir_is_wall(ir_is_wall) {}
 
-    void IRsensor::on_front_led()
-    {
-        __HAL_TIM_SET_COMPARE(&htim10, TIM_CHANNEL_1, 50);
-    }
-
-    void IRsensor::on_side_led()
-    {
-        __HAL_TIM_SET_COMPARE(&htim11, TIM_CHANNEL_1, 50);
-    }
-
-    void IRsensor::off_front_led()
-    {
-        __HAL_TIM_SET_COMPARE(&htim10, TIM_CHANNEL_1, 0);
-    }
-
-    void IRsensor::off_side_led()
-    {
-        __HAL_TIM_SET_COMPARE(&htim11, TIM_CHANNEL_1, 0);
-    }
-
     void IRsensor::on_all_led()
     {
         on_front_led();
@@ -159,5 +139,10 @@ namespace hardware
             return true;
         else
             return false;
+    }
+
+    void IRsensor::OutputLog()
+    {
+        printf("%lu, %lu, %lu, %lu\n", ir_value.fl, ir_value.fr, ir_value.sl, ir_value.sr);
     }
 }

@@ -46,10 +46,10 @@ namespace hardware
     public:
         IRsensor(float ir_start_base, IR_Base *ir_is_wall);
 
-        void on_front_led();
-        void on_side_led();
-        void off_front_led();
-        void off_side_led();
+        void on_front_led() { __HAL_TIM_SET_COMPARE(&htim10, TIM_CHANNEL_1, 50); };
+        void on_side_led() { __HAL_TIM_SET_COMPARE(&htim11, TIM_CHANNEL_1, 50); };
+        void off_front_led() { __HAL_TIM_SET_COMPARE(&htim10, TIM_CHANNEL_1, 0); };
+        void off_side_led() { __HAL_TIM_SET_COMPARE(&htim11, TIM_CHANNEL_1, 0); };
         void on_all_led();
         void off_all_led();
 
@@ -65,6 +65,7 @@ namespace hardware
         float GetBatteryVoltage();
         void BatteryCheck();
         bool StartInitialize();
+        void OutputLog();
     };
 }
 #endif //  HARDWARE_IR_SENSOR_HPP_
