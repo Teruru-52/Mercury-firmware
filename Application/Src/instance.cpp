@@ -74,10 +74,9 @@ undercarriage::Dynamic_Feedback dynamic_feedback(1.0, 0.05, 1.0, 0.05, control_p
 // const float v1 = 469.949951;
 // const float v1 = 544.497925;
 // const float v1 = 643.138489;
-trajectory::Velocity velocity = {.v1 = 186.825, .v2 = 469.949951};
-// trajectory::Velocity velocity = {.v1 = 259.4938, .v2 = 469.949951};
+trajectory::Velocity velocity = {.v1 = 180.0, .v2 = 200.0, .v3 = 300.0};
 
-trajectory::Slalom slalom;
+trajectory::Slalom slalom(&velocity);
 trajectory::Acceleration acc(&velocity);
 
 undercarriage::Controller controller(&speaker,
