@@ -8,8 +8,7 @@
 #include "controller/pid_controller.h"
 #include "controller/tracker.h"
 #include "trajectory.h"
-#include "m_identification.h"
-#include "step_identification.h"
+#include "controller/identification.h"
 #include "state.h"
 #include "Operation.h"
 #include "Maze.h"
@@ -148,7 +147,7 @@ namespace undercarriage
         hardware::IR_Base *ir_is_wall;
         hardware::IR_FrontParam *ir_fparam;
         trajectory::Velocity *velocity;
-        undercarriage::Identification iden_m;
+        undercarriage::M_Identification iden_m;
         undercarriage::Step_Identification iden_step;
 
         float v_left;

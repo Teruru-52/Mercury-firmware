@@ -3,8 +3,7 @@
 
 #include "instance.h"
 #include "digital_filter.h"
-#include "controller/m_identification.h"
-#include "controller/step_identification.h"
+#include "controller/identification.h"
 #include "machine_state.h"
 #include "flash.h"
 
