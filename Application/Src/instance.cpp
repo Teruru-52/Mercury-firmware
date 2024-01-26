@@ -43,14 +43,14 @@ const float ir_fl_base = 2220; // side wall correction
 const float ir_fr_base = 2220;
 const float ir_sl_base = 3650; // front wall correction
 const float ir_sr_base = 3550;
-const float ir_sl_slalom = 2420; // front wall correction (slalom)
-const float ir_sr_slalom = 2420;
+
+const float ir_slalom = 2420; // front wall correction (slalom)
 
 hardware::IR_Value ir_value;
 // for wall judge
 hardware::IR_Base ir_is_wall = {ir_fl_wall, ir_fr_wall, ir_sl_wall, ir_sr_wall};
 // for front/side wall correction
-hardware::IR_Base ir_base = {ir_fl_base, ir_fr_base, ir_sl_base, ir_sr_base, ir_sl_slalom, ir_sr_slalom};
+hardware::IR_Base ir_base = {ir_fl_base, ir_fr_base, ir_sl_base, ir_sr_base, ir_slalom};
 hardware::IRsensor irsensors(ir_start_base, &ir_is_wall);
 
 const float control_period = 0.001;
@@ -60,20 +60,18 @@ undercarriage::Odometory odom(sampling_period);
 
 PID pid_angle(4.0, 0.0, 0.0, 0.0, control_period);
 PID pid_rotational_vel(1.1976, 85.1838, -0.00099, 0.0039227, control_period);
-PID pid_traslational_vel(6.8176, 82.0249, -0.033349, 0.023191, control_period);
-// PID pid_traslational_vel(20.0, 100.0, -0.033349, 0.023191, control_period);
+PID pid_traslational_vel(0.0068176, 0.0820249, -0.000033349, 0.023191, control_period);
 PID pid_ir_sensor_front_left(0.0005, 0.000005, 0.0, 0.0, control_period);
 PID pid_ir_sensor_front_right(0.0005, 0.000005, 0.0, 0.0, control_period);
-// PID pid_ir_sensor_side(0.001, 0.0, 0.00005, 0.001, control_period);
 PID pid_ir_sensor_side(0.003, 0.000, 0.0, 0.0, control_period);
-undercarriage::Kanayama kanayama(3.0, 3.0, 1.0);
-undercarriage::Dynamic_Feedback dynamic_feedback(1.0, 0.05, 1.0, 0.05, control_period);
 
-// const float v1 = 186.825;
-// const float v1 = 259.4938;
-// const float v1 = 469.949951;
-// const float v1 = 544.497925;
-// const float v1 = 643.138489;
+undercarriage::Kanayama kanayama(3.0, 0.003, 1.0);
+undercarriage::DynamicFeedback dynamic_feedback(1.5f, 0.2f, control_period);
+undercarriage::TrackerBase *tracker = &kanayama;
+// undercarriage::TrackerBase *tracker = &dynamic_feedback;
+
+hardware::IR_FrontParam ir_fparam = {.a = 41.01, .b = 1.314e-5, .c = -0.02817, .d = 262.2};
+// translational velocity
 trajectory::Velocity velocity = {.v1 = 180.0, .v2 = 200.0, .v3 = 300.0};
 
 trajectory::Slalom slalom(&velocity);
@@ -87,10 +85,10 @@ undercarriage::Controller controller(&speaker,
                                      &pid_ir_sensor_front_left,
                                      &pid_ir_sensor_front_right,
                                      &pid_ir_sensor_side,
-                                     &kanayama,
-                                     &dynamic_feedback,
+                                     tracker,
                                      &slalom,
                                      &acc,
                                      &ir_base,
                                      &ir_is_wall,
+                                     &ir_fparam,
                                      &velocity);

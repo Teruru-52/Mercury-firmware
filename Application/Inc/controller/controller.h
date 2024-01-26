@@ -6,8 +6,7 @@
 #include "hardware/speaker.h"
 #include "odometory.h"
 #include "controller/pid_controller.h"
-#include "controller/kanayama.h"
-#include "dynamic_feedback.h"
+#include "controller/tracker.h"
 #include "trajectory.h"
 #include "m_identification.h"
 #include "step_identification.h"
@@ -35,12 +34,12 @@ namespace undercarriage
                    PID *pid_ir_sensor_front_left,
                    PID *pid_ir_sensor_front_right,
                    PID *pid_ir_sensor_side,
-                   undercarriage::Kanayama *kanayama,
-                   undercarriage::Dynamic_Feedback *dynamic_feedback,
+                   undercarriage::TrackerBase *tracker,
                    trajectory::Slalom *slalom,
                    trajectory::Acceleration *acc,
                    hardware::IR_Base *ir_base,
                    hardware::IR_Base *ir_is_wall,
+                   hardware::IR_FrontParam *ir_fparam,
                    trajectory::Velocity *velocity);
 
         typedef enum
@@ -81,7 +80,7 @@ namespace undercarriage
         void GoStraight();
         void FrontWallCorrection();
         void Back();
-        void Wait();
+        void Wait_ms();
 
         void M_Iden();
         void Step_Iden();
@@ -89,11 +88,12 @@ namespace undercarriage
         void SideWallCorrection();
         void PivotTurn();
         void CalcSlalomInput();
+        float GetFrontWallPos(float ir_fmean);
         void Turn();
         void Acceleration();
         void GoStraight(float ref_l);
         void Back(int time);
-        void Wait(int time);
+        void Wait_ms(int time);
         void FrontWallCorrection(const IR_Value &ir_value);
         void BlindAlley();
         void StartMove();
@@ -138,8 +138,7 @@ namespace undercarriage
         PID *pid_ir_sensor_front_left;
         PID *pid_ir_sensor_front_right;
         PID *pid_ir_sensor_side;
-        undercarriage::Kanayama *kanayama;
-        undercarriage::Dynamic_Feedback *dynamic_feedback;
+        undercarriage::TrackerBase *tracker;
         trajectory::Slalom *slalom;
         trajectory::Acceleration *acc;
         trajectory::PivotTurn180 pivot_turn180;
@@ -147,6 +146,7 @@ namespace undercarriage
         CtrlMode mode_ctrl;
         hardware::IR_Base *ir_base;
         hardware::IR_Base *ir_is_wall;
+        hardware::IR_FrontParam *ir_fparam;
         trajectory::Velocity *velocity;
         undercarriage::Identification iden_m;
         undercarriage::Step_Identification iden_step;
@@ -158,9 +158,14 @@ namespace undercarriage
 
         float ref_v;
         float ref_w;
+        float ref_dw;
         int ref_size;
 
-        float theta_base = 0.0;
+        float theta_base = 0.0; // theta_global_ref
+        float theta_global = 0.0;
+        float theta_error = 0.0;
+        int angle_turn = 0;
+        float ref_theta = 0;
         float length;
         ctrl::Pose cur_pos{0, 0, 0};
         ctrl::Pose cur_vel{0, 0, 0};
@@ -219,9 +224,10 @@ namespace undercarriage
         float *log_ref_theta;
         float *log_ref_omega;
         float *log_ref_v;
-        float *log_ref_a;
-        float *log_kanayama_v;
-        float *log_kanayama_w;
+        float *log_ref_ax;
+        float *log_ref_ay;
+        float *log_ctrl_v;
+        float *log_ctrl_w;
     };
 } // namespace undercarriage
 
