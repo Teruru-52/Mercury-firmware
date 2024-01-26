@@ -16,12 +16,18 @@ namespace undercarriage
     void Identification::UpdateRef()
     {
         m_sequence.UpdateRef();
-        u_w = m_sequence.GetRef() * 1.2;
+        u_w = m_sequence.GetRefVoltage() * 0.5;
     }
 
     float Identification::GetRotInput(const ctrl::Pose &cur_vel)
     {
-        if (m_sequence.GetFlag())
+        if (m_sequence.Finished())
+        {
+            u_w = 0;
+            m_sequence.ResetTrajectoryIndex();
+            flag = true;
+        }
+        else
         {
             if (index % 200 == 0)
             {
@@ -34,12 +40,6 @@ namespace undercarriage
                 index_log++;
             }
             index++;
-        }
-        else
-        {
-            u_w = 0;
-            m_sequence.ResetTrajectoryIndex();
-            flag = true;
         }
         return u_w;
     }

@@ -3,56 +3,51 @@
 namespace trajectory
 {
     // Slalom
-    void Slalom::ResetTrajectory(int angle)
+    void Slalom::ResetTrajectory(int angle, float ref_theta, ctrl::Pose cur_pos)
     {
         switch (slalom_mode)
         {
         case 1:
+            v_ref = velocity->v1;
             ss = ss_turn90_1;
             if (angle == 90)
                 st = ctrl::slalom::Trajectory(ss);
             else if (angle == -90)
                 st = ctrl::slalom::Trajectory(ss, true);
+
+            // if (angle == 90)
+            //     ss = ctrl::slalom::Shape(ctrl::Pose(90 - cur_pos.x, 90 - cur_pos.y, ref_theta), 80, 0, 1000 * M_PI, 10 * M_PI, 2.0 * M_PI);
+            // else if (angle == -90)
+            //     ss = ctrl::slalom::Shape(ctrl::Pose(90 - cur_pos.x, -90 - cur_pos.y, ref_theta), 80, 0, 1000 * M_PI, 10 * M_PI, 2.0 * M_PI);
+            // st = ctrl::slalom::Trajectory(ss);
             break;
         case 2:
+            v_ref = velocity->v2;
             ss = ss_turn90_2;
             if (angle == 90)
                 st = ctrl::slalom::Trajectory(ss);
             else if (angle == -90)
                 st = ctrl::slalom::Trajectory(ss, true);
+
+            // if (angle == 90)
+            //     ss = ctrl::slalom::Shape(ctrl::Pose(90 - cur_pos.x, 90 - cur_pos.y, ref_theta), 80, 0, 1000 * M_PI, 30 * M_PI, 5.0 * M_PI);
+            // else if (angle == -90)
+            //     ss = ctrl::slalom::Shape(ctrl::Pose(90 - cur_pos.x, -90 - cur_pos.y, ref_theta), 80, 0, 1000 * M_PI, 30 * M_PI, 5.0 * M_PI);
+            // st = ctrl::slalom::Trajectory(ss);
             break;
         default:
             break;
         }
-
-        v = ss.v_ref;
-        // printf("v_ref = %f\n", v);
-    }
-
-    void Slalom::SetInitialTime(bool flag_front_wall)
-    {
-        if (flag_front_wall)
-        {
-            t = ss.straight_prev / v;
-            st.reset(v, 0, t);
-            const ctrl::AccelDesigner ad(ss.dddth_max, ss.ddth_max, ss.dth_max, 0, 0,
-                                         ss.curve.th);
-            t_end = st.getAccelDesigner().t_3() + ss.straight_prev / v;
-        }
-        else
-        {
-            t = 0.0;
-            st.reset(v, 0, ss.straight_prev / v);
-            const ctrl::AccelDesigner ad(ss.dddth_max, ss.ddth_max, ss.dth_max, 0, 0,
-                                         ss.curve.th);
-            t_end = st.getAccelDesigner().t_3() + ss.straight_prev / v;
-        }
-        // printf("t_end = %f\n", t_end);
+        // printf("v_ref = %f\n", ss.v_ref);
+        st.reset(v_ref, 0, 0);
+        // t_end = st.getAccelDesigner().t_3() + ss.straight_prev / ss.v_ref;
+        t = 0;
+        t_end = st.getTimeCurve();
     }
 
     int Slalom::GetRefSize()
     {
-        ref_size = (st.getAccelDesigner().t_3() + ss.straight_prev / v) * 1e+3;
+        ref_size = (st.getAccelDesigner().t_3() + ss.straight_prev / ss.v_ref) * 1e+3;
         return ref_size;
     }
 
@@ -62,11 +57,9 @@ namespace trajectory
         ref_pos.x = state.q.x;
         ref_pos.y = state.q.y;
         ref_pos.th = state.q.th;
-        ref_vel.x = v;
+        ref_vel.x = st.getVelocity();
         ref_vel.y = 0.0;
         ref_vel.th = state.dq.th;
-        // ref_acc.x = (state.ddq.x * cos(ref_pos.th) + state.ddq.y * sin(ref_pos.th)) * 1e-3;
-        // ref_acc.y = 0.0;
         ref_acc.x = state.ddq.x;
         ref_acc.y = state.ddq.y;
         ref_acc.th = state.ddq.th;
@@ -186,12 +179,11 @@ namespace trajectory
         t = 0;
     }
 
-    // PivotTurn90
-    PivotTurn90::PivotTurn90()
-        : index(0),
-          flag(false)
+    // StaticTrajectoryBase
+    void StaticTrajectoryBase::Reset()
     {
-        ref_size = GetRefSize();
+        flag = false;
+        index = 0;
     }
 
     void PivotTurn90::UpdateRef()
@@ -199,26 +191,13 @@ namespace trajectory
         if (index < ref_size)
         {
             ref = ref_w[index];
+            ref_a = ref_dw[index];
             index++;
         }
         else if (index == ref_size)
         {
             flag = true;
         }
-    }
-
-    void PivotTurn90::Reset()
-    {
-        flag = false;
-        index = 0;
-    }
-
-    // PivotTurn180
-    PivotTurn180::PivotTurn180()
-        : index(0),
-          flag(false)
-    {
-        ref_size = GetRefSize();
     }
 
     void PivotTurn180::UpdateRef()
@@ -226,6 +205,7 @@ namespace trajectory
         if (index < ref_size)
         {
             ref = ref_w[index];
+            ref_a = ref_dw[index];
             index++;
         }
         else if (index == ref_size)
@@ -234,20 +214,7 @@ namespace trajectory
         }
     }
 
-    void PivotTurn180::Reset()
-    {
-        flag = false;
-        index = 0;
-    }
-
     // M Sequence
-    M_sequence::M_sequence()
-        : index(0),
-          flag(true)
-    {
-        ref_size = GetRefSize();
-    }
-
     void M_sequence::UpdateRef()
     {
         if (index < ref_size)
@@ -257,7 +224,7 @@ namespace trajectory
         }
         else if (index == ref_size)
         {
-            flag = false;
+            flag = true;
         }
     }
 }
