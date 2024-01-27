@@ -43,7 +43,6 @@ const float ir_fl_base = 2220; // side wall correction
 const float ir_fr_base = 2220;
 const float ir_sl_base = 3650; // front wall correction
 const float ir_sr_base = 3550;
-
 const float ir_slalom = 2420; // front wall correction (slalom)
 
 hardware::IR_Value ir_value;
@@ -60,7 +59,8 @@ undercarriage::Odometory odom(sampling_period);
 
 PID pid_angle(4.0, 0.0, 0.0, 0.0, control_period);
 PID pid_rotational_vel(1.1976, 85.1838, -0.00099, 0.0039227, control_period);
-PID pid_traslational_vel(0.0068176, 0.0820249, -0.000033349, 0.023191, control_period);
+// PID pid_traslational_vel(0.0068176, 0.0820249, -0.000033349, 0.023191, control_period);
+PID pid_traslational_vel(0.009, 0.09, 0.0, 0.0, control_period);
 PID pid_ir_sensor_front_left(0.0005, 0.000005, 0.0, 0.0, control_period);
 PID pid_ir_sensor_front_right(0.0005, 0.000005, 0.0, 0.0, control_period);
 PID pid_ir_sensor_side(0.003, 0.000, 0.0, 0.0, control_period);

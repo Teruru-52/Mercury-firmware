@@ -14,6 +14,7 @@
 #include "Maze.h"
 #include "Agent.h"
 
+#define ENABLE_LOG 1
 #define WALL_TIMING 0.8
 #define CNT_BACK 3
 
@@ -178,7 +179,8 @@ namespace undercarriage
         const float Tp1_w = 31.83;
         const float Kp_w = 144.2 * 1e+3;
         const float Tp1_v = 0.032;
-        const float Kp_v = 0.784493 * 1e+3;
+        // const float Kp_v = 0.784493 * 1e+3;
+        const float Kp_v = 0.65 * 1e+3;
 
         hardware::IR_Value ir_value;
         hardware::IR_Value ir_wall_value;
@@ -223,10 +225,11 @@ namespace undercarriage
         float *log_ref_theta;
         float *log_ref_omega;
         float *log_ref_v;
-        float *log_ref_ax;
-        float *log_ref_ay;
+        float *log_ref_a;
         float *log_ctrl_v;
         float *log_ctrl_w;
+        float *log_u_v;
+        float *log_u_w;
     };
 } // namespace undercarriage
 
