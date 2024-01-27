@@ -19,7 +19,7 @@ namespace undercarriage
         ctrl::Pose cur_pos{0, 0, 0}; // absolute coordinates
         ctrl::Pose cur_vel{0, 0, 0}; // robot coordinates
         float vel_x;
-        float pre_vel_x{0.0};
+        float pre_length{0.0};
         float acc_x;
         float length{0.0};
 

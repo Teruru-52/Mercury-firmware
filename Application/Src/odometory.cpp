@@ -20,7 +20,7 @@ namespace undercarriage
     cur_pos.x = 0;
     cur_pos.y = 0;
     length = 0;
-    pre_vel_x = 0;
+    pre_length = 0;
     // ResetTheta();
   }
 
@@ -50,8 +50,9 @@ namespace undercarriage
     // pre_vel_x = vel_x;
 
     length = encoder.GetPosition();
-    cur_pos.x += length * cos(cur_pos.th);
-    cur_pos.y += length * sin(cur_pos.th);
+    cur_pos.x += (pre_length + length) * cos(cur_pos.th) * 0.5;
+    cur_pos.y += (pre_length + length) * sin(cur_pos.th) * 0.5;
+    pre_length = length;
   }
 
   void Odometory::OutputLog()
