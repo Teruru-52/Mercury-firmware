@@ -84,7 +84,7 @@ namespace undercarriage
         void Reset() override;
     };
 
-    class TimeVaringFeedback : public TrackerBase
+    class TimeVaryingFeedback : public TrackerBase
     {
     private:
         const float zeta; /*< zeta \in [0,1] */
@@ -94,7 +94,7 @@ namespace undercarriage
         float sin_th_r;
 
     public:
-        explicit TimeVaringFeedback(const float zeta, const float b)
+        explicit TimeVaryingFeedback(const float zeta, const float b)
             : zeta(zeta), b(b) {}
         void SetXi(const float xi_ini = 0) override {}
         void UpdateRef(const ctrl::Pose &ref_p, const ctrl::Pose &ref_v, const ctrl::Pose &ref_a) override;

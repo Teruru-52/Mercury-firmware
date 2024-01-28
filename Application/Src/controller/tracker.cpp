@@ -97,7 +97,7 @@ namespace undercarriage
         ref_du.clear();
     }
 
-    void TimeVaringFeedback::UpdateRef(const ctrl::Pose &ref_p, const ctrl::Pose &ref_v, const ctrl::Pose &ref_a)
+    void TimeVaryingFeedback::UpdateRef(const ctrl::Pose &ref_p, const ctrl::Pose &ref_v, const ctrl::Pose &ref_a)
     {
         ref_pos = ref_p;
         cos_th_r = cos(ref_pos.th);
@@ -105,7 +105,7 @@ namespace undercarriage
         ref_vel = ref_v;
     }
 
-    ctrl::Pose TimeVaringFeedback::CalcInput(const ctrl::Pose &cur_pos, const ctrl::Pose &cur_v)
+    ctrl::Pose TimeVaryingFeedback::CalcInput(const ctrl::Pose &cur_pos, const ctrl::Pose &cur_v)
     {
         const float cos_th = cos(cur_pos.th);
         const float sin_th = sin(cur_pos.th);
@@ -120,7 +120,7 @@ namespace undercarriage
         return ref_u;
     }
 
-    void TimeVaringFeedback::Reset()
+    void TimeVaryingFeedback::Reset()
     {
         ref_pos.clear();
         ref_vel.clear();

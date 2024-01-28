@@ -67,10 +67,10 @@ PID pid_ir_sensor_side(0.003, 0.000, 0.0, 0.0, control_period);
 
 undercarriage::Kanayama kanayama(3.0, 0.003, 1.0);
 undercarriage::DynamicFeedback dynamic_feedback(10.0f, 0.5f, control_period);
-undercarriage::TimeVaringFeedback time_varing_feedback(1.0f, 1e-3f);
+undercarriage::TimeVaryingFeedback time_varying_feedback(1.0f, 1e-3f);
 // undercarriage::TrackerBase *tracker = &kanayama;
 // undercarriage::TrackerBase *tracker = &dynamic_feedback;
-undercarriage::TrackerBase *tracker = &time_varing_feedback;
+undercarriage::TrackerBase *tracker = &time_varying_feedback;
 
 hardware::IR_FrontParam ir_fparam = {.a = 41.01, .b = 1.314e-5, .c = -0.02817, .d = 262.2};
 // translational velocity
