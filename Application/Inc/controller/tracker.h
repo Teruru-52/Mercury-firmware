@@ -16,12 +16,20 @@ namespace undercarriage
     class TrackerBase
     {
     protected:
+        float cos_th_r;
+        float sin_th_r;
         ctrl::Pose ref_pos{0, 0, 0};
         ctrl::Pose ref_vel{0, 0, 0};
         ctrl::Pose ref_u{0, 0, 0};
 
     public:
         explicit TrackerBase() {}
+        static constexpr float sinc(const float x)
+        {
+            const auto xx = x * x;
+            const auto xxxx = xx * xx;
+            return xxxx * xxxx / 362880 - xxxx * xx / 5040 + xxxx / 120 - xx / 6 + 1;
+        }
         virtual void SetXi(const float xi_ini = 0) = 0;
         virtual void UpdateRef(const ctrl::Pose &ref_p, const ctrl::Pose &ref_v, const ctrl::Pose &ref_a) = 0;
         virtual ctrl::Pose CalcInput(const ctrl::Pose &cur_pos, const ctrl::Pose &cur_v) = 0;
@@ -54,19 +62,13 @@ namespace undercarriage
         const float kd;
         const float control_period;
 
-        const float zeta = 0.2f;
-        // const float zeta = 0.01f;
-        // const float omega_n = 15.0f;
-        const float omega_n = 1.5f;
-        const float low_zeta = 1.0f; /*< zeta \in [0,1] */
-        const float low_b = 1e-3f;   /*< b > 0 */
+        const float zeta = 1.0f; /*< zeta \in [0,1] */
+        const float b = 1e-3f;   /*< b > 0 */
 
         float xi = 0.0;
         float pre_d_xi = 0.0;
         static constexpr const float xi_threshold = 50.0f;
 
-        float cos_th_r;
-        float sin_th_r;
         ctrl::Pose cur_vel{0, 0, 0};
         ctrl::Pose ref_acc{0, 0, 0};
         ctrl::Pose ref_du{0, 0, 0};
@@ -77,6 +79,24 @@ namespace undercarriage
                                  const float control_period)
             : kp(omega_n * omega_n), kd(2.0 * zeta * omega_n), control_period(control_period) {}
         void SetXi(const float xi_ini = 0) override { xi = xi_ini; }
+        void UpdateRef(const ctrl::Pose &ref_p, const ctrl::Pose &ref_v, const ctrl::Pose &ref_a) override;
+        ctrl::Pose CalcInput(const ctrl::Pose &cur_pos, const ctrl::Pose &cur_v) override;
+        void Reset() override;
+    };
+
+    class TimeVaringFeedback : public TrackerBase
+    {
+    private:
+        const float zeta; /*< zeta \in [0,1] */
+        const float b;    /*< b > 0 */
+
+        float cos_th_r;
+        float sin_th_r;
+
+    public:
+        explicit TimeVaringFeedback(const float zeta, const float b)
+            : zeta(zeta), b(b) {}
+        void SetXi(const float xi_ini = 0) override {}
         void UpdateRef(const ctrl::Pose &ref_p, const ctrl::Pose &ref_v, const ctrl::Pose &ref_a) override;
         ctrl::Pose CalcInput(const ctrl::Pose &cur_pos, const ctrl::Pose &cur_v) override;
         void Reset() override;

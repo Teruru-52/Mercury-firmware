@@ -17,8 +17,10 @@ namespace undercarriage
 
     ctrl::Pose Kanayama::CalcInput(const ctrl::Pose &cur_pos, const ctrl::Pose &cur_v)
     {
-        error_pos.x = (ref_pos.x - cur_pos.x) * cos(cur_pos.th) + (ref_pos.y - cur_pos.y) * sin(cur_pos.th);
-        error_pos.y = -(ref_pos.x - cur_pos.x) * sin(cur_pos.th) + (ref_pos.y - cur_pos.y) * cos(cur_pos.th);
+        const float cos_th = cos(cur_pos.th);
+        const float sin_th = sin(cur_pos.th);
+        error_pos.x = (ref_pos.x - cur_pos.x) * cos_th + (ref_pos.y - cur_pos.y) * sin_th;
+        error_pos.y = -(ref_pos.x - cur_pos.x) * sin_th + (ref_pos.y - cur_pos.y) * cos_th;
         error_pos.th = ref_pos.th - cur_pos.th;
 
         ref_u.x = ref_vel.x * cos(error_pos.th) + Kx * error_pos.x;
@@ -60,24 +62,25 @@ namespace undercarriage
 
         const float d_xi = ux * cos_th_r + uy * sin_th_r;
         // const float d_xi = ux * cos_th + uy * sin_th;
-        // xi += d_xi * control_period;
         xi += (pre_d_xi + d_xi) * control_period * 0.5;
         pre_d_xi = d_xi;
 
         if (abs(xi) < xi_threshold)
         {
+            // time-varing feedback
             const float v_d = ref_vel.x * cos_th_r + ref_vel.y * sin_th_r;
             const float w_d = ref_vel.th;
-            const auto k1 = 2 * low_zeta * sqrt(w_d * w_d + low_b * v_d * v_d);
-            const auto k2 = low_b;
+            const auto k1 = 2 * zeta * sqrt(w_d * w_d + b * v_d * v_d);
+            const auto k2 = b;
             const auto k3 = k1;
             ref_u.x = v_d * cos(cos_th_r - cos_th) + k1 * (cos_th * (ref_pos.x - cur_pos.x) + sin_th * (ref_pos.y - cur_pos.y));
-            ref_u.th = w_d + k2 * v_d * sin(ref_pos.th - cur_pos.th) / (ref_pos.th - cur_pos.th) * (-sin_th * (ref_pos.x - cur_pos.x) + cos_th * (ref_pos.y - cur_pos.y)) + k3 * (ref_pos.th - cur_pos.th);
+            ref_u.th = w_d + k2 * v_d * sinc(ref_pos.th - cur_pos.th) * (cos_th * (ref_pos.x - cur_pos.x) - sin_th * (ref_pos.y - cur_pos.y)) + k3 * (ref_pos.th - cur_pos.th);
         }
         else
         {
             ref_u.x = xi;
-            ref_u.th = (uy * cos(cur_pos.th) - ux * sin(cur_pos.th)) / xi;
+            ref_u.th = (uy * cos_th_r - ux * sin_th_r) / xi;
+            // ref_u.th = (uy * cos_th - ux * sin_th) / xi;
         }
         return ref_u;
     }
@@ -92,6 +95,36 @@ namespace undercarriage
         ref_acc.clear();
         ref_u.clear();
         ref_du.clear();
+    }
+
+    void TimeVaringFeedback::UpdateRef(const ctrl::Pose &ref_p, const ctrl::Pose &ref_v, const ctrl::Pose &ref_a)
+    {
+        ref_pos = ref_p;
+        cos_th_r = cos(ref_pos.th);
+        sin_th_r = sin(ref_pos.th);
+        ref_vel = ref_v;
+    }
+
+    ctrl::Pose TimeVaringFeedback::CalcInput(const ctrl::Pose &cur_pos, const ctrl::Pose &cur_v)
+    {
+        const float cos_th = cos(cur_pos.th);
+        const float sin_th = sin(cur_pos.th);
+
+        const float v_d = ref_vel.x;
+        const float w_d = ref_vel.th;
+        const auto k1 = 2 * zeta * sqrt(w_d * w_d + b * v_d * v_d);
+        const auto k2 = b;
+        const auto k3 = k1;
+        ref_u.x = v_d * cos(cos_th_r - cos_th) + k1 * (cos_th * (ref_pos.x - cur_pos.x) + sin_th * (ref_pos.y - cur_pos.y));
+        ref_u.th = w_d + k2 * v_d * sinc(ref_pos.th - cur_pos.th) * (cos_th * (ref_pos.x - cur_pos.x) - sin_th * (ref_pos.y - cur_pos.y)) + k3 * (ref_pos.th - cur_pos.th);
+        return ref_u;
+    }
+
+    void TimeVaringFeedback::Reset()
+    {
+        ref_pos.clear();
+        ref_vel.clear();
+        ref_u.clear();
     }
 
 } // namespace undercarriage
