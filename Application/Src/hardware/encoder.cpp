@@ -5,7 +5,11 @@
 namespace hardware
 {
     Encoder::Encoder(float sampling_period)
-        : sampling_period(sampling_period) {}
+        : sampling_period(sampling_period)
+    {
+        coeff_pulse2angle = 2.0f * M_PI * gear_ratio * 0.25f;
+        coeff_pulse2vel = coeff_pulse2angle / sampling_period;
+    }
 
     void Encoder::Update()
     {
@@ -63,21 +67,21 @@ namespace hardware
 
     float Encoder::GetAngularVelocity(int16_t pulse)
     {
-        return (float)pulse * (2.0 * M_PI / ppr) * gear_ratio / sampling_period * 0.25;
+        return static_cast<float>(pulse) / ppr * coeff_pulse2vel;
     }
 
     float Encoder::GetAngle(int16_t pulse)
     {
-        return (float)pulse * (2.0 * M_PI / ppr) * gear_ratio * 0.25;
+        return static_cast<float>(pulse) / ppr * coeff_pulse2angle;
     }
 
     float Encoder::GetVelocity()
     {
-        return (GetAngularVelocity(pulse_left) + GetAngularVelocity(pulse_right)) * tire_radius * 0.5;
+        return (GetAngularVelocity(pulse_left) + GetAngularVelocity(pulse_right)) * tire_radius * 0.5f;
     }
 
     float Encoder::GetPosition()
     {
-        return (GetAngle(pulse_left) + GetAngle(pulse_right)) * tire_radius * 0.5;
+        return (GetAngle(pulse_left) + GetAngle(pulse_right)) * tire_radius * 0.5f;
     }
 } // namespace hardware

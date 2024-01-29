@@ -28,6 +28,8 @@ namespace hardware
         float tire_radius = 13.0; // [mm]
         // float tire_radius = 13.1; // [mm]
         const float ppr = 2048.0;
+        float coeff_pulse2angle;
+        float coeff_pulse2vel;
         int16_t pulse_left;
         int16_t pulse_right;
     };
