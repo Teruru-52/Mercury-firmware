@@ -164,7 +164,7 @@ namespace undercarriage
         float theta_base = 0.0; // theta_global_ref
         float theta_global = 0.0;
         float theta_error = 0.0;
-        int angle_turn = 0;
+        int angle_turn;
         float ref_theta = 0;
         float length;
         ctrl::Pose cur_pos{0, 0, 0};

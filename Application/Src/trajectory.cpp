@@ -9,36 +9,25 @@ namespace trajectory
         {
         case 1:
             v_ref = velocity->v1;
-            ss = ss_turn90_1;
-            if (angle == 90)
-                st = ctrl::slalom::Trajectory(ss);
-            else if (angle == -90)
-                st = ctrl::slalom::Trajectory(ss, true);
 
-            // if (angle == 90)
-            //     ss = ctrl::slalom::Shape(ctrl::Pose(90 - cur_pos.x, 90 - cur_pos.y, ref_theta), 80, 0, 1000 * M_PI, 10 * M_PI, 2.0 * M_PI);
-            // else if (angle == -90)
-            //     ss = ctrl::slalom::Shape(ctrl::Pose(90 - cur_pos.x, -90 - cur_pos.y, ref_theta), 80, 0, 1000 * M_PI, 10 * M_PI, 2.0 * M_PI);
-            // st = ctrl::slalom::Trajectory(ss);
+            if (angle == 90)
+                ss = ctrl::slalom::Shape(ctrl::Pose(90 - cur_pos.x, 90, ref_theta), 90, 0, params->run1.j_max, params->run1.a_max, params->run1.v_max);
+            else if (angle == -90)
+                ss = ctrl::slalom::Shape(ctrl::Pose(90 - cur_pos.x, -90, ref_theta), -90, 0, params->run1.j_max, params->run1.a_max, params->run1.v_max);
             break;
         case 2:
             v_ref = velocity->v2;
-            ss = ss_turn90_2;
-            if (angle == 90)
-                st = ctrl::slalom::Trajectory(ss);
-            else if (angle == -90)
-                st = ctrl::slalom::Trajectory(ss, true);
 
-            // if (angle == 90)
-            //     ss = ctrl::slalom::Shape(ctrl::Pose(90 - cur_pos.x, 90 - cur_pos.y, ref_theta), 80, 0, 1000 * M_PI, 30 * M_PI, 5.0 * M_PI);
-            // else if (angle == -90)
-            //     ss = ctrl::slalom::Shape(ctrl::Pose(90 - cur_pos.x, -90 - cur_pos.y, ref_theta), 80, 0, 1000 * M_PI, 30 * M_PI, 5.0 * M_PI);
-            // st = ctrl::slalom::Trajectory(ss);
+            if (angle == 90)
+                ss = ctrl::slalom::Shape(ctrl::Pose(90 - cur_pos.x, 90, ref_theta), 90, 0, params->run2.j_max, params->run2.a_max, params->run2.v_max);
+            else if (angle == -90)
+                ss = ctrl::slalom::Shape(ctrl::Pose(90 - cur_pos.x, -90, ref_theta), -90, 0, params->run2.j_max, params->run2.a_max, params->run2.v_max);
             break;
         default:
             break;
         }
         // printf("v_ref = %f\n", ss.v_ref);
+        st = ctrl::slalom::Trajectory(ss);
         st.reset(v_ref, 0, 0);
         // t_end = st.getAccelDesigner().t_3() + ss.straight_prev / ss.v_ref;
         t = 0;
@@ -85,25 +74,7 @@ namespace trajectory
     }
 
     // Acceleration
-    Acceleration::Acceleration(Velocity *velocity)
-        : velocity(velocity),
-          flag_acc(false)
-    {
-        ResetAccCurve(start);
-        // param_stop0 = {10000, 1500, 500, 0, 0, FORWARD_LENGTH_HALF, 0, 0};
-        // param_start0 = {10000, 1500, 500, 0, 0, FORWARD_LENGTH_START, 0, 0};
-        // param_forward0 = {10000, 1500, 500, 0, 0, FORWARD_LENGTH, 0, 0};
-        param_stop1 = {10000, 1500, 300, velocity->v1, 0, FORWARD_LENGTH_HALF, 0, 0};
-        param_start1 = {10000, 1500, 300, 0, velocity->v1, FORWARD_LENGTH_START, 0, 0};
-        param_start_half1 = {10000, 1500, 300, 0, velocity->v1, FORWARD_LENGTH_HALF, 0, 0};
-        // param_forward1 = {10000, 1500, 500, velocity->v1, velocity->v1, FORWARD_LENGTH, 0, 0};
-        param_stop2 = {20000, 10000.0, 7000, velocity->v2, 0, FORWARD_LENGTH_HALF, 0, 0};
-        param_start2 = {20000, 10000.0, 7000, 0, velocity->v2, FORWARD_LENGTH_START, 0, 0};
-        param_start_half2 = {20000, 10000.0, 7000, 0, velocity->v2, FORWARD_LENGTH_HALF, 0, 0};
-        // param_forward2 = {10000, 1500, 500, velocity->v2, velocity->v2, FORWARD_LENGTH, 0, 0};
-    }
-
-    void Acceleration::ResetAccCurve(const AccType &acc_type)
+    void Acceleration::ResetAccCurve(const AccType &acc_type, float cur_vel)
     {
         this->acc_type = acc_type;
         switch (acc_mode)
@@ -112,13 +83,13 @@ namespace trajectory
             switch (acc_type)
             {
             case start:
-                ad.reset(param_start1);
+                ad.reset(params->run1.j_max, params->run1.a_max, params->run1.v_max, 0, velocity->v1, FORWARD_LENGTH_START, 0, 0);
                 break;
             case start_half:
-                ad.reset(param_start_half1);
+                ad.reset(params->run1.j_max, params->run1.a_max, params->run1.v_max, 0, velocity->v1, FORWARD_LENGTH_HALF, 0, 0);
                 break;
             case stop:
-                ad.reset(param_stop1);
+                ad.reset(params->run1.j_max, params->run1.a_max, params->run1.v_max, cur_vel, 0, FORWARD_LENGTH_HALF, 0, 0);
                 break;
             default:
                 break;
@@ -128,13 +99,13 @@ namespace trajectory
             switch (acc_type)
             {
             case start:
-                ad.reset(param_start2);
+                ad.reset(params->run2.j_max, params->run2.a_max, params->run2.v_max, 0, velocity->v2, FORWARD_LENGTH_START, 0, 0);
                 break;
             case start_half:
-                ad.reset(param_start_half2);
+                ad.reset(params->run2.j_max, params->run2.a_max, params->run2.v_max, 0, velocity->v2, FORWARD_LENGTH_HALF, 0, 0);
                 break;
             case stop:
-                ad.reset(param_stop2);
+                ad.reset(params->run2.j_max, params->run2.a_max, params->run2.v_max, cur_vel, 0, FORWARD_LENGTH_HALF, 0, 0);
                 break;
             default:
                 break;

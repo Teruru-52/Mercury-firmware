@@ -22,12 +22,34 @@ namespace trajectory
         float v2;
         float v3;
         float v4;
+        float v5;
+    };
+
+    struct Parameter
+    {
+        float v_max;
+        float a_max;
+        float j_max;
+    };
+
+    struct Parameters
+    {
+        Parameter run1;
+        Parameter run2;
+        Parameter run3;
+        Parameter run4;
+        Parameter run5;
     };
 
     class Slalom
     {
     public:
-        Slalom(Velocity *velocity) : velocity(velocity) { ResetTrajectory(); };
+        Slalom(Velocity *velocity, Parameters *params) : velocity(velocity), params(params),
+                                                         ss(ctrl::slalom::Shape(ctrl::Pose(90, 90, M_PI / 2), 90, 0, params->run1.j_max, params->run1.a_max, params->run1.v_max)),
+                                                         st(ctrl::slalom::Trajectory(ss))
+        {
+            ResetTrajectory();
+        };
         void ResetTrajectory(int angle = 90, float ref_theta = M_PI * 0.5, ctrl::Pose cur_pos = {0, 0, 0});
         void SetMode(int slalom_mode) { this->slalom_mode = slalom_mode; };
         int GetRefSize();
@@ -42,14 +64,10 @@ namespace trajectory
 
     private:
         Velocity *velocity;
+        Parameters *params;
 
-        // ctrl::slalom::Shape ss_turn90_1 = ctrl::slalom::Shape(ctrl::Pose(90, 90, M_PI / 2), 80, 0, 500 * M_PI, 5 * M_PI, M_PI);
-        ctrl::slalom::Shape ss_turn90_1 = ctrl::slalom::Shape(ctrl::Pose(90, 90, M_PI / 2), 90, 0, 1000 * M_PI, 10 * M_PI, 2.0 * M_PI);
-        ctrl::slalom::Shape ss_turn90_2 = ctrl::slalom::Shape(ctrl::Pose(90, 90, M_PI / 2), 90, 0, 1000 * M_PI, 30 * M_PI, 5.0 * M_PI);
-        // ctrl::slalom::Shape ss_turn90_1(ctrl::Pose(90, 90, M_PI / 2), 80, 0, 1000 * M_PI, 60 * M_PI, 10.0 * M_PI);
-        // ctrl::slalom::Shape ss_turn90_1(ctrl::Pose(90, 90, M_PI / 2), 80, 0, 2000 * M_PI, 200 * M_PI, 20.0 * M_PI);
-        ctrl::slalom::Shape ss = ss_turn90_1;                       // initial shape
-        ctrl::slalom::Trajectory st = ctrl::slalom::Trajectory(ss); // initial trajectory
+        ctrl::slalom::Shape ss;
+        ctrl::slalom::Trajectory st;
         ctrl::State state;
 
         ctrl::Pose ref_pos{0, 0, 0}; // absolute coordinates
@@ -80,8 +98,8 @@ namespace trajectory
             stop
         } AccType;
 
-        Acceleration(Velocity *velocity);
-        void ResetAccCurve(const AccType &acc_type);
+        Acceleration(Velocity *velocity, Parameters *params) : velocity(velocity), params(params) { ResetAccCurve(start, 0); };
+        void ResetAccCurve(const AccType &acc_type, float cur_vel);
         void SetMode(int acc_mode = 1) { this->acc_mode = acc_mode; };
         int GetRefSize();
         void UpdateRef();
@@ -96,25 +114,15 @@ namespace trajectory
 
     private:
         ctrl::AccelDesigner ad;
-
         Velocity *velocity;
-        // ctrl::AD_Parameters param_stop0;
-        // ctrl::AD_Parameters param_start0;
-        // ctrl::AD_Parameters param_forward0;
-        ctrl::AD_Parameters param_stop1;
-        ctrl::AD_Parameters param_start1;
-        ctrl::AD_Parameters param_start_half1;
-        // ctrl::AD_Parameters param_forward1;
-        ctrl::AD_Parameters param_stop2;
-        ctrl::AD_Parameters param_start2;
-        ctrl::AD_Parameters param_start_half2;
-        // ctrl::AD_Parameters param_forward2;
+        Parameters *params;
+
         AccType acc_type;
 
         float ref_pos;
         float ref_vel;
         float ref_acc;
-        bool flag_acc;
+        bool flag_acc = false;
         int acc_mode = 1;
         const float Ts = 1e-3;
         float v = 0;
