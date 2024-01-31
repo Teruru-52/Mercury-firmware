@@ -28,18 +28,11 @@ namespace undercarriage
     public:
         Controller(Speaker *speaker,
                    undercarriage::Odometory *odom,
-                   PID *pid_angle,
-                   PID *pid_rotational_vel,
-                   PID *pid_traslational_vel,
-                   PID *pid_ir_sensor_front_left,
-                   PID *pid_ir_sensor_front_right,
-                   PID *pid_ir_sensor_side,
+                   PID_Instances *pid,
                    undercarriage::TrackerBase *tracker,
                    trajectory::Slalom *slalom,
                    trajectory::Acceleration *acc,
-                   hardware::IR_Base *ir_base,
-                   hardware::IR_Base *ir_is_wall,
-                   hardware::IR_FrontParam *ir_fparam,
+                   hardware::IR_Param *ir_param,
                    trajectory::Velocity *velocity);
 
         typedef enum
@@ -132,21 +125,14 @@ namespace undercarriage
         Speaker *speaker;
         undercarriage::Odometory *odom;
         hardware::Motor motor;
-        PID *pid_angle;
-        PID *pid_rotational_vel;
-        PID *pid_traslational_vel;
-        PID *pid_ir_sensor_front_left;
-        PID *pid_ir_sensor_front_right;
-        PID *pid_ir_sensor_side;
+        PID_Instances *pid;
         undercarriage::TrackerBase *tracker;
         trajectory::Slalom *slalom;
         trajectory::Acceleration *acc;
         trajectory::PivotTurn180 pivot_turn180;
         trajectory::PivotTurn90 pivot_turn90;
         CtrlMode mode_ctrl;
-        hardware::IR_Base *ir_base;
-        hardware::IR_Base *ir_is_wall;
-        hardware::IR_FrontParam *ir_fparam;
+        hardware::IR_Param *ir_param;
         trajectory::Velocity *velocity;
         undercarriage::M_Identification iden_m;
         undercarriage::Step_Identification iden_step;

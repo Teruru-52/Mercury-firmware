@@ -67,7 +67,7 @@ float PID::Update(float error)
     return input;
 }
 
-void PID::ResetPID()
+void PID::Reset()
 {
     integrator.ResetIntegrator();
     differentiator.ResetDifferentiator();
@@ -75,5 +75,5 @@ void PID::ResetPID()
 
 void PID::OutputLog()
 {
-    printf("%f, %f\n", error, input);
+    printf("%.3f, %.3f\n", error, input);
 }

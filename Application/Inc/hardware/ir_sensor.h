@@ -23,12 +23,19 @@ namespace hardware
         float slalom;
     };
 
-    struct IR_FrontParam
+    struct IR_LogCoeff
     {
         float a;
         float b;
         float c;
         float d;
+    };
+
+    struct IR_Param
+    {
+        IR_Base is_wall;
+        IR_Base ctrl_base;
+        IR_LogCoeff log;
     };
 
     class IRsensor

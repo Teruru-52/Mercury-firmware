@@ -4,34 +4,20 @@ namespace undercarriage
 {
     Controller::Controller(Speaker *speaker,
                            undercarriage::Odometory *odom,
-                           PID *pid_angle,
-                           PID *pid_rotational_vel,
-                           PID *pid_traslational_vel,
-                           PID *pid_ir_sensor_front_left,
-                           PID *pid_ir_sensor_front_right,
-                           PID *pid_ir_sensor_side,
+                           PID_Instances *pid,
                            undercarriage::TrackerBase *tracker,
                            trajectory::Slalom *slalom,
                            trajectory::Acceleration *acc,
-                           hardware::IR_Base *ir_base,
-                           hardware::IR_Base *ir_is_wall,
-                           hardware::IR_FrontParam *ir_fparam,
+                           hardware::IR_Param *ir_param,
                            trajectory::Velocity *velocity)
         : speaker(speaker),
           odom(odom),
-          pid_angle(pid_angle),
-          pid_rotational_vel(pid_rotational_vel),
-          pid_traslational_vel(pid_traslational_vel),
-          pid_ir_sensor_front_left(pid_ir_sensor_front_left),
-          pid_ir_sensor_front_right(pid_ir_sensor_front_right),
-          pid_ir_sensor_side(pid_ir_sensor_side),
+          pid(pid),
           tracker(tracker),
           slalom(slalom),
           acc(acc),
           mode_ctrl(stop),
-          ir_base(ir_base),
-          ir_is_wall(ir_is_wall),
-          ir_fparam(ir_fparam),
+          ir_param(ir_param),
           velocity(velocity)
     {
         if (ENABLE_LOG)
@@ -194,7 +180,7 @@ namespace undercarriage
 
     void Controller::Acceleration(const AccType &acc_type)
     {
-        acc->ResetAccCurve(acc_type, cur_vel.x);
+        acc->ResetTrajectory(acc_type, cur_vel.x);
         mode_ctrl = acc_curve;
         while (1)
         {
@@ -296,9 +282,9 @@ namespace undercarriage
 
     void Controller::PartyTrick()
     {
-        // u_v = pid_traslational_vel->Update(-cur_vel[0]);
+        // u_v = pid->trans_vel->Update(-cur_vel[0]);
         u_v = 0.0;
-        u_w = pid_angle->Update(-cur_pos.th) + pid_rotational_vel->Update(-cur_vel.th);
+        u_w = pid->angle->Update(-cur_pos.th) + pid->rot_vel->Update(-cur_vel.th);
         InputVelocity(u_v, u_w);
     }
 
@@ -306,11 +292,11 @@ namespace undercarriage
     {
         if (flag_wall_sl)
         {
-            if (ir_value.fl > ir_is_wall->fl)
-                error_fl = ir_base->fl - static_cast<float>(ir_value.fl);
+            if (ir_value.fl > ir_param->is_wall.fl)
+                error_fl = ir_param->ctrl_base.fl - static_cast<float>(ir_value.fl);
             else
                 error_fl = 0.0;
-            if (ir_value.fr < ir_is_wall->fr)
+            if (ir_value.fr < ir_param->is_wall.fr)
                 error_fl *= 1.8;
         }
         else
@@ -318,11 +304,11 @@ namespace undercarriage
 
         if (flag_wall_sr)
         {
-            if (ir_value.fr > ir_is_wall->fr)
-                error_fr = ir_base->fr - static_cast<float>(ir_value.fr);
+            if (ir_value.fr > ir_param->is_wall.fr)
+                error_fr = ir_param->ctrl_base.fr - static_cast<float>(ir_value.fr);
             else
                 error_fr = 0.0;
-            if (ir_value.fl < ir_is_wall->fl)
+            if (ir_value.fl < ir_param->is_wall.fl)
                 error_fr *= 1.8;
         }
         else
@@ -348,10 +334,10 @@ namespace undercarriage
             pivot_turn180.UpdateRef();
             ref_w = pivot_turn180.GetRefVelocity();
         }
-        // u_v = pid_traslational_vel->Update(-cur_vel[0]);
+        // u_v = pid->trans_vel->Update(-cur_vel[0]);
         u_v = 0.0;
-        u_w = pid_rotational_vel->Update(ref_w - cur_vel.th) + ref_w / Kp_w;
-        // u_w = pid_rotational_vel->Update(ref_w - cur_vel.th) + (Tp1_w * ref_dw + ref_w) / Kp_w;
+        u_w = pid->rot_vel->Update(ref_w - cur_vel.th) + ref_w / Kp_w;
+        // u_w = pid->rot_vel->Update(ref_w - cur_vel.th) + (Tp1_w * ref_dw + ref_w) / Kp_w;
         InputVelocity(u_v, u_w);
         if (ENABLE_LOG)
             Logger();
@@ -371,48 +357,48 @@ namespace undercarriage
 
         tracker->UpdateRef(ref_pos, ref_vel, ref_acc);
         ref_vel_ctrl = tracker->CalcInput(cur_pos, cur_vel);
-        // u_v = pid_traslational_vel->Update(ref_vel_ctrl.x - cur_vel.x);
-        u_v = pid_traslational_vel->Update(ref_vel_ctrl.x - cur_vel.x) + ref_vel_ctrl.x / Kp_v;
-        u_w = pid_rotational_vel->Update(ref_vel_ctrl.th - cur_vel.th) + ref_vel_ctrl.th / Kp_w;
+        // u_v = pid->trans_vel->Update(ref_vel_ctrl.x - cur_vel.x);
+        u_v = pid->trans_vel->Update(ref_vel_ctrl.x - cur_vel.x) + ref_vel_ctrl.x / Kp_v;
+        u_w = pid->rot_vel->Update(ref_vel_ctrl.th - cur_vel.th) + ref_vel_ctrl.th / Kp_w;
     }
 
     float Controller::GetFrontWallPos(float ir_fmean)
     {
-        if (ir_fparam->b * ir_fmean + ir_fparam->c > 0)
-            return ir_fparam->a * log(ir_fparam->b * ir_fmean + ir_fparam->c) + ir_fparam->d;
+        if (ir_param->log.b * ir_fmean + ir_param->log.c > 0)
+            return ir_param->log.a * log(ir_param->log.b * ir_fmean + ir_param->log.c) + ir_param->log.d;
         else
-            return ir_fparam->a * log(1e-10) + ir_fparam->d;
+            return ir_param->log.a * log(1e-10) + ir_param->log.d;
     };
 
     void Controller::Turn()
     {
-        if (flag_wall_front) // 前壁があれば前壁補正
-        {
-            if (!flag_slalom) // 前壁があり，slalomが始まっていなければ前壁補正
-            {
-                float ir_fmean = (ir_value.sl + ir_value.sr) * 0.5;
-                if (ir_fmean > ir_base->slalom) // しきい値より前壁センサの平均値が大きければ，位置を上書きしてslalom開始
-                {
-                    flag_slalom = true;
-                    cur_pos.x = GetFrontWallPos(ir_fmean);
-                    cur_pos.y = 0.0;
-                    odom->OverWritePos(cur_pos);
-                    slalom->ResetTrajectory(angle_turn, ref_theta - theta_error, cur_pos);
-                    CalcSlalomInput();
-                }
-                else // しきい値より前壁センサの平均値が小さければ，slalomを開始せずに直進する
-                {
-                    SideWallCorrection();
-                    u_v = pid_traslational_vel->Update(ref_v - cur_vel.x) + ref_v / Kp_v;
-                    // u_w = pid_ir_sensor_side->Update(error_fl - error_fr) + pid_angle->Update(theta_base - theta_global);
-                    u_w = pid_angle->Update(theta_base - theta_global);
-                }
-            }
-            else // 前壁があり，slalomが始まり次第この処理をする
-                CalcSlalomInput();
-        }
-        else // 前壁がない場合
-            CalcSlalomInput();
+        // if (flag_wall_front) // 前壁があれば前壁補正
+        // {
+        //     if (!flag_slalom) // 前壁があり，slalomが始まっていなければ前壁補正
+        //     {
+        //         float ir_fmean = (ir_value.sl + ir_value.sr) * 0.5;
+        //         if (ir_fmean > ir_param->ctrl_base.slalom) // しきい値より前壁センサの平均値が大きければ，位置を上書きしてslalom開始
+        //         {
+        //             flag_slalom = true;
+        //             cur_pos.x = GetFrontWallPos(ir_fmean);
+        //             cur_pos.y = 0.0;
+        //             odom->OverWritePos(cur_pos);
+        //             slalom->ResetTrajectory(angle_turn, ref_theta - theta_error, cur_pos);
+        //             CalcSlalomInput();
+        //         }
+        //         else // しきい値より前壁センサの平均値が小さければ，slalomを開始せずに直進する
+        //         {
+        //             SideWallCorrection();
+        //             u_v = pid->trans_vel->Update(ref_v - cur_vel.x) + ref_v / Kp_v;
+        //             // u_w = pid->ir_side->Update(error_fl - error_fr) + pid->angle->Update(theta_base - theta_global);
+        //             u_w = pid->angle->Update(theta_base - theta_global);
+        //         }
+        //     }
+        //     else // 前壁があり，slalomが始まり次第この処理をする
+        //         CalcSlalomInput();
+        // }
+        // else // 前壁がない場合
+        CalcSlalomInput();
 
         InputVelocity(u_v, u_w);
         if (ENABLE_LOG)
@@ -434,13 +420,13 @@ namespace undercarriage
         ref_acc.y = 0.0;
         if (ENABLE_LOG)
             Logger();
-        u_v = pid_traslational_vel->Update(ref_vel.x - cur_vel.x) + (Tp1_v * ref_acc.x + ref_vel.x) / Kp_v;
-        // u_v = pid_traslational_vel->Update(ref_vel.x - cur_vel.x);
+        u_v = pid->trans_vel->Update(ref_vel.x - cur_vel.x) + (Tp1_v * ref_acc.x + ref_vel.x) / Kp_v;
+        // u_v = pid->trans_vel->Update(ref_vel.x - cur_vel.x);
 
         if (flag_side_correct)
-            u_w = pid_ir_sensor_side->Update(error_fl - error_fr) + pid_angle->Update(theta_base - theta_global);
+            u_w = pid->ir_side->Update(error_fl - error_fr) + pid->angle->Update(theta_base - theta_global);
         else
-            u_w = pid_angle->Update(theta_base - theta_global);
+            u_w = pid->angle->Update(theta_base - theta_global);
 
         InputVelocity(u_v, u_w);
         if (acc->Finished())
@@ -457,11 +443,11 @@ namespace undercarriage
         if (cur_pos.x < ref_l)
         {
             SideWallCorrection();
-            u_v = pid_traslational_vel->Update(ref_v - cur_vel.x) + ref_v / Kp_v;
+            u_v = pid->trans_vel->Update(ref_v - cur_vel.x) + ref_v / Kp_v;
             if (flag_side_correct)
-                u_w = pid_ir_sensor_side->Update(error_fl - error_fr) + pid_angle->Update(theta_base - theta_global);
+                u_w = pid->ir_side->Update(error_fl - error_fr) + pid->angle->Update(theta_base - theta_global);
             else
-                u_w = pid_angle->Update(theta_base - theta_global);
+                u_w = pid->angle->Update(theta_base - theta_global);
             InputVelocity(u_v, u_w);
         }
         else
@@ -502,10 +488,10 @@ namespace undercarriage
     {
         if (cnt_time < correction_time)
         {
-            float error_sl = ir_base->sl - static_cast<float>(ir_value.sl);
-            float error_sr = ir_base->sr - static_cast<float>(ir_value.sr);
-            v_left = pid_ir_sensor_front_left->Update(error_sl);
-            v_right = pid_ir_sensor_front_right->Update(error_sr);
+            float error_sl = ir_param->ctrl_base.sl - static_cast<float>(ir_value.sl);
+            float error_sr = ir_param->ctrl_base.sr - static_cast<float>(ir_value.sr);
+            v_left = pid->ir_front_l->Update(error_sl);
+            v_right = pid->ir_front_r->Update(error_sr);
             motor.Drive(v_left, v_right);
             cnt_time++;
         }
@@ -562,13 +548,7 @@ namespace undercarriage
         pivot_turn90.Reset();
         slalom->Reset();
         acc->Reset();
-
-        pid_angle->ResetPID();
-        pid_rotational_vel->ResetPID();
-        pid_traslational_vel->ResetPID();
-        pid_ir_sensor_front_left->ResetPID();
-        pid_ir_sensor_front_right->ResetPID();
-        pid_ir_sensor_side->ResetPID();
+        pid->Reset();
 
         odom->Reset();
         odom->ResetTheta();
@@ -594,7 +574,7 @@ namespace undercarriage
             robot_dir_index++;
         }
 
-        if (ir_wall_value.sl > ir_is_wall->sl || ir_wall_value.sr > ir_is_wall->sr)
+        if (ir_wall_value.sl > ir_param->is_wall.sl || ir_wall_value.sr > ir_param->is_wall.sr)
         {
             wall.byte |= NORTH << robot_dir_index;
             flag_wall_front = true;
@@ -602,7 +582,7 @@ namespace undercarriage
         else
             flag_wall_front = false;
 
-        if (ir_wall_value.fl > ir_is_wall->fl)
+        if (ir_wall_value.fl > ir_param->is_wall.fl)
         {
             wall.byte |= NORTH << (robot_dir_index + 3) % 4;
             flag_wall_sl = true;
@@ -610,7 +590,7 @@ namespace undercarriage
         else
             flag_wall_sl = false;
 
-        if (ir_wall_value.fr > ir_is_wall->fr)
+        if (ir_wall_value.fr > ir_param->is_wall.fr)
         {
             wall.byte |= NORTH << (robot_dir_index + 1) % 4;
             flag_wall_sr = true;
@@ -717,7 +697,7 @@ namespace undercarriage
             else
             {
                 Acceleration(AccType::stop);
-                if (ir_value.sl > ir_is_wall->sl && ir_value.sr > ir_is_wall->sr)
+                if (ir_value.sl > ir_param->is_wall.sl && ir_value.sr > ir_param->is_wall.sr)
                     FrontWallCorrection();
                 PivotTurn(-90);
                 if (prev_wall_cnt == 2)
@@ -741,7 +721,7 @@ namespace undercarriage
             else
             {
                 Acceleration(AccType::stop);
-                if (ir_value.sl > ir_is_wall->sl && ir_value.sr > ir_is_wall->sr)
+                if (ir_value.sl > ir_param->is_wall.sl && ir_value.sr > ir_param->is_wall.sr)
                     FrontWallCorrection();
                 PivotTurn(90);
                 if (prev_wall_cnt == 2)
@@ -780,10 +760,7 @@ namespace undercarriage
         {
         case Operation::FORWARD:
             flag_side_correct = true;
-            // if (ENABLE_SLALOM)
             GoStraight();
-            // else
-            //     Acceleration(AccType::forward0);
             break;
 
         case Operation::TURN_LEFT90:
@@ -792,7 +769,7 @@ namespace undercarriage
             else
             {
                 Acceleration(AccType::stop);
-                if (ir_value.sl > ir_is_wall->sl && ir_value.sr > ir_is_wall->sr)
+                if (ir_value.sl > ir_param->is_wall.sl && ir_value.sr > ir_param->is_wall.sr)
                     FrontWallCorrection();
                 PivotTurn(90);
                 Acceleration(AccType::start_half);
@@ -805,7 +782,7 @@ namespace undercarriage
             else
             {
                 Acceleration(AccType::stop);
-                if (ir_value.sl > ir_is_wall->sl && ir_value.sr > ir_is_wall->sr)
+                if (ir_value.sl > ir_param->is_wall.sl && ir_value.sr > ir_param->is_wall.sr)
                     FrontWallCorrection();
                 PivotTurn(-90);
                 Acceleration(AccType::start_half);
@@ -858,6 +835,7 @@ namespace undercarriage
 
     void Controller::OutputSlalomLog()
     {
+        ref_size = slalom->GetRefSize();
         for (int i = 0; i < ref_size; i++)
         {
             printf("%.2f, %.2f, %.3f, %.2f, %.3f, %.1f, ", log_x[i], log_y[i], log_theta[i], log_v[i], log_omega[i], log_a[i]);
@@ -878,6 +856,8 @@ namespace undercarriage
 
     void Controller::OutputTranslationLog()
     {
+        if (mode_ctrl == acc_curve)
+            ref_size = acc->GetRefSize();
         for (int i = 0; i < ref_size; i++)
         {
             printf("%.3f, %.3f, %.3f, %.3f, ", log_x[i], log_y[i], log_v[i], log_a[i]);
