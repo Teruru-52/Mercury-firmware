@@ -48,13 +48,13 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
                 state.interruption = State::not_interrupt;
             }
 
-            if (controller.GetMazeLoadFlag())
-            {
-                state.interruption = State::not_interrupt;
-                FlashMaze();
-                controller.ResetMazeLoadFlag();
-                state.interruption = State::interrupt;
-            }
+            // if (controller.GetMazeLoadFlag())
+            // {
+            //     state.interruption = State::not_interrupt;
+            //     FlashMaze();
+            //     controller.ResetMazeLoadFlag();
+            //     state.interruption = State::interrupt;
+            // }
 
             if (cnt1kHz == 0)
             {
@@ -66,8 +66,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
             {
                 if (state.mode == State::test_ir)
                     irsensors.OutputLog();
-                // else if (state.mode == State::test_odometory)
-                controller.OutputLog();
+                else if (state.mode == State::test_odometory)
+                    controller.OutputLog();
             }
         }
     }
@@ -350,8 +350,9 @@ void StateProcess()
         case State::test_translation1: // func12
             // controller.StartMove();
             controller.Acceleration(AccType::start_half);
-            // controller.GoStraight();
+            controller.GoStraight();
             controller.Acceleration(AccType::stop);
+            controller.Brake();
             state.log = State::translation;
             state.mode = State::output;
             break;
@@ -420,6 +421,7 @@ void StateProcess()
 
         case State::error:
             state.interruption = State::not_interrupt;
+            state.mode = State::output;
             break;
 
         case State::State::run_sequence:
