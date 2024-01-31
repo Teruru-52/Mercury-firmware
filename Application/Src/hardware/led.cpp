@@ -1,5 +1,7 @@
 #include "../../Inc/hardware/led.h"
 
+hardware::LED led;
+
 namespace hardware
 {
     void LED::on_side_left()

@@ -1,5 +1,5 @@
-#ifndef HARDWARE_SPEAKER_HPP_
-#define HARDWARE_SPEAKER_HPP_
+#ifndef HARDWARE_SPEAKER_H_
+#define HARDWARE_SPEAKER_H_
 
 #include "main.h"
 
@@ -18,4 +18,6 @@ namespace hardware
     };
 } // namespace hardware
 
-#endif //  HARDWARE_SPEAKER_HPP_
+extern hardware::Speaker speaker;
+
+#endif //  HARDWARE_SPEAKER_H_

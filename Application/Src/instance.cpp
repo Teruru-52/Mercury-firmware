@@ -1,12 +1,9 @@
 #include "instance.h"
 
-hardware::LED led;
-hardware::Speaker speaker;
-
 Maze maze;
 Maze maze_backup;
 Agent agent(maze);
-State state(&led, &speaker);
+State state;
 
 const float ir_start_base = 2500;
 
@@ -96,8 +93,7 @@ trajectory::Parameters slalom_params = {.run1 = slalom_param1, .run2 = slalom_pa
 trajectory::Slalom slalom(&velocity, &slalom_params);
 trajectory::Acceleration acc(&velocity, &acc_params);
 
-undercarriage::Controller controller(&speaker,
-                                     &odom,
+undercarriage::Controller controller(&odom,
                                      &pid,
                                      tracker,
                                      &slalom,

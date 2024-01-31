@@ -47,4 +47,7 @@ namespace hardware
         void Flashing();
     };
 } // namespace hardware
+
+extern hardware::LED led;
+
 #endif //  HARDWARE_LED_HPP_

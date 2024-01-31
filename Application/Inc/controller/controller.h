@@ -26,8 +26,7 @@ namespace undercarriage
     class Controller
     {
     public:
-        Controller(Speaker *speaker,
-                   undercarriage::Odometory *odom,
+        Controller(undercarriage::Odometory *odom,
                    PID_Instances *pid,
                    undercarriage::TrackerBase *tracker,
                    trajectory::Slalom *slalom,
@@ -122,7 +121,6 @@ namespace undercarriage
         void MotorTest(float v_left, float v_right);
 
     private:
-        Speaker *speaker;
         undercarriage::Odometory *odom;
         hardware::Motor motor;
         PID_Instances *pid;

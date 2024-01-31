@@ -2,16 +2,14 @@
 
 namespace undercarriage
 {
-    Controller::Controller(Speaker *speaker,
-                           undercarriage::Odometory *odom,
+    Controller::Controller(undercarriage::Odometory *odom,
                            PID_Instances *pid,
                            undercarriage::TrackerBase *tracker,
                            trajectory::Slalom *slalom,
                            trajectory::Acceleration *acc,
                            hardware::IR_Param *ir_param,
                            trajectory::Velocity *velocity)
-        : speaker(speaker),
-          odom(odom),
+        : odom(odom),
           pid(pid),
           tracker(tracker),
           slalom(slalom),
@@ -68,7 +66,7 @@ namespace undercarriage
             acc->ResetWallFlag();
             flag_straight_wall = false;
             flag_wall = true;
-            // speaker->ToggleSpeaker();
+            // speaker.ToggleSpeaker();
         }
     }
 

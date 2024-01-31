@@ -41,7 +41,6 @@ namespace hardware
     class IRsensor
     {
     private:
-        LED led;
         const int sampling_count = 84;
         float ir_start_base;
 

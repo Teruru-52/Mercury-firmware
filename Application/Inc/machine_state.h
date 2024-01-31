@@ -79,13 +79,11 @@ public:
     Mode mode;
     Log log;
 
-    State(hardware::LED *led, hardware::Speaker *speaker);
+    State();
     void SelectFunc(int16_t pulse_r);
     void SelectLoadMaze(int16_t pulse_l);
 
 private:
-    hardware::LED *led;
-    hardware::Speaker *speaker;
     Function pre_func = not_selected;
 };
 

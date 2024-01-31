@@ -1,4 +1,6 @@
-#include "../../Inc/hardware/speaker.h"
+#include "hardware/speaker.h"
+
+hardware::Speaker speaker;
 
 namespace hardware
 {
