@@ -20,8 +20,15 @@ namespace hardware
         float fr;
         float sl;
         float sr;
-        float sl_slalom;
-        float sr_slalom;
+        float slalom;
+    };
+
+    struct IR_FrontParam
+    {
+        float a;
+        float b;
+        float c;
+        float d;
     };
 
     class IRsensor
