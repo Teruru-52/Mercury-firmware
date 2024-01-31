@@ -30,7 +30,7 @@ namespace undercarriage
         if (m_sequence.Finished())
         {
             u = 0;
-            m_sequence.ResetTrajectoryIndex();
+            m_sequence.Reset();
             flag = true;
         }
         else
