@@ -68,7 +68,7 @@ namespace undercarriage
         void SetPartyTrick();
         void PivotTurn(int angle);
         void Turn(int angle);
-        void Acceleration(const AccType &acc_type);
+        void Acceleration(const AccType &acc_type, uint8_t num_square = 1);
         void GoStraight();
         void FrontWallCorrection();
         void Back();

@@ -176,9 +176,9 @@ namespace undercarriage
         }
     }
 
-    void Controller::Acceleration(const AccType &acc_type)
+    void Controller::Acceleration(const AccType &acc_type, uint8_t num_square)
     {
-        acc->ResetTrajectory(acc_type, cur_vel.x);
+        acc->ResetTrajectory(acc_type, cur_vel.x, num_square);
         mode_ctrl = acc_curve;
         while (1)
         {
@@ -758,7 +758,8 @@ namespace undercarriage
         {
         case Operation::FORWARD:
             flag_side_correct = true;
-            GoStraight();
+            // GoStraight();
+            Acceleration(AccType::forward, op.n);
             break;
 
         case Operation::TURN_LEFT90:

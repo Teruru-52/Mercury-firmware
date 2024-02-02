@@ -283,7 +283,7 @@ void TimeAttack()
 
     // // Operationを先頭から順番に実行していく
     controller.Acceleration(AccType::start);
-    for (size_t i = 1; i < runSequence.size() - 1; i++)
+    for (size_t i = 0; i < runSequence.size() - 1; i++)
         controller.OpMove(runSequence[i]);
     controller.Acceleration(AccType::stop);
     state.mode = State::select_function;
