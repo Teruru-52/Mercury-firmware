@@ -30,24 +30,24 @@ namespace hardware
 
         if (duty_left > 0)
         {
-            __HAL_TIM_SET_COMPARE(&htim5, TIM_CHANNEL_1, max_input - duty_left);
-            __HAL_TIM_SET_COMPARE(&htim5, TIM_CHANNEL_2, max_input);
+            __HAL_TIM_SET_COMPARE(&htim5, TIM_CHANNEL_3, max_input - duty_left);
+            __HAL_TIM_SET_COMPARE(&htim5, TIM_CHANNEL_4, max_input);
         }
         else
         {
-            __HAL_TIM_SET_COMPARE(&htim5, TIM_CHANNEL_1, max_input);
-            __HAL_TIM_SET_COMPARE(&htim5, TIM_CHANNEL_2, max_input + duty_left);
+            __HAL_TIM_SET_COMPARE(&htim5, TIM_CHANNEL_3, max_input);
+            __HAL_TIM_SET_COMPARE(&htim5, TIM_CHANNEL_4, max_input + duty_left);
         }
 
         if (duty_right > 0)
         {
-            __HAL_TIM_SET_COMPARE(&htim5, TIM_CHANNEL_3, max_input);
-            __HAL_TIM_SET_COMPARE(&htim5, TIM_CHANNEL_4, max_input - duty_right);
+            __HAL_TIM_SET_COMPARE(&htim5, TIM_CHANNEL_1, max_input);
+            __HAL_TIM_SET_COMPARE(&htim5, TIM_CHANNEL_2, max_input - duty_right);
         }
         else
         {
-            __HAL_TIM_SET_COMPARE(&htim5, TIM_CHANNEL_3, max_input + duty_right);
-            __HAL_TIM_SET_COMPARE(&htim5, TIM_CHANNEL_4, max_input);
+            __HAL_TIM_SET_COMPARE(&htim5, TIM_CHANNEL_1, max_input + duty_right);
+            __HAL_TIM_SET_COMPARE(&htim5, TIM_CHANNEL_2, max_input);
         }
     }
 

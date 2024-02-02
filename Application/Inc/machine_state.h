@@ -80,8 +80,8 @@ public:
     Log log;
 
     State();
-    void SelectFunc(int16_t pulse_r);
-    void SelectLoadMaze(int16_t pulse_l);
+    void SelectFunc(int16_t pulse);
+    void SelectLoadMaze(int16_t pulse);
 
 private:
     Function pre_func = not_selected;
