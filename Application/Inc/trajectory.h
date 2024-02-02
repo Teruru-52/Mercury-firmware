@@ -41,31 +41,51 @@ namespace trajectory
         Parameter run5;
     };
 
-    class Slalom
+    class OnlineTrajectoryBase
+    {
+    protected:
+        Velocity *velocity;
+        Parameters *params;
+
+        bool flag_trj = false;
+        int trj_mode = 1;
+        const float Ts = 1e-3;
+        float t = 0;
+        float t_end = 0;
+        bool flag_read_side_wall = false;
+        bool flag_time = false;
+
+    public:
+        explicit OnlineTrajectoryBase(Velocity *velocity, Parameters *params) : velocity(velocity), params(params){};
+        void SetMode(int trj_mode) { this->trj_mode = trj_mode; };
+        int GetRefSize() { return t_end * 1e+3; };
+        virtual void UpdateRef() = 0;
+        bool Finished() { return flag_trj; };
+        virtual void Reset() = 0;
+        bool GetWallFlag() { return flag_read_side_wall; };
+        void ResetWallFlag() { flag_read_side_wall = false; };
+        virtual ~OnlineTrajectoryBase() {}
+    };
+
+    class Slalom : public OnlineTrajectoryBase
     {
     public:
-        Slalom(Velocity *velocity, Parameters *params) : velocity(velocity), params(params),
-                                                         ss(ctrl::slalom::Shape(ctrl::Pose(90, 90, M_PI / 2), 90, 0, params->run1.j_max, params->run1.a_max, params->run1.v_max)),
-                                                         st(ctrl::slalom::Trajectory(ss))
+        explicit Slalom(Velocity *velocity, Parameters *params) : OnlineTrajectoryBase(velocity, params),
+                                                                  ss_turn90(ctrl::slalom::Shape(ctrl::Pose(90, 90, M_PI / 2), 80, 0, params->run1.j_max, params->run1.a_max, params->run1.v_max)),
+                                                                  ss(ss_turn90),
+                                                                  st(ctrl::slalom::Trajectory(ss))
         {
             ResetTrajectory();
         };
         void ResetTrajectory(int angle = 90, float ref_theta = M_PI * 0.5, ctrl::Pose cur_pos = {0, 0, 0});
-        void SetMode(int slalom_mode) { this->slalom_mode = slalom_mode; };
-        int GetRefSize();
-        void UpdateRef();
+        void UpdateRef() override;
         ctrl::Pose GetRefPosition() { return ref_pos; };
         ctrl::Pose GetRefVelocity() { return ref_vel; };
         ctrl::Pose GetRefAcceleration() { return ref_acc; };
-        bool Finished() { return flag_slalom; };
-        void Reset();
-        bool GetWallFlag() { return flag_read_side_wall; };
-        void ResetWallFlag() { flag_read_side_wall = false; };
+        void Reset() override;
 
     private:
-        Velocity *velocity;
-        Parameters *params;
-
+        ctrl::slalom::Shape ss_turn90;
         ctrl::slalom::Shape ss;
         ctrl::slalom::Trajectory st;
         ctrl::State state;
@@ -73,67 +93,42 @@ namespace trajectory
         ctrl::Pose ref_pos{0, 0, 0}; // absolute coordinates
         ctrl::Pose ref_vel{0, 0, 0}; // robot coordinates
         ctrl::Pose ref_acc{0, 0, 0}; // robot coordinates
-        float angle_turn = 0;
-        bool flag_slalom = false;
-        int slalom_mode = 1;
-        const float Ts = 1e-3;
         float v_ref = 0;
-        float t = 0;
-        float t_end;
-        int ref_size;
-        bool flag_read_side_wall = false;
-        bool flag_time = false;
     };
 
-    class Acceleration
+    class Acceleration : public OnlineTrajectoryBase
     {
     public:
         typedef enum
         {
             start,
             start_half,
-            forward_half,
-            forward0,
-            forward1,
+            forward,
             stop
         } AccType;
 
-        Acceleration(Velocity *velocity, Parameters *params) : velocity(velocity), params(params) { ResetAccCurve(start, 0); };
-        void ResetAccCurve(const AccType &acc_type, float cur_vel);
-        void SetMode(int acc_mode = 1) { this->acc_mode = acc_mode; };
-        int GetRefSize();
-        void UpdateRef();
+        explicit Acceleration(Velocity *velocity, Parameters *params) : OnlineTrajectoryBase(velocity, params)
+        {
+            ResetTrajectory();
+        };
+        void ResetTrajectory(const AccType &acc_type = start, float cur_vel = 0, uint8_t num_square = 1);
+        void UpdateRef() override;
         float GetRefPosition() { return ref_pos; };
         float GetRefVelocity() { return ref_vel; };
         float GetRefAcceleration() { return ref_acc; };
-        bool Finished() { return flag_acc; };
-        bool GetReadSideWallFlag() { return flag_read_side_wall; };
-        void Reset();
-        bool GetWallFlag() { return flag_read_side_wall; };
-        void ResetWallFlag() { flag_read_side_wall = false; };
+        void Reset() override;
 
     private:
         ctrl::AccelDesigner ad;
-        Velocity *velocity;
-        Parameters *params;
 
         AccType acc_type;
 
         float ref_pos;
         float ref_vel;
         float ref_acc;
-        bool flag_acc = false;
-        int acc_mode = 1;
-        const float Ts = 1e-3;
-        float v = 0;
-        float t = 0;
-        float t_end;
-        int ref_size;
-        bool flag_read_side_wall = false;
-        bool flag_time = false;
     };
 
-    class StaticTrajectoryBase
+    class OfflineTrajectoryBase
     {
     protected:
         int index;
@@ -143,17 +138,17 @@ namespace trajectory
         bool flag;
 
     public:
-        explicit StaticTrajectoryBase() : index(0), flag(false) {}
+        explicit OfflineTrajectoryBase() : index(0), flag(false) {}
         virtual int GetRefSize() = 0;
         virtual void UpdateRef() = 0;
         bool Finished() { return flag; };
         void Reset();
         float GetRefVelocity() { return ref; };
         float GetRefAcceleration() { return ref_a; };
-        virtual ~StaticTrajectoryBase() {}
+        virtual ~OfflineTrajectoryBase() {}
     };
 
-    class PivotTurn90 : public StaticTrajectoryBase
+    class PivotTurn90 : public OfflineTrajectoryBase
     {
     public:
         explicit PivotTurn90() { ref_size = GetRefSize(); }
@@ -167,7 +162,7 @@ namespace trajectory
             0.00000, 4.00000, 8.00000, 12.00000, 16.00000, 20.00000, 24.00000, 28.00000, 32.00000, 36.00000, 40.00000, 44.00000, 48.00000, 52.00000, 56.00000, 60.00000, 64.00000, 68.00000, 72.00000, 76.00000, 80.00000, 84.00000, 88.00000, 92.00000, 96.00000, 100.00000, 104.00000, 108.00000, 112.00000, 116.00000, 120.00000, 120.00000, 120.00000, 120.00000, 120.00000, 120.00000, 120.00000, 120.00000, 120.00000, 120.00000, 120.00000, 120.00000, 120.00000, 120.00000, 120.00000, 120.00000, 120.00000, 120.00000, 120.00000, 120.00000, 120.00000, 120.00000, 120.00000, 120.00000, 120.00000, 120.00000, 120.00000, 120.00000, 120.00000, 120.00000, 120.00000, 120.00000, 120.00000, 120.00000, 120.00000, 120.00000, 120.00000, 120.00000, 120.00000, 120.00000, 120.00000, 120.00000, 120.00000, 120.00000, 120.00000, 120.00000, 120.00000, 120.00000, 120.00000, 120.00000, 120.00000, 120.00000, 120.00000, 120.00000, 120.00000, 120.00000, 120.00000, 120.00000, 120.00000, 120.00000, 120.00000, 116.00000, 112.00000, 108.00000, 104.00000, 100.00000, 96.00000, 92.00000, 88.00000, 84.00000, 80.00000, 76.00000, 72.00000, 68.00000, 64.00000, 60.00000, 56.00000, 52.00000, 48.00000, 44.00000, 40.00000, 36.00000, 32.00000, 28.00000, 24.00000, 20.00000, 16.00000, 12.00000, 8.00000, 4.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, -0.00000, -4.00000, -8.00000, -12.00000, -16.00000, -20.00000, -24.00000, -28.00000, -32.00000, -36.00000, -40.00000, -44.00000, -48.00000, -52.00000, -56.00000, -60.00000, -64.00000, -68.00000, -72.00000, -76.00000, -80.00000, -84.00000, -88.00000, -92.00000, -96.00000, -100.00000, -104.00000, -108.00000, -112.00000, -116.00000, -120.00000, -120.00000, -120.00000, -120.00000, -120.00000, -120.00000, -120.00000, -120.00000, -120.00000, -120.00000, -120.00000, -120.00000, -120.00000, -120.00000, -120.00000, -120.00000, -120.00000, -120.00000, -120.00000, -120.00000, -120.00000, -120.00000, -120.00000, -120.00000, -120.00000, -120.00000, -120.00000, -120.00000, -120.00000, -120.00000, -120.00000, -120.00000, -120.00000, -120.00000, -120.00000, -120.00000, -120.00000, -120.00000, -120.00000, -120.00000, -120.00000, -120.00000, -120.00000, -120.00000, -120.00000, -120.00000, -120.00000, -120.00000, -120.00000, -120.00000, -120.00000, -120.00000, -120.00000, -120.00000, -120.00000, -120.00000, -120.00000, -120.00000, -120.00000, -120.00000, -120.00000, -116.00000, -112.00000, -108.00000, -104.00000, -100.00000, -96.00000, -92.00000, -88.00000, -84.00000, -80.00000, -76.00000, -72.00000, -68.00000, -64.00000, -60.00000, -56.00000, -52.00000, -48.00000, -44.00000, -40.00000, -36.00000, -32.00000, -28.00000, -24.00000, -20.00000, -16.00000, -12.00000, -8.00000, -4.00000};
     };
 
-    class PivotTurn180 : public StaticTrajectoryBase
+    class PivotTurn180 : public OfflineTrajectoryBase
     {
     public:
         explicit PivotTurn180() { ref_size = GetRefSize(); }
@@ -181,11 +176,10 @@ namespace trajectory
             0.00000, 3.50000, 7.00000, 10.50000, 14.00000, 17.50000, 21.00000, 24.50000, 28.00000, 31.50000, 35.00000, 38.50000, 42.00000, 45.50000, 49.00000, 52.50000, 56.00000, 59.50000, 63.00000, 66.50000, 70.00000, 73.50000, 77.00000, 80.50000, 84.00000, 87.50000, 91.00000, 94.50000, 98.00000, 101.50000, 105.00000, 108.50000, 112.00000, 115.50000, 119.00000, 122.50000, 126.00000, 129.50000, 133.00000, 136.50000, 140.00000, 140.00000, 140.00000, 140.00000, 140.00000, 140.00000, 140.00000, 140.00000, 140.00000, 140.00000, 140.00000, 140.00000, 140.00000, 140.00000, 140.00000, 140.00000, 140.00000, 140.00000, 140.00000, 140.00000, 140.00000, 140.00000, 140.00000, 140.00000, 140.00000, 140.00000, 140.00000, 140.00000, 140.00000, 140.00000, 140.00000, 140.00000, 140.00000, 140.00000, 140.00000, 140.00000, 140.00000, 140.00000, 140.00000, 140.00000, 140.00000, 140.00000, 140.00000, 140.00000, 140.00000, 140.00000, 140.00000, 140.00000, 140.00000, 140.00000, 140.00000, 140.00000, 140.00000, 140.00000, 140.00000, 140.00000, 140.00000, 140.00000, 140.00000, 140.00000, 140.00000, 136.50000, 133.00000, 129.50000, 126.00000, 122.50000, 119.00000, 115.50000, 112.00000, 108.50000, 105.00000, 101.50000, 98.00000, 94.50000, 91.00000, 87.50000, 84.00000, 80.50000, 77.00000, 73.50000, 70.00000, 66.50000, 63.00000, 59.50000, 56.00000, 52.50000, 49.00000, 45.50000, 42.00000, 38.50000, 35.00000, 31.50000, 28.00000, 24.50000, 21.00000, 17.50000, 14.00000, 10.50000, 7.00000, 3.50000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, -0.00000, -3.50000, -7.00000, -10.50000, -14.00000, -17.50000, -21.00000, -24.50000, -28.00000, -31.50000, -35.00000, -38.50000, -42.00000, -45.50000, -49.00000, -52.50000, -56.00000, -59.50000, -63.00000, -66.50000, -70.00000, -73.50000, -77.00000, -80.50000, -84.00000, -87.50000, -91.00000, -94.50000, -98.00000, -101.50000, -105.00000, -108.50000, -112.00000, -115.50000, -119.00000, -122.50000, -126.00000, -129.50000, -133.00000, -136.50000, -140.00000, -140.00000, -140.00000, -140.00000, -140.00000, -140.00000, -140.00000, -140.00000, -140.00000, -140.00000, -140.00000, -140.00000, -140.00000, -140.00000, -140.00000, -140.00000, -140.00000, -140.00000, -140.00000, -140.00000, -140.00000, -140.00000, -140.00000, -140.00000, -140.00000, -140.00000, -140.00000, -140.00000, -140.00000, -140.00000, -140.00000, -140.00000, -140.00000, -140.00000, -140.00000, -140.00000, -140.00000, -140.00000, -140.00000, -140.00000, -140.00000, -140.00000, -140.00000, -140.00000, -140.00000, -140.00000, -140.00000, -140.00000, -140.00000, -140.00000, -140.00000, -140.00000, -140.00000, -140.00000, -140.00000, -140.00000, -140.00000, -140.00000, -140.00000, -140.00000, -140.00000, -136.50000, -133.00000, -129.50000, -126.00000, -122.50000, -119.00000, -115.50000, -112.00000, -108.50000, -105.00000, -101.50000, -98.00000, -94.50000, -91.00000, -87.50000, -84.00000, -80.50000, -77.00000, -73.50000, -70.00000, -66.50000, -63.00000, -59.50000, -56.00000, -52.50000, -49.00000, -45.50000, -42.00000, -38.50000, -35.00000, -31.50000, -28.00000, -24.50000, -21.00000, -17.50000, -14.00000, -10.50000, -7.00000, -3.50000};
     };
 
-    class M_sequence : public StaticTrajectoryBase
+    class M_sequence : public OfflineTrajectoryBase
     {
     public:
         explicit M_sequence() { ref_size = GetRefSize(); }
-        void ResetTrajectoryIndex() { index = 0; };
         int GetRefSize() override { return sizeof(ref_u_w) / sizeof(float); };
         void UpdateRef() override;
         float GetRefVoltage() { return ref; };

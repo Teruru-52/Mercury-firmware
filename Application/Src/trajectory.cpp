@@ -5,39 +5,34 @@ namespace trajectory
     // Slalom
     void Slalom::ResetTrajectory(int angle, float ref_theta, ctrl::Pose cur_pos)
     {
-        switch (slalom_mode)
+        switch (trj_mode)
         {
         case 1:
             v_ref = velocity->v1;
-
             if (angle == 90)
-                ss = ctrl::slalom::Shape(ctrl::Pose(90 - cur_pos.x, 90, ref_theta), 90, 0, params->run1.j_max, params->run1.a_max, params->run1.v_max);
+                ss = ctrl::slalom::Shape(ctrl::Pose(90 - cur_pos.x, 90, ref_theta), 80, 0, params->run1.j_max, params->run1.a_max, params->run1.v_max);
+            // st = ctrl::slalom::Trajectory(ss_turn90);
             else if (angle == -90)
-                ss = ctrl::slalom::Shape(ctrl::Pose(90 - cur_pos.x, -90, ref_theta), -90, 0, params->run1.j_max, params->run1.a_max, params->run1.v_max);
+                ss = ctrl::slalom::Shape(ctrl::Pose(90 - cur_pos.x, -90, ref_theta), -80, 0, params->run1.j_max, params->run1.a_max, params->run1.v_max);
+            // st = ctrl::slalom::Trajectory(ss_turn90, true);
+            st = ctrl::slalom::Trajectory(ss);
             break;
         case 2:
             v_ref = velocity->v2;
 
             if (angle == 90)
-                ss = ctrl::slalom::Shape(ctrl::Pose(90 - cur_pos.x, 90, ref_theta), 90, 0, params->run2.j_max, params->run2.a_max, params->run2.v_max);
+                ss = ctrl::slalom::Shape(ctrl::Pose(90 - cur_pos.x, 90, ref_theta), 80, 0, params->run2.j_max, params->run2.a_max, params->run2.v_max);
             else if (angle == -90)
-                ss = ctrl::slalom::Shape(ctrl::Pose(90 - cur_pos.x, -90, ref_theta), -90, 0, params->run2.j_max, params->run2.a_max, params->run2.v_max);
+                ss = ctrl::slalom::Shape(ctrl::Pose(90 - cur_pos.x, -90, ref_theta), -80, 0, params->run2.j_max, params->run2.a_max, params->run2.v_max);
             break;
         default:
             break;
         }
         // printf("v_ref = %f\n", ss.v_ref);
-        st = ctrl::slalom::Trajectory(ss);
+        // st = ctrl::slalom::Trajectory(ss);
         st.reset(v_ref, 0, 0);
         // t_end = st.getAccelDesigner().t_3() + ss.straight_prev / ss.v_ref;
-        t = 0;
         t_end = st.getTimeCurve();
-    }
-
-    int Slalom::GetRefSize()
-    {
-        ref_size = (st.getAccelDesigner().t_3() + ss.straight_prev / ss.v_ref) * 1e+3;
-        return ref_size;
     }
 
     void Slalom::UpdateRef()
@@ -60,24 +55,21 @@ namespace trajectory
             flag_time = true;
         }
         if (t + Ts > t_end)
-        {
-            flag_slalom = true;
-        }
+            flag_trj = true;
     }
 
     void Slalom::Reset()
     {
-        flag_slalom = false;
+        flag_trj = false;
         flag_time = false;
         t = 0;
-        state.q.x = state.q.y = 0.0;
     }
 
     // Acceleration
-    void Acceleration::ResetAccCurve(const AccType &acc_type, float cur_vel)
+    void Acceleration::ResetTrajectory(const AccType &acc_type, float cur_vel, uint8_t num_square)
     {
         this->acc_type = acc_type;
-        switch (acc_mode)
+        switch (trj_mode)
         {
         case 1:
             switch (acc_type)
@@ -90,6 +82,9 @@ namespace trajectory
                 break;
             case stop:
                 ad.reset(params->run1.j_max, params->run1.a_max, params->run1.v_max, cur_vel, 0, FORWARD_LENGTH_HALF, 0, 0);
+                break;
+            case forward:
+                ad.reset(params->run1.j_max, params->run1.a_max, params->run1.v_max, cur_vel, velocity->v1, FORWARD_LENGTH * static_cast<float>(num_square), 0, 0);
                 break;
             default:
                 break;
@@ -107,6 +102,9 @@ namespace trajectory
             case stop:
                 ad.reset(params->run2.j_max, params->run2.a_max, params->run2.v_max, cur_vel, 0, FORWARD_LENGTH_HALF, 0, 0);
                 break;
+            case forward:
+                ad.reset(params->run2.j_max, params->run2.a_max, params->run2.v_max, cur_vel, velocity->v2, FORWARD_LENGTH * static_cast<float>(num_square), 0, 0);
+                break;
             default:
                 break;
             }
@@ -115,12 +113,6 @@ namespace trajectory
             break;
         }
         t_end = ad.t_end();
-    }
-
-    int Acceleration::GetRefSize()
-    {
-        ref_size = ad.t_end() * 1e+3;
-        return ref_size;
     }
 
     void Acceleration::UpdateRef()
@@ -139,19 +131,19 @@ namespace trajectory
             }
         }
         if (t > t_end)
-            flag_acc = true;
+            flag_trj = true;
     }
 
     void Acceleration::Reset()
     {
         flag_read_side_wall = false;
         flag_time = false;
-        flag_acc = false;
+        flag_trj = false;
         t = 0;
     }
 
-    // StaticTrajectoryBase
-    void StaticTrajectoryBase::Reset()
+    // OfflineTrajectoryBase
+    void OfflineTrajectoryBase::Reset()
     {
         flag = false;
         index = 0;
