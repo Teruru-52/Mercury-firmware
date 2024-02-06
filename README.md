@@ -1,1 +1,7 @@
-# Quatro_cpp_ubuntu
+# Mercury-Firmware
+
+## Doxygen
+```
+doxygen
+```
+`docs/html/index.html`にリファレンスが生成される． 
