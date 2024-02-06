@@ -1,5 +1,10 @@
-#ifndef DIGITAL_FILTER_HPP_
-#define DIGITAL_FILTER_HPP_
+/**
+ * @file digital_filter.h
+ * @author Reiji Terunuma
+ */
+
+#ifndef DIGITAL_FILTER_H_
+#define DIGITAL_FILTER_H_
 
 #include "main.h"
 
@@ -8,4 +13,4 @@ class Filter
 public:
 private:
 };
-#endif //  DIGITAL_FILTER_HPP_
+#endif //  DIGITAL_FILTER_H_

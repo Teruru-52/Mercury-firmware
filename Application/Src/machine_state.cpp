@@ -1,8 +1,7 @@
-/*
- * machine_state.cpp
- *
- *  Created on: January 13th, 2024
- *      Author: Reiji Terunuma
+/**
+ * @file machine_state.cpp
+ * @author Reiji Terunuma
+ * @date January 13th, 2024
  */
 
 #include "machine_state.h"

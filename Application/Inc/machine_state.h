@@ -1,3 +1,8 @@
+/**
+ * @file machine_state.h
+ * @author Reiji Terunuma
+ */
+
 #ifndef _STATE_H_
 #define _STATE_H_
 

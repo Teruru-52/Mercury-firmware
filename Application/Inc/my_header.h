@@ -1,3 +1,8 @@
+/**
+ * @file my_header.h
+ * @author Reiji Terunuma
+ */
+
 #ifndef _MY_HEADER_H_
 #define _MY_HEADER_H_
 

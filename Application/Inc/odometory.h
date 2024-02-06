@@ -1,3 +1,8 @@
+/**
+ * @file odometory.h
+ * @author Reiji Terunuma
+ */
+
 #ifndef ODOMETORY_H_
 #define ODOMETORY_H_
 

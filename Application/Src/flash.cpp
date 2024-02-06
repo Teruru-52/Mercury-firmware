@@ -1,8 +1,7 @@
-/*
- * flash.cpp
- *
- *  Copied on: Febrary 7th, 2023
- *     Author: idt12312
+/**
+ * @file flash.cpp
+ * @author idt12312
+ * @date Febrary 7th, 2023
  */
 
 #include "flash.h"

@@ -1,3 +1,8 @@
+/**
+ * @file instance.h
+ * @author Reiji Terunuma
+ */
+
 #ifndef INSTANCE_H_
 #define INSTANCE_H_
 

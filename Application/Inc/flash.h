@@ -1,8 +1,7 @@
-/*
- * flash.h
- *
- *  Copied on: Febrary 7th, 2023
- *     Author: idt12312
+/**
+ * @file flash.h
+ * @author idt12312
+ * @date Febrary 7th, 2023
  */
 
 #ifndef FLASH_H_

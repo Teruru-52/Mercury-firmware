@@ -1,8 +1,7 @@
-/*
- * main_exec.h
- *
- *  Created on: Febrary 13th, 2023
- *      Author: Reiji Terunuma
+/**
+ * @file main_exec.h
+ * @author Reiji Terunuma
+ * @date Febrary 13th, 2023
  */
 
 #ifndef MAIN_EXEC_H_

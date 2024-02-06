@@ -1,3 +1,8 @@
+/**
+ * @file instance.cpp
+ * @author Reiji Terunuma
+ */
+
 #include "instance.h"
 
 Maze maze;
