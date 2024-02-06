@@ -49,7 +49,7 @@ hardware::IR_Base ir_is_wall = {ir_fl_wall, ir_fr_wall, ir_sl_wall, ir_sr_wall};
 hardware::IR_Base ir_ctrl_base = {ir_fl_base, ir_fr_base, ir_sl_base, ir_sr_base, ir_slalom};
 hardware::IR_LogCoeff ir_log = {.a = 41.01f, .b = 1.314e-5f, .c = -0.02817f, .d = 262.2f};
 
-hardware::IR_Param ir_param = {ir_ctrl_base, ir_is_wall, ir_log};
+hardware::IR_Param ir_param = {ir_is_wall, ir_ctrl_base, ir_log};
 hardware::IRsensor irsensors(ir_start_base, &ir_is_wall);
 
 const float control_period = 0.001;
