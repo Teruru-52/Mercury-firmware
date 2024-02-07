@@ -1,3 +1,8 @@
+/**
+ * @file trajectory.cpp
+ * @author Reiji Terunuma
+ */
+
 #include "trajectory.h"
 
 namespace trajectory
@@ -15,6 +20,10 @@ namespace trajectory
             else if (angle == -90)
                 ss = ctrl::slalom::Shape(ctrl::Pose(90 - cur_pos.x, -90, ref_theta), -80, 0, params->run1.j_max, params->run1.a_max, params->run1.v_max);
             // st = ctrl::slalom::Trajectory(ss_turn90, true);
+            else if (angle == 45)
+                ss = ctrl::slalom::Shape(ctrl::Pose(90, 90, M_PI * 0.25f), 0, 0, params->run1.j_max, params->run1.a_max, params->run1.v_max);
+            else if (angle == -45)
+                ss = ctrl::slalom::Shape(ctrl::Pose(90, -90, -M_PI * 0.25f), 0, 0, params->run1.j_max, params->run1.a_max, params->run1.v_max);
             st = ctrl::slalom::Trajectory(ss);
             break;
         case 2:
@@ -71,25 +80,25 @@ namespace trajectory
         this->acc_type = acc_type;
         switch (trj_mode)
         {
-        case 1:
-            switch (acc_type)
-            {
-            case start:
-                ad.reset(params->run1.j_max, params->run1.a_max, params->run1.v_max, 0, velocity->v1, FORWARD_LENGTH_START, 0, 0);
-                break;
-            case start_half:
-                ad.reset(params->run1.j_max, params->run1.a_max, params->run1.v_max, 0, velocity->v1, FORWARD_LENGTH_HALF, 0, 0);
-                break;
-            case stop:
-                ad.reset(params->run1.j_max, params->run1.a_max, params->run1.v_max, cur_vel, 0, FORWARD_LENGTH_HALF, 0, 0);
-                break;
-            case forward:
-                ad.reset(params->run1.j_max, params->run1.a_max, params->run1.v_max, cur_vel, velocity->v1, FORWARD_LENGTH * static_cast<float>(num_square), 0, 0);
-                break;
-            default:
-                break;
-            }
-            break;
+        // case 1:
+        //     switch (acc_type)
+        //     {
+        //     case start:
+        //         ad.reset(params->run1.j_max, params->run1.a_max, params->run1.v_max, 0, velocity->v1, FORWARD_LENGTH_START, 0, 0);
+        //         break;
+        //     case start_half:
+        //         ad.reset(params->run1.j_max, params->run1.a_max, params->run1.v_max, 0, velocity->v1, FORWARD_LENGTH_HALF, 0, 0);
+        //         break;
+        //     case stop:
+        //         ad.reset(params->run1.j_max, params->run1.a_max, params->run1.v_max, cur_vel, 0, FORWARD_LENGTH_HALF, 0, 0);
+        //         break;
+        //     case forward:
+        //         ad.reset(params->run1.j_max, params->run1.a_max, params->run1.v_max, cur_vel, velocity->v1, FORWARD_LENGTH * static_cast<float>(num_square), 0, 0);
+        //         break;
+        //     default:
+        //         break;
+        //     }
+        //     break;
         case 2:
             switch (acc_type)
             {
@@ -112,14 +121,41 @@ namespace trajectory
         default:
             break;
         }
-        t_end = ad.t_end();
+        // t_end = ad.t_end();
     }
 
     void Acceleration::UpdateRef()
     {
-        ref_acc = ad.a(t);
-        ref_vel = ad.v(t);
-        ref_pos = ad.x(t);
+        // ref_acc = ad.a(t);
+        // ref_vel = ad.v(t);
+        // ref_pos = ad.x(t);
+
+        switch (acc_type)
+        {
+        case start:
+            t_end = ad_start.t_end();
+            ref_acc = ad_start.a(t);
+            ref_vel = ad_start.v(t);
+            ref_pos = ad_start.x(t);
+            break;
+        case start_half:
+            t_end = ad_start_half.t_end();
+            ref_acc = ad_start_half.a(t);
+            ref_vel = ad_start_half.v(t);
+            ref_pos = ad_start_half.x(t);
+            break;
+        case stop:
+            t_end = ad_stop.t_end();
+            ref_acc = ad_stop.a(t);
+            ref_vel = ad_stop.v(t);
+            ref_pos = ad_stop.x(t);
+            break;
+        // case forward:
+        //     ad.reset(params->run1.j_max, params->run1.a_max, params->run1.v_max, velocity->v1, velocity->v1, FORWARD_LENGTH * static_cast<float>(num_square), 0, 0);
+        //     break;
+        default:
+            break;
+        }
 
         t += Ts;
         if (acc_type != stop)

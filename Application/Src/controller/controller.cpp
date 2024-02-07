@@ -1,3 +1,8 @@
+/**
+ * @file controller.cpp
+ * @author Reiji Terunuma
+ */
+
 #include "controller/controller.h"
 
 namespace undercarriage
@@ -551,7 +556,7 @@ namespace undercarriage
         odom->Reset();
         odom->ResetTheta();
         // theta_base = 0.0;
-        mode_ctrl = stop;
+        // mode_ctrl = stop;
 
         flag_slalom = false;
         flag_side_correct = false;
@@ -758,8 +763,9 @@ namespace undercarriage
         {
         case Operation::FORWARD:
             flag_side_correct = true;
-            // GoStraight();
-            Acceleration(AccType::forward, op.n);
+            for (int i = op.n; i > 0; i--)
+                GoStraight();
+            // Acceleration(AccType::forward, op.n);
             break;
 
         case Operation::TURN_LEFT90:

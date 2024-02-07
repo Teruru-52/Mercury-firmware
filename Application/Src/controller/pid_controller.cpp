@@ -1,4 +1,9 @@
-#include "../../Inc/controller/pid_controller.h"
+/**
+ * @file pid_controller.cpp
+ * @author Reiji Terunuma
+ */
+
+#include "controller/pid_controller.h"
 
 Integrator::Integrator(float control_period)
     : control_period(control_period),

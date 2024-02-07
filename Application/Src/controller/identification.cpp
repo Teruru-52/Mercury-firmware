@@ -1,8 +1,8 @@
-/*
- * identification.cpp
+/**
+ * @file identification.cpp
  *
- *  Refactored on: Jan 27th, 2024
- *      Author: Reiji Terunuma
+ * @date Jan 27th, 2024
+ * @author Reiji Terunuma
  */
 
 #include "controller/identification.h"

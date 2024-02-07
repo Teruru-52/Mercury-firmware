@@ -1,8 +1,8 @@
-/*
- * identification.h
+/**
+ * @file identification.h
  *
- *  Refactored on: Jan 27th, 2024
- *      Author: Reiji Terunuma
+ * @date Jan 27th, 2024
+ * @author Reiji Terunuma
  */
 
 #ifndef INDENTIFICATION_HPP_

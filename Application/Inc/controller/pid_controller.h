@@ -1,5 +1,10 @@
-#ifndef PID_CONTROLLER_HPP
-#define PID_CONTROLLER_HPP
+/**
+ * @file pid_controller.h
+ * @author Reiji Terunuma
+ */
+
+#ifndef PID_CONTROLLER_H
+#define PID_CONTROLLER_H
 
 #include "main.h"
 
@@ -91,4 +96,4 @@ public:
     }
 };
 
-#endif //  PID_CONTROLLER_HPP
+#endif //  PID_CONTROLLER_H

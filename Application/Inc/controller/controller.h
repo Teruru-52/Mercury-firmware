@@ -1,3 +1,8 @@
+/**
+ * @file controller.h
+ * @author Reiji Terunuma
+ */
+
 #ifndef CONTROLLER_H_
 #define CONTROLLER_H_
 

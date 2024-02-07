@@ -1,8 +1,7 @@
-/*
- * tracker.cpp
- *
- *  Created on: Jan 27th, 2024
- *      Author: Reiji Terunuma
+/**
+ * @file tracker.cpp
+ * @date Jan 27th, 2024
+ * @author Reiji Terunuma
  */
 
 #include "controller/tracker.h"

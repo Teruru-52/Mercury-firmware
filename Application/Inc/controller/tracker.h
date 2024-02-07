@@ -1,8 +1,7 @@
-/*
- * tracker.h
- *
- *  Created on: Jan 27th, 2024
- *      Author: Reiji Terunuma
+/**
+ * @file tracker.h
+ * @date Jan 27th, 2024
+ * @author Reiji Terunuma
  */
 
 #ifndef TRACKER_H_
