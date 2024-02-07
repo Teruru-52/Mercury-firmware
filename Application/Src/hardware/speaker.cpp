@@ -1,3 +1,8 @@
+/**
+ * @file speaker.cpp
+ * @author Reiji Terunuma
+ */
+
 #include "hardware/speaker.h"
 
 hardware::Speaker speaker;

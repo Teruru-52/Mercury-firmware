@@ -1,4 +1,9 @@
-#include "../../Inc/hardware/led.h"
+/**
+ * @file led.cpp
+ * @author Reiji Terunuma
+ */
+
+#include "hardware/led.h"
 
 hardware::LED led;
 

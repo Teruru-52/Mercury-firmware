@@ -1,3 +1,8 @@
+/**
+ * @file speaker.h
+ * @author Reiji Terunuma
+ */
+
 #ifndef HARDWARE_SPEAKER_H_
 #define HARDWARE_SPEAKER_H_
 

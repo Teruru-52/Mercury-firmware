@@ -1,3 +1,8 @@
+/**
+ * @file encoder.h
+ * @author Reiji Terunuma
+ */
+
 #ifndef HARDWARE_ENCODER_H_
 #define HARDWARE_ENCODER_H_
 

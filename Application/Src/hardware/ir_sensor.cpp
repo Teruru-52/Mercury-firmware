@@ -1,3 +1,8 @@
+/**
+ * @file ir_sensor.cpp
+ * @author Reiji Terunuma
+ */
+
 #include "hardware/ir_sensor.h"
 
 namespace hardware

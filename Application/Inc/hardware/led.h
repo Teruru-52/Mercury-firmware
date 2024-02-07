@@ -1,5 +1,10 @@
-#ifndef HARDWARE_LED_HPP_
-#define HARDWARE_LED_HPP_
+/**
+ * @file led.h
+ * @author Reiji Terunuma
+ */
+
+#ifndef HARDWARE_LED_H_
+#define HARDWARE_LED_H_
 
 #include "main.h"
 
@@ -50,4 +55,4 @@ namespace hardware
 
 extern hardware::LED led;
 
-#endif //  HARDWARE_LED_HPP_
+#endif //  HARDWARE_LED_H_

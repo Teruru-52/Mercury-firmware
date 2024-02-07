@@ -1,3 +1,8 @@
+/**
+ * @file encoder.cpp
+ * @author Reiji Terunuma
+ */
+
 #include "hardware/encoder.h"
 
 #include <cmath>
@@ -25,6 +30,7 @@ namespace hardware
 
     void Encoder::Update_L()
     {
+        // __disable_irq();
         pulse_left = 0;
         int16_t enc_buff = TIM4->CNT;
         TIM4->CNT = 0;
@@ -33,10 +39,12 @@ namespace hardware
             pulse_left = (int16_t)enc_buff * -1;
         else
             pulse_left = (int16_t)enc_buff;
+        // __enable_irq();
     }
 
     void Encoder::Update_R()
     {
+        // __disable_irq();
         pulse_right = 0;
         int16_t enc_buff = TIM3->CNT;
         TIM3->CNT = 0;
@@ -45,23 +53,28 @@ namespace hardware
             pulse_right = (int16_t)enc_buff;
         else
             pulse_right = (int16_t)enc_buff * -1;
+        // __enable_irq();
     }
 
     int16_t Encoder::GetPulseL()
     {
+        __disable_irq();
         int16_t enc_buff = TIM4->CNT;
         pulse_left = (int16_t)enc_buff;
         if (pulse_left < 0)
             pulse_left += 32767;
+        __enable_irq();
         return pulse_left;
     }
 
     int16_t Encoder::GetPulseR()
     {
+        __disable_irq();
         int16_t enc_buff = TIM3->CNT;
         pulse_right = (int16_t)enc_buff * -1;
         if (pulse_right < 0)
             pulse_right += 32767;
+        __enable_irq();
         return pulse_right;
     }
 

@@ -1,5 +1,10 @@
-#ifndef HARDWARE_MOTOR_HPP_
-#define HARDWARE_MOTOR_HPP_
+/**
+ * @file motor.h
+ * @author Reiji Terunuma
+ */
+
+#ifndef HARDWARE_MOTOR_H_
+#define HARDWARE_MOTOR_H_
 
 #include "main.h"
 #include "ir_sensor.h"
@@ -26,4 +31,4 @@ namespace hardware
         void Free();
     };
 } // namespace hardware
-#endif //  HARDWARE_MOTOR_HPP_
+#endif //  HARDWARE_MOTOR_H_

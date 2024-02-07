@@ -1,4 +1,9 @@
-#include "../../Inc/hardware/motor.h"
+/**
+ * @file motor.cpp
+ * @author Reiji Terunuma
+ */
+
+#include "hardware/motor.h"
 
 namespace hardware
 {

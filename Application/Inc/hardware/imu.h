@@ -1,3 +1,8 @@
+/**
+ * @file imu.h
+ * @author Reiji Terunuma
+ */
+
 #ifndef HARDWARE_IMU_H_
 #define HARDWARE_IMU_H_
 

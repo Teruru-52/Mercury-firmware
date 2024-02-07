@@ -1,3 +1,8 @@
+/**
+ * @file imu.cpp
+ * @author Reiji Terunuma
+ */
+
 #include "hardware/imu.h"
 
 #define SPI_WHO_AM_I 0x75
@@ -30,7 +35,7 @@ namespace hardware
         tx_data[1] = 0x00; // dummy
 
         Write_GPIO(SPI_CS, GPIO_PIN_RESET);
-        HAL_SPI_TransmitReceive(&hspi1, tx_data, rx_data, 2, 10);
+        HAL_SPI_TransmitReceive(&hspi1, tx_data, rx_data, 2, 1);
         Write_GPIO(SPI_CS, GPIO_PIN_SET);
 
         return rx_data[1];

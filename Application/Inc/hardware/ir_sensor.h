@@ -1,5 +1,10 @@
-#ifndef HARDWARE_IR_SENSOR_HPP_
-#define HARDWARE_IR_SENSOR_HPP_
+/**
+ * @file ir_sensor.h
+ * @author Reiji Terunuma
+ */
+
+#ifndef HARDWARE_IR_SENSOR_H_
+#define HARDWARE_IR_SENSOR_H_
 
 #include "main.h"
 #include "led.h"
@@ -81,4 +86,4 @@ namespace hardware
         void OutputLog();
     };
 }
-#endif //  HARDWARE_IR_SENSOR_HPP_
+#endif //  HARDWARE_IR_SENSOR_H_
