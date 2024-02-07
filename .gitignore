@@ -1,3 +1,6 @@
 build/*
 docs/html/*
-*.csv
+matlab/pivot_turn/*.csv
+matlab/acceleration/*.csv
+matlab/slalom/*.csv
+matlab/front_wall/*.csv
