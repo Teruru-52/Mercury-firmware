@@ -1,6 +1,6 @@
 /**
  * @file imu.cpp
- * @author Reiji Terunuma
+ * @author Teruru-52
  */
 
 #include "hardware/imu.h"

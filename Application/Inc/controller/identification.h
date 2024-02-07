@@ -2,7 +2,7 @@
  * @file identification.h
  *
  * @date Jan 27th, 2024
- * @author Reiji Terunuma
+ * @author Teruru-52
  */
 
 #ifndef INDENTIFICATION_HPP_

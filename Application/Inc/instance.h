@@ -1,6 +1,6 @@
 /**
  * @file instance.h
- * @author Reiji Terunuma
+ * @author Teruru-52
  */
 
 #ifndef INSTANCE_H_

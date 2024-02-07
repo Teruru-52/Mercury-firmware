@@ -1,6 +1,6 @@
 /**
  * @file odometory.h
- * @author Reiji Terunuma
+ * @author Teruru-52
  */
 
 #ifndef ODOMETORY_H_

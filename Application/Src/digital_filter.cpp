@@ -1,6 +1,6 @@
 /**
  * @file digital_filter.cpp
- * @author Reiji Terunuma
+ * @author Teruru-52
  */
 
 #include "digital_filter.h"

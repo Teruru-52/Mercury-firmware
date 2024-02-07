@@ -1,6 +1,6 @@
 /**
  * @file my_header.h
- * @author Reiji Terunuma
+ * @author Teruru-52
  */
 
 #ifndef _MY_HEADER_H_

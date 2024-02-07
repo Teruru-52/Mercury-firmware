@@ -1,6 +1,6 @@
 /**
  * @file pid_controller.cpp
- * @author Reiji Terunuma
+ * @author Teruru-52
  */
 
 #include "controller/pid_controller.h"

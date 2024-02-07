@@ -1,6 +1,6 @@
 /**
  * @file trajectory.h
- * @author Reiji Terunuma
+ * @author Teruru-52
  */
 
 #ifndef TRAJECTORY_H_

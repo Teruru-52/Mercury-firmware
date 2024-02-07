@@ -1,6 +1,6 @@
 /**
  * @file controller.h
- * @author Reiji Terunuma
+ * @author Teruru-52
  */
 
 #ifndef CONTROLLER_H_

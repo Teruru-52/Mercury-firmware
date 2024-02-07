@@ -1,6 +1,6 @@
 /**
  * @file trajectory.cpp
- * @author Reiji Terunuma
+ * @author Teruru-52
  */
 
 #include "trajectory.h"

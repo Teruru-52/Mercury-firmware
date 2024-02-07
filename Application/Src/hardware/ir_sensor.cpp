@@ -1,6 +1,6 @@
 /**
  * @file ir_sensor.cpp
- * @author Reiji Terunuma
+ * @author Teruru-52
  */
 
 #include "hardware/ir_sensor.h"

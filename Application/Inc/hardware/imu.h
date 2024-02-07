@@ -1,6 +1,6 @@
 /**
  * @file imu.h
- * @author Reiji Terunuma
+ * @author Teruru-52
  */
 
 #ifndef HARDWARE_IMU_H_

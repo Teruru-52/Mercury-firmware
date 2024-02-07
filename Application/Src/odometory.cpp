@@ -1,6 +1,6 @@
 /**
  * @file odometory.cpp
- * @author Reiji Terunuma
+ * @author Teruru-52
  */
 
 #include "odometory.h"

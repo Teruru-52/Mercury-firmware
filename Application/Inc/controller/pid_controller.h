@@ -1,6 +1,6 @@
 /**
  * @file pid_controller.h
- * @author Reiji Terunuma
+ * @author Teruru-52
  */
 
 #ifndef PID_CONTROLLER_H

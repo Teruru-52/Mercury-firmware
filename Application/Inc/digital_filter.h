@@ -1,6 +1,6 @@
 /**
  * @file digital_filter.h
- * @author Reiji Terunuma
+ * @author Teruru-52
  */
 
 #ifndef DIGITAL_FILTER_H_

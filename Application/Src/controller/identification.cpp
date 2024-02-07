@@ -2,7 +2,7 @@
  * @file identification.cpp
  *
  * @date Jan 27th, 2024
- * @author Reiji Terunuma
+ * @author Teruru-52
  */
 
 #include "controller/identification.h"

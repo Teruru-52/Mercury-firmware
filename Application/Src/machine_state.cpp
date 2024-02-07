@@ -1,6 +1,6 @@
 /**
  * @file machine_state.cpp
- * @author Reiji Terunuma
+ * @author Teruru-52
  * @date January 13th, 2024
  */
 

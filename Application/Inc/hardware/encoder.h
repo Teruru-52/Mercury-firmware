@@ -1,6 +1,6 @@
 /**
  * @file encoder.h
- * @author Reiji Terunuma
+ * @author Teruru-52
  */
 
 #ifndef HARDWARE_ENCODER_H_

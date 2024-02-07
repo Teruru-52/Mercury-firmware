@@ -1,6 +1,6 @@
 /**
  * @file main_exec.h
- * @author Reiji Terunuma
+ * @author Teruru-52
  * @date Febrary 13th, 2023
  */
 

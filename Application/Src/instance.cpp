@@ -1,6 +1,6 @@
 /**
  * @file instance.cpp
- * @author Reiji Terunuma
+ * @author Teruru-52
  */
 
 #include "instance.h"

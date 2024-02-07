@@ -1,6 +1,6 @@
 /**
  * @file led.h
- * @author Reiji Terunuma
+ * @author Teruru-52
  */
 
 #ifndef HARDWARE_LED_H_

@@ -1,6 +1,6 @@
 /**
  * @file controller.cpp
- * @author Reiji Terunuma
+ * @author Teruru-52
  */
 
 #include "controller/controller.h"

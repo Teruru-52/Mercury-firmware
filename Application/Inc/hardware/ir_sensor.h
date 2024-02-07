@@ -1,6 +1,6 @@
 /**
  * @file ir_sensor.h
- * @author Reiji Terunuma
+ * @author Teruru-52
  */
 
 #ifndef HARDWARE_IR_SENSOR_H_

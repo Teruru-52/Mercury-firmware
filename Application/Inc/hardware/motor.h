@@ -1,6 +1,6 @@
 /**
  * @file motor.h
- * @author Reiji Terunuma
+ * @author Teruru-52
  */
 
 #ifndef HARDWARE_MOTOR_H_

@@ -1,6 +1,6 @@
 /**
  * @file speaker.h
- * @author Reiji Terunuma
+ * @author Teruru-52
  */
 
 #ifndef HARDWARE_SPEAKER_H_

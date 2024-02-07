@@ -1,6 +1,6 @@
 /**
  * @file machine_state.h
- * @author Reiji Terunuma
+ * @author Teruru-52
  */
 
 #ifndef _STATE_H_
