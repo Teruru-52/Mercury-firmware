@@ -6,7 +6,7 @@
 #ifndef HARDWARE_MOTOR_H_
 #define HARDWARE_MOTOR_H_
 
-#include "ir_sensor.h"
+#include "hardware/ir_sensor.h"
 
 namespace hardware
 {
