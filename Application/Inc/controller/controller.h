@@ -6,17 +6,11 @@
 #ifndef CONTROLLER_H_
 #define CONTROLLER_H_
 
-#include "main.h"
-#include "hardware/motor.h"
 #include "hardware/speaker.h"
 #include "odometory.h"
 #include "controller/pid_controller.h"
 #include "controller/tracker.h"
-#include "trajectory.h"
 #include "controller/identification.h"
-#include "state.h"
-#include "Operation.h"
-#include "Maze.h"
 #include "Agent.h"
 
 #define ENABLE_LOG 1

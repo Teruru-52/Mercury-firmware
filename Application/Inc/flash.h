@@ -9,7 +9,6 @@
 
 #include "main.h"
 #include "Maze.h"
-#include "MazeSolver_conf.h"
 
 #define BACKUP_FLASH_SECTOR_NUM FLASH_SECTOR_1
 #define BACKUP_FLASH_SECTOR_SIZE 1024 * 16

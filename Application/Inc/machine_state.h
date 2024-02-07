@@ -6,7 +6,6 @@
 #ifndef _STATE_H_
 #define _STATE_H_
 
-#include "main.h"
 #include "hardware/led.h"
 #include "hardware/speaker.h"
 

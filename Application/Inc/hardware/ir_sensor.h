@@ -6,7 +6,6 @@
 #ifndef HARDWARE_IR_SENSOR_H_
 #define HARDWARE_IR_SENSOR_H_
 
-#include "main.h"
 #include "led.h"
 
 namespace hardware

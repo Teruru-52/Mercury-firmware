@@ -6,8 +6,6 @@
 #ifndef ODOMETORY_H_
 #define ODOMETORY_H_
 
-#include "main.h"
-#include <cmath>
 #include "hardware/encoder.h"
 #include "hardware/imu.h"
 #include "pose.h"

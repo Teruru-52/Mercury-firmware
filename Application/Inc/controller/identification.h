@@ -5,10 +5,9 @@
  * @author Teruru-52
  */
 
-#ifndef INDENTIFICATION_HPP_
-#define INDENTIFICATION_HPP_
+#ifndef INDENTIFICATION_H_
+#define INDENTIFICATION_H_
 
-#include "main.h"
 #include "trajectory.h"
 #include "hardware/motor.h"
 
@@ -59,4 +58,4 @@ namespace undercarriage
     };
 } // namespace undercarriage
 
-#endif //  INDENTIFICATION_HPP_
+#endif //  INDENTIFICATION_H_

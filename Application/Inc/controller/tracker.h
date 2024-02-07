@@ -7,7 +7,6 @@
 #ifndef TRACKER_H_
 #define TRACKER_H_
 
-#include "main.h"
 #include "pose.h"
 
 namespace undercarriage
