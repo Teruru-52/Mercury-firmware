@@ -4,16 +4,16 @@ clf;
 clear;
 close all
 
-log_plot = 1;
+log_plot = 0;
 
 %% parameter setting
 dt = 0.001;
 t = 0;
 
 t1 = 0.03;
-t2 = 0.09;
+t2 = 0.07;
 t3 = t1+ t2;
-jm = 4000;
+jm = 3500;
 
 am = jm * t1;
 v3 = 2*(0.5*jm * t1^2) + am * (t2 - t1);

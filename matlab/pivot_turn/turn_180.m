@@ -4,14 +4,14 @@ clf;
 clear;
 close all
 
-log_plot = 1;
+log_plot = 0;
 
 %% parameter setting
 dt = 0.001;
 t = 0;
 
-t1 = 0.04;
-t2 = 0.1;
+t1 = 0.03;
+t2 = 0.07;
 t3 = t1+ t2;
 jm = 3500;
 
