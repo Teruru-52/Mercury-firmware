@@ -19,5 +19,6 @@
 ## 3. Doxygen
 ```
 doxygen
+xdg-open docs/html/index.html
 ```
 `docs/html/index.html`にリファレンスが生成される． 
