@@ -1,5 +1,5 @@
 /**
- * @file odometory.h
+ * @file odometry.h
  * @author Teruru-52
  */
 

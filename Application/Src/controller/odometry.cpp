@@ -1,9 +1,9 @@
 /**
- * @file odometory.cpp
+ * @file odometry.cpp
  * @author Teruru-52
  */
 
-#include "controller/odometory.h"
+#include "controller/odometry.h"
 
 namespace undercarriage
 {
