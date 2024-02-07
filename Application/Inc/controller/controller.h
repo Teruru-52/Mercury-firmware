@@ -7,7 +7,7 @@
 #define CONTROLLER_H_
 
 #include "hardware/speaker.h"
-#include "odometory.h"
+#include "controller/odometory.h"
 #include "controller/pid_controller.h"
 #include "controller/tracker.h"
 #include "controller/identification.h"

@@ -3,7 +3,7 @@
  * @author Teruru-52
  */
 
-#include "trajectory.h"
+#include "controller/trajectory.h"
 
 namespace trajectory
 {

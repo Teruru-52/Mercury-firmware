@@ -8,7 +8,7 @@
 #ifndef INDENTIFICATION_H_
 #define INDENTIFICATION_H_
 
-#include "trajectory.h"
+#include "controller/trajectory.h"
 #include "hardware/motor.h"
 
 namespace undercarriage
