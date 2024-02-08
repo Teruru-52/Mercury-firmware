@@ -161,11 +161,28 @@ namespace undercarriage
         }
     }
 
-    void Controller::Turn(int angle)
+    void Controller::Turn(const SlalomType &slalom_type)
     {
-        angle_turn = angle;
-        ref_theta = static_cast<float>(angle) * M_PI / 180.0f;
-        slalom->ResetTrajectory(angle, ref_theta - theta_error, cur_pos);
+        this->slalom_type = slalom_type;
+        switch (slalom_type)
+        {
+        case SlalomType::left_90:
+            ref_theta = M_PI * 0.5f;
+            break;
+        case SlalomType::right_90:
+            ref_theta = -M_PI * 0.5f;
+            break;
+        case SlalomType::left_45:
+            ref_theta = M_PI * 0.25f;
+            break;
+        case SlalomType::right_45:
+            ref_theta = -M_PI * 0.25f;
+            break;
+        default:
+            ref_theta = 0.0;
+            break;
+        }
+        slalom->ResetTrajectory(slalom_type, ref_theta - theta_error, cur_pos);
         tracker->SetXi(cur_vel.x);
         mode_ctrl = turn;
 
@@ -387,7 +404,7 @@ namespace undercarriage
         //             cur_pos.x = GetFrontWallPos(ir_fmean);
         //             cur_pos.y = 0.0;
         //             odom->OverWritePos(cur_pos);
-        //             slalom->ResetTrajectory(angle_turn, ref_theta - theta_error, cur_pos);
+        //             slalom->ResetTrajectory(slalom_type, ref_theta - theta_error, cur_pos);
         //             CalcSlalomInput();
         //         }
         //         else // しきい値より前壁センサの平均値が小さければ，slalomを開始せずに直進する
@@ -522,14 +539,6 @@ namespace undercarriage
         PivotTurn(90);
         Back();
         Acceleration(AccType::start);
-    }
-
-    void Controller::InitializePosition()
-    {
-        PivotTurn(90);
-        FrontWallCorrection();
-        PivotTurn(90);
-        Back();
     }
 
     void Controller::Brake()
@@ -697,14 +706,14 @@ namespace undercarriage
         else if (dir_diff == 1 || dir_diff == -3)
         {
             if (ENABLE_SLALOM)
-                Turn(-90);
+                Turn(SlalomType::right_90);
             else
             {
                 Acceleration(AccType::stop);
                 if (ir_value.sl > ir_param->is_wall.sl && ir_value.sr > ir_param->is_wall.sr)
                     FrontWallCorrection();
                 PivotTurn(-90);
-                if (prev_wall_cnt == 2)
+                if (prev_wall_cnt == 3)
                     cnt_can_back++;
                 // printf("cnt: %d\n", cnt_can_back);
                 if (cnt_can_back >= CNT_BACK && flag_wall_front && flag_wall_sl)
@@ -721,14 +730,14 @@ namespace undercarriage
         else if (dir_diff == -1 || dir_diff == 3)
         {
             if (ENABLE_SLALOM)
-                Turn(90);
+                Turn(SlalomType::left_90);
             else
             {
                 Acceleration(AccType::stop);
                 if (ir_value.sl > ir_param->is_wall.sl && ir_value.sr > ir_param->is_wall.sr)
                     FrontWallCorrection();
                 PivotTurn(90);
-                if (prev_wall_cnt == 2)
+                if (prev_wall_cnt == 3)
                     cnt_can_back++;
                 // printf("cnt: %d\n", cnt_can_back);
                 if (cnt_can_back >= CNT_BACK && flag_wall_front && flag_wall_sl)
@@ -771,7 +780,7 @@ namespace undercarriage
 
         case Operation::TURN_LEFT90:
             if (ENABLE_SLALOM)
-                Turn(90);
+                Turn(SlalomType::left_90);
             else
             {
                 Acceleration(AccType::stop);
@@ -784,7 +793,7 @@ namespace undercarriage
 
         case Operation::TURN_RIGHT90:
             if (ENABLE_SLALOM)
-                Turn(-90);
+                Turn(SlalomType::right_90);
             else
             {
                 Acceleration(AccType::stop);

@@ -64,6 +64,8 @@ namespace trajectory
     protected:
         Velocity *velocity;
         Parameters *params;
+        float v_ref = 0;
+        Parameter param;
 
         bool flag_trj = false;
         int trj_mode = 1;
@@ -79,7 +81,7 @@ namespace trajectory
         int GetRefSize() { return t_end * 1e+3; };
         virtual void UpdateRef() = 0;
         bool Finished() { return flag_trj; };
-        virtual void Reset() = 0;
+        void Reset();
         bool GetWallFlag() { return flag_read_side_wall; };
         void ResetWallFlag() { flag_read_side_wall = false; };
         virtual ~OnlineTrajectoryBase() {}
@@ -91,6 +93,14 @@ namespace trajectory
     class Slalom : public OnlineTrajectoryBase
     {
     public:
+        typedef enum
+        {
+            left_90,
+            right_90,
+            left_45,
+            right_45,
+        } SlalomType;
+
         explicit Slalom(Velocity *velocity, Parameters *params) : OnlineTrajectoryBase(velocity, params),
                                                                   ss_turn90(ctrl::slalom::Shape(ctrl::Pose(90, 90, M_PI / 2), 80, 0, params->run1.j_max, params->run1.a_max, params->run1.v_max)),
                                                                   ss(ss_turn90),
@@ -98,23 +108,22 @@ namespace trajectory
         {
             ResetTrajectory();
         };
-        void ResetTrajectory(int angle = 90, float ref_theta = M_PI * 0.5, ctrl::Pose cur_pos = {0, 0, 0});
+        void ResetTrajectory(const SlalomType &slalom_type = left_90, float ref_theta = M_PI * 0.5, ctrl::Pose cur_pos = {0, 0, 0});
         void UpdateRef() override;
         ctrl::Pose GetRefPosition() { return ref_pos; };
         ctrl::Pose GetRefVelocity() { return ref_vel; };
         ctrl::Pose GetRefAcceleration() { return ref_acc; };
-        void Reset() override;
 
     private:
         ctrl::slalom::Shape ss_turn90;
         ctrl::slalom::Shape ss;
         ctrl::slalom::Trajectory st;
         ctrl::State state;
+        SlalomType slalom_type;
 
         ctrl::Pose ref_pos{0, 0, 0}; // absolute coordinates
         ctrl::Pose ref_vel{0, 0, 0}; // robot coordinates
         ctrl::Pose ref_acc{0, 0, 0}; // robot coordinates
-        float v_ref = 0;
     };
 
     /**
@@ -134,23 +143,15 @@ namespace trajectory
         explicit Acceleration(Velocity *velocity, Parameters *params) : OnlineTrajectoryBase(velocity, params)
         {
             ResetTrajectory();
-            ad_start.reset(params->run1.j_max, params->run1.a_max, params->run1.v_max, 0, velocity->v1, FORWARD_LENGTH_START, 0, 0);
-            ad_start_half.reset(params->run1.j_max, params->run1.a_max, params->run1.v_max, 0, velocity->v1, FORWARD_LENGTH_HALF, 0, 0);
-            ad_stop.reset(params->run1.j_max, params->run1.a_max, params->run1.v_max, velocity->v1, 0, FORWARD_LENGTH_HALF, 0, 0);
         };
         void ResetTrajectory(const AccType &acc_type = start, float cur_vel = 0, uint8_t num_square = 1);
         void UpdateRef() override;
         float GetRefPosition() { return ref_pos; };
         float GetRefVelocity() { return ref_vel; };
         float GetRefAcceleration() { return ref_acc; };
-        void Reset() override;
 
     private:
         ctrl::AccelDesigner ad;
-        ctrl::AccelDesigner ad_start;
-        ctrl::AccelDesigner ad_start_half;
-        ctrl::AccelDesigner ad_stop;
-
         AccType acc_type;
 
         float ref_pos;

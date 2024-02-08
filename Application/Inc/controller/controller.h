@@ -18,6 +18,7 @@
 #define WALL_TIMING 0.8
 #define CNT_BACK 3
 
+using SlalomType = trajectory::Slalom::SlalomType;
 using AccType = trajectory::Acceleration::AccType;
 using namespace hardware;
 
@@ -73,7 +74,7 @@ namespace undercarriage
         void SetStep_Iden();
         void SetPartyTrick();
         void PivotTurn(int angle);
-        void Turn(int angle);
+        void Turn(const SlalomType &slalom_type);
         void Acceleration(const AccType &acc_type, uint8_t num_square = 1);
         void GoStraight();
         void FrontWallCorrection();
@@ -95,7 +96,6 @@ namespace undercarriage
         void FrontWallCorrection(const IR_Value &ir_value);
         void BlindAlley();
         void StartMove();
-        void InitializePosition();
         void Brake();
         void InputVelocity(float input_v, float input_w);
 
@@ -154,9 +154,9 @@ namespace undercarriage
         float theta_base = 0.0; // theta_global_ref
         float theta_global = 0.0;
         float theta_error = 0.0;
-        int angle_turn;
         float ref_theta = 0;
         float length;
+        SlalomType slalom_type;
         ctrl::Pose cur_pos{0, 0, 0};
         ctrl::Pose cur_vel{0, 0, 0};
         ctrl::Pose ref_pos{0, 0, 0}; // absolute coordinates
