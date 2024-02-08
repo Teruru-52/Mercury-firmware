@@ -1,5 +1,6 @@
 /**
  * @file machine_state.h
+ * @brief State of the robot and the mode of the robot
  * @author Teruru-52
  */
 

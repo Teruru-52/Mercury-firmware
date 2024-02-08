@@ -1,5 +1,6 @@
 /**
  * @file led.cpp
+ * @brief LED for debugging and UI, and for indicating the state of the robot
  * @author Teruru-52
  */
 

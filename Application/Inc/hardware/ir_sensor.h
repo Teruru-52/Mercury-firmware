@@ -1,5 +1,6 @@
 /**
  * @file ir_sensor.h
+ * @brief IR sensor for wall detection
  * @author Teruru-52
  */
 
@@ -8,8 +9,14 @@
 
 #include "led.h"
 
+/**
+ * @brief namespace for hardware
+ */
 namespace hardware
 {
+    /**
+     * @brief struct for IR sensor value for wall detection
+     */
     struct IR_Value
     {
         uint32_t fl;
@@ -18,6 +25,9 @@ namespace hardware
         uint32_t sr;
     };
 
+    /**
+     * @brief struct for wall correction
+     */
     struct IR_Base
     {
         float fl;
@@ -27,6 +37,9 @@ namespace hardware
         float slalom;
     };
 
+    /**
+     * @brief struct for front wall correction using log approximation
+     */
     struct IR_LogCoeff
     {
         float a;
@@ -35,6 +48,9 @@ namespace hardware
         float d;
     };
 
+    /**
+     * @brief struct for IR sensor parameter for controller
+     */
     struct IR_Param
     {
         IR_Base is_wall;
@@ -42,6 +58,9 @@ namespace hardware
         IR_LogCoeff log;
     };
 
+    /**
+     * @brief class for IR sensor
+     */
     class IRsensor
     {
     private:

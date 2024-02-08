@@ -1,6 +1,7 @@
 /**
  * @file flash.cpp
  * @author idt12312
+ * @brief Flash memory management
  * @date Febrary 7th, 2023
  */
 

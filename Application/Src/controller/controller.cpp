@@ -1,6 +1,7 @@
 /**
  * @file controller.cpp
  * @author Teruru-52
+ * @brief controller for maze running
  */
 
 #include "controller/controller.h"

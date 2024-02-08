@@ -1,6 +1,7 @@
 /**
  * @file imu.h
  * @author Teruru-52
+ * @brief IMU for odometry
  */
 
 #ifndef HARDWARE_IMU_H_
@@ -8,8 +9,14 @@
 
 #include "main.h"
 
+/**
+ * @brief namespace for hardware
+ */
 namespace hardware
 {
+    /**
+     * @brief class for IMU
+     */
     class IMU
     {
     public:

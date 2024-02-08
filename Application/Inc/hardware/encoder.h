@@ -1,5 +1,6 @@
 /**
  * @file encoder.h
+ * @brief encoder for odometry
  * @author Teruru-52
  */
 
@@ -8,8 +9,14 @@
 
 #include "main.h"
 
+/**
+ * @brief namespace for hardware
+ */
 namespace hardware
 {
+    /**
+     * @brief class for encoder
+     */
     class Encoder
     {
     public:

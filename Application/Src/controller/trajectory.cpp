@@ -1,5 +1,6 @@
 /**
  * @file trajectory.cpp
+ * @brief trajectory generation for undercarriage
  * @author Teruru-52
  */
 

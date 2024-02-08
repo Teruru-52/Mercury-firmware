@@ -1,6 +1,7 @@
 /**
  * @file machine_state.cpp
  * @author Teruru-52
+ * @brief State of the robot and the mode of the robot
  * @date January 13th, 2024
  */
 

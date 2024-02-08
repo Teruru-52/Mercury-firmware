@@ -1,7 +1,7 @@
 /**
  * @file identification.h
- *
  * @date Jan 27th, 2024
+ * @brief system identification for undercarriage
  * @author Teruru-52
  */
 
@@ -11,9 +11,15 @@
 #include "controller/trajectory.h"
 #include "hardware/motor.h"
 
+/**
+ * @brief namespace for undercarriage control
+ */
 namespace undercarriage
 {
-    class Identification
+    /**
+     * @brief Base class for identification
+     */
+    class IdentificationBase
     {
     protected:
         float u;
@@ -23,14 +29,17 @@ namespace undercarriage
         float *output;
 
     public:
-        explicit Identification() : flag(false), index(0){};
+        explicit IdentificationBase() : flag(false), index(0){};
         virtual float GetInput(const float cur_vel) = 0;
         bool Finished() { return flag; };
         virtual void OutputLog() = 0;
-        virtual ~Identification() { delete[] output; };
+        virtual ~IdentificationBase() { delete[] output; };
     };
 
-    class M_Identification : public Identification
+    /**
+     * @brief class for M sequence identification
+     */
+    class M_Identification : public IdentificationBase
     {
     private:
         float *input;
@@ -45,7 +54,10 @@ namespace undercarriage
         ~M_Identification() { delete[] input; };
     };
 
-    class Step_Identification : public Identification
+    /**
+     * @brief class for step identification
+     */
+    class Step_Identification : public IdentificationBase
     {
     private:
         float input;

@@ -1,6 +1,7 @@
 /**
  * @file tracker.h
  * @date Jan 27th, 2024
+ * @brief trajectory tracker for undercarriage
  * @author Teruru-52
  */
 
@@ -9,8 +10,14 @@
 
 #include "pose.h"
 
+/**
+ * @brief namespace for undercarriage control
+ */
 namespace undercarriage
 {
+    /**
+     * @brief Base class for trajectory tracking controller
+     */
     class TrackerBase
     {
     protected:
@@ -35,6 +42,9 @@ namespace undercarriage
         virtual ~TrackerBase() {}
     };
 
+    /**
+     * @brief class for Kanayama control method for trajectory tracking
+     */
     class Kanayama : public TrackerBase
     {
     private:
@@ -53,6 +63,9 @@ namespace undercarriage
         void Reset() override;
     };
 
+    /**
+     * @brief class for dynamic feedback linearization for trajectory tracking
+     */
     class DynamicFeedback : public TrackerBase
     {
     private:
@@ -82,6 +95,9 @@ namespace undercarriage
         void Reset() override;
     };
 
+    /**
+     * @brief class for time-varying feedback linearization for trajectory tracking
+     */
     class TimeVaryingFeedback : public TrackerBase
     {
     private:

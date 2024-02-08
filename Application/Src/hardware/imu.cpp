@@ -1,5 +1,6 @@
 /**
  * @file imu.cpp
+ * @brief IMU for odometry
  * @author Teruru-52
  */
 

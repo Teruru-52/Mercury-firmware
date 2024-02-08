@@ -1,5 +1,6 @@
 /**
  * @file motor.cpp
+ * @brief motor control for undercarriage
  * @author Teruru-52
  */
 

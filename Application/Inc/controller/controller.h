@@ -1,6 +1,7 @@
 /**
  * @file controller.h
  * @author Teruru-52
+ * @brief controller for maze running
  */
 
 #ifndef CONTROLLER_H_
@@ -20,8 +21,14 @@
 using AccType = trajectory::Acceleration::AccType;
 using namespace hardware;
 
+/**
+ * @brief namespace for undercarriage control
+ */
 namespace undercarriage
 {
+    /**
+     * @brief class for undercarriage control
+     */
     class Controller
     {
     public:

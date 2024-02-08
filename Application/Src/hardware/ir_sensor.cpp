@@ -1,5 +1,6 @@
 /**
  * @file ir_sensor.cpp
+ * @brief IR sensor for wall detection
  * @author Teruru-52
  */
 

@@ -1,6 +1,7 @@
 /**
  * @file odometry.h
  * @author Teruru-52
+ * @brief odometry for undercarriage control
  */
 
 #ifndef ODOMETORY_H_
@@ -10,8 +11,14 @@
 #include "hardware/imu.h"
 #include "pose.h"
 
+/**
+ * @brief namespace for undercarriage control
+ */
 namespace undercarriage
 {
+    /**
+     * @brief class for odometry
+     */
     class Odometory
     {
     private:

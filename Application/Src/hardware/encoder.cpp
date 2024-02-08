@@ -1,5 +1,6 @@
 /**
  * @file encoder.cpp
+ * @brief encoder for odometry
  * @author Teruru-52
  */
 

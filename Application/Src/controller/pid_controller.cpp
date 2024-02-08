@@ -1,6 +1,7 @@
 /**
  * @file pid_controller.cpp
  * @author Teruru-52
+ * @brief PID controller
  */
 
 #include "controller/pid_controller.h"

@@ -1,5 +1,6 @@
 /**
  * @file instance.h
+ * @brief This file is used to declare the instances of the classes
  * @author Teruru-52
  */
 

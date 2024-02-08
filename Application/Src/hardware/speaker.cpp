@@ -1,5 +1,6 @@
 /**
  * @file speaker.cpp
+ * @brief Speaker for debugging and UI, and for indicating the state of the robot
  * @author Teruru-52
  */
 

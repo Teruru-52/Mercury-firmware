@@ -1,6 +1,7 @@
 /**
  * @file pid_controller.h
  * @author Teruru-52
+ * @brief PID controller
  */
 
 #ifndef PID_CONTROLLER_H
@@ -10,6 +11,9 @@
 
 // 後退差分による離散化
 
+/**
+ * @brief class for integrator
+ */
 class Integrator
 {
 public:
@@ -24,6 +28,9 @@ private:
     float pre_error;
 };
 
+/**
+ * @brief class for differentiator
+ */
 class Differentiator
 {
 public:
@@ -41,6 +48,9 @@ private:
     float pre_deriv;
 };
 
+/**
+ * @brief class for PID controller
+ */
 class PID
 {
 public:
@@ -62,6 +72,9 @@ private:
     Differentiator differentiator;
 };
 
+/**
+ * @brief class for PID instances
+ */
 class PID_Instances
 {
 public:

@@ -1,5 +1,6 @@
 /**
  * @file motor.h
+ * @brief motor control for undercarriage
  * @author Teruru-52
  */
 
@@ -8,8 +9,14 @@
 
 #include "hardware/ir_sensor.h"
 
+/**
+ * @brief namespace for hardware
+ */
 namespace hardware
 {
+    /**
+     * @brief class for motor control
+     */
     class Motor
     {
     private:
